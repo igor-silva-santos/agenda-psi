@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Calendar, Clock, Phone, Mail, MapPin, Heart, CheckCircle } from 'lucide-react';
+import Link from 'next/link';
 import AgendamentoForm from '@/components/AgendamentoFormMelhorado';
 import PsicologaInfo from '@/components/PsicologaInfo';
 
@@ -16,15 +17,23 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
               <Heart className="h-8 w-8 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-800">Dra. Jandira</h1>
+              <h1 className="text-2xl font-bold text-gray-800">Dra. Jandira Frederick</h1>
             </div>
-            <button
-              onClick={() => setShowAgendamento(true)}
-              className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-8 py-4 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all flex items-center space-x-2 shadow-lg transform hover:scale-105"
-            >
-              <Calendar className="h-5 w-5" />
-              <span className="font-medium">Agendar Consulta</span>
-            </button>
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/auth/signin"
+                className="text-gray-700 hover:text-emerald-600 transition-colors font-medium"
+              >
+                Entrar
+              </Link>
+              <button
+                onClick={() => setShowAgendamento(true)}
+                className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-8 py-4 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all flex items-center space-x-2 shadow-lg transform hover:scale-105"
+              >
+                <Calendar className="h-5 w-5" />
+                <span className="font-medium">Agendar Consulta</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -127,7 +136,7 @@ export default function Home() {
       <footer className="bg-gray-800 text-white py-8">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-gray-300">
-            © 2024 Dra. Jandira - Psicóloga CRP 06/123456. Todos os direitos reservados.
+            © 2024 Dra. Jandira Frederick - Psicóloga CRP 06/123456. Todos os direitos reservados.
           </p>
           <p className="text-gray-400 text-sm mt-2">
             Este site está em conformidade com a LGPD e garante a proteção dos seus dados pessoais.
