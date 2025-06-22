@@ -2,7 +2,8 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, LogOut, Loader2 } from 'lucide-react';
+// CORREÇÃO: Removido 'LayoutDashboard' que não era usado.
+import { LogOut, Loader2 } from 'lucide-react';
 
 export default function PortalPage() {
   const { data: session, status } = useSession();
@@ -18,7 +19,7 @@ export default function PortalPage() {
 
   if (status === 'unauthenticated') {
     router.push('/auth/signin');
-    return null; // Correção: A variável `null` não era usada, mas o retorno dela é válido.
+    return null;
   }
 
   return (
@@ -43,7 +44,6 @@ export default function PortalPage() {
           <p className="text-gray-600">
             Este é o seu espaço seguro para gerenciar suas consultas e acompanhar sua jornada terapêutica.
           </p>
-          {/* Futuras funcionalidades aqui */}
         </div>
       </main>
     </div>

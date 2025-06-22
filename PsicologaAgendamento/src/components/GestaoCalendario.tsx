@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { showToast } from '../lib/toast';
-import { Calendar, Clock, Save, Trash2, Plus, ChevronLeft, ChevronRight, Loader2, XCircle } from 'lucide-react';
+// CORREÇÃO: Removidos 'Calendar' e 'Clock' que não eram usados.
+import { Save, Trash2, Plus, ChevronLeft, ChevronRight, Loader2, XCircle } from 'lucide-react';
 
 interface TimeSlot {
   start: string;
@@ -38,7 +39,6 @@ export default function GestaoCalendario() {
       if (docSnap.exists()) {
         setAvailability(docSnap.data() as DayAvailability);
       } else {
-        // Se não existir, define um estado padrão (desabilitado)
         setAvailability({ enabled: false, slots: [] });
       }
     } catch (error) {
@@ -58,7 +58,6 @@ export default function GestaoCalendario() {
     setSaving(true);
     const dateStr = formatToYYYYMMDD(selectedDate);
     try {
-      // Se o dia estiver desabilitado e não tiver horários, removemos o documento para limpar o banco.
       if (!availability.enabled && availability.slots.length === 0) {
         await deleteDoc(doc(db, 'availabilities', dateStr));
         showToast('Configuração do dia removida.', 'success');

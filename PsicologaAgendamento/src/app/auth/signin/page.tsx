@@ -53,7 +53,7 @@ export default function SignIn() {
       } else {
         router.push("/portal");
       }
-    } catch (_error) { // Correção: A variável de erro não é usada, então prefixamos com _
+    } catch (_error) { // CORREÇÃO: Variável não usada, prefixada com _
       setServerError("Erro interno. Tente novamente.");
     } finally {
       setIsLoading(false);
@@ -64,7 +64,7 @@ export default function SignIn() {
     setIsLoading(true);
     try {
       await signIn('google', { callbackUrl: '/portal' });
-    } catch (_error) { // Correção: A variável de erro não é usada, então prefixamos com _
+    } catch (_error) { // CORREÇÃO: Variável não usada, prefixada com _
       setServerError('Erro ao fazer login com Google');
       setIsLoading(false);
     }
