@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Calendar, Clock, Phone, Mail, MapPin, Heart, CheckCircle } from 'lucide-react';
+import { Calendar, Phone, Mail, MapPin, Heart, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import AgendamentoForm from '@/components/AgendamentoFormMelhorado';
 import PsicologaInfo from '@/components/PsicologaInfo';
@@ -10,7 +10,7 @@ export default function Home() {
   const [showAgendamento, setShowAgendamento] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
+    <div className="min-h-screen bg-blue-50">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-6">
@@ -22,13 +22,13 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               <Link
                 href="/auth/signin"
-                className="text-gray-700 hover:text-emerald-600 transition-colors font-medium"
+                className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
               >
                 Entrar
               </Link>
               <button
                 onClick={() => setShowAgendamento(true)}
-                className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-8 py-4 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all flex items-center space-x-2 shadow-lg transform hover:scale-105"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all flex items-center space-x-2 shadow-lg transform hover:scale-105"
               >
                 <Calendar className="h-5 w-5" />
                 <span className="font-medium">Agendar Consulta</span>
@@ -50,15 +50,15 @@ export default function Home() {
           </p>
           <div className="flex flex-wrap justify-center gap-6 mb-12">
             <div className="flex items-center space-x-2 text-gray-700">
-              <CheckCircle className="h-5 w-5 text-green-600" />
+              <CheckCircle className="h-5 w-5 text-blue-600" />
               <span>Atendimento presencial e online</span>
             </div>
             <div className="flex items-center space-x-2 text-gray-700">
-              <CheckCircle className="h-5 w-5 text-green-600" />
+              <CheckCircle className="h-5 w-5 text-blue-600" />
               <span>Horários flexíveis</span>
             </div>
             <div className="flex items-center space-x-2 text-gray-700">
-              <CheckCircle className="h-5 w-5 text-green-600" />
+              <CheckCircle className="h-5 w-5 text-blue-600" />
               <span>Primeira consulta com desconto</span>
             </div>
           </div>
@@ -83,7 +83,7 @@ export default function Home() {
             <div className="text-center">
               <Mail className="h-12 w-12 text-blue-600 mx-auto mb-4" />
               <h4 className="text-xl font-semibold text-gray-800 mb-2">E-mail</h4>
-              <p className="text-gray-600">contato@draanasilva.com.br</p>
+              <p className="text-gray-600">contato@drajandira.com.br</p>
             </div>
             <div className="text-center">
               <MapPin className="h-12 w-12 text-blue-600 mx-auto mb-4" />
@@ -124,8 +124,7 @@ export default function Home() {
                 Qual o valor da consulta?
               </h4>
               <p className="text-gray-600">
-                O valor da consulta é R$ 150,00. Oferecemos desconto de 20% na primeira consulta 
-                para novos pacientes.
+                O valor da consulta é R$ 150,00.
               </p>
             </div>
           </div>
@@ -136,7 +135,7 @@ export default function Home() {
       <footer className="bg-gray-800 text-white py-8">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-gray-300">
-            © 2024 Dra. Jandira Frederick - Psicóloga CRP 06/123456. Todos os direitos reservados.
+            © 2025 Dra. Jandira Frederick - Psicóloga CRP 06/123456. Todos os direitos reservados.
           </p>
           <p className="text-gray-400 text-sm mt-2">
             Este site está em conformidade com a LGPD e garante a proteção dos seus dados pessoais.
@@ -146,9 +145,8 @@ export default function Home() {
 
       {/* Modal de Agendamento */}
       {showAgendamento && (
-        <AgendamentoForm onClose={() => setShowAgendamento(false)} />
+        <AgendamentoForm isOpen={showAgendamento} onClose={() => setShowAgendamento(false)} />
       )}
     </div>
   );
 }
-

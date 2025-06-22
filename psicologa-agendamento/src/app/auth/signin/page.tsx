@@ -1,46 +1,60 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn, getSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const signInSchema = z.object({
+  email: z.string().min(1, { message: "O e-mail é obrigatório." }).email('Formato de e-mail inválido.'),
+  password: z.string().min(1, "A senha é obrigatória."),
+}).superRefine((data, ctx) => {
+  if (data.email !== 'teste@teste.com') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['email'],
+      message: "Para fins de teste, o e-mail deve ser 'teste@teste.com'.",
+    });
+  }
+});
+
+type SignInFormType = z.infer<typeof signInSchema>;
 
 export default function SignIn() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  
+  const [serverError, setServerError] = useState("");
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignInFormType>({
+    resolver: zodResolver(signInSchema),
+  });
+
+  const onSubmit = async (data: SignInFormType) => {
+    setServerError('');
     setIsLoading(true);
 
     try {
       const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        isSignUp: 'false',
+        ...data,
         redirect: false
       });
 
       if (result?.error) {
-        setError('Email ou senha incorretos');
+        setServerError('Email ou senha incorretos.');
       } else {
-        // Verificar se o login foi bem-sucedido
-        const session = await getSession();
-        if (session) {
-          router.push('/portal');
-        }
+        router.push("/portal");
       }
-    } catch (error) {
-      setError('Erro interno. Tente novamente.');
+    } catch (_error) {
+      setServerError("Erro interno. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -50,21 +64,17 @@ export default function SignIn() {
     setIsLoading(true);
     try {
       await signIn('google', { callbackUrl: '/portal' });
-    } catch (error) {
-      setError('Erro ao fazer login com Google');
+    } catch (_error) {
+      setServerError('Erro ao fazer login com Google');
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-        {/* Header */}
         <div className="text-center mb-8">
-          <Link 
-            href="/"
-            className="inline-flex items-center text-emerald-600 hover:text-emerald-700 mb-4 transition-colors"
-          >
+          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4 transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar ao site
           </Link>
@@ -72,12 +82,7 @@ export default function SignIn() {
           <p className="text-gray-600">Acesse sua conta para gerenciar consultas</p>
         </div>
 
-        {/* Google Sign In */}
-        <button
-          onClick={handleGoogleSignIn}
-          disabled={isLoading}
-          className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors mb-6 disabled:opacity-50"
-        >
+        <button onClick={handleGoogleSignIn} disabled={isLoading} className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors mb-6 disabled:opacity-50">
           <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -88,92 +93,49 @@ export default function SignIn() {
         </button>
 
         <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">ou</span>
-          </div>
+          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-300" /></div>
+          <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">ou</span></div>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-            {error}
-          </div>
-        )}
+        {serverError && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{serverError}</div>}
 
-        {/* Sign In Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Mail className="h-4 w-4 inline mr-2 text-emerald-600" />
+              <Mail className="h-4 w-4 inline mr-2 text-blue-600" />
               Email
             </label>
-            <input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-              placeholder="seu@email.com"
-            />
+            <input {...register("email")} type="email" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder:text-gray-500" placeholder="seu@email.com"/>
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
           </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Lock className="h-4 w-4 inline mr-2 text-emerald-600" />
+              <Lock className="h-4 w-4 inline mr-2 text-blue-600" />
               Senha
             </label>
             <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all pr-12"
-                placeholder="Sua senha"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
+              <input {...register("password")} type={showPassword ? 'text' : 'password'} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 text-gray-900 placeholder:text-gray-500" placeholder="Sua senha"/>
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
           </div>
-
           <div className="flex items-center justify-between">
-            <label className="flex items-center">
-              <input type="checkbox" className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
-              <span className="ml-2 text-sm text-gray-600">Lembrar de mim</span>
-            </label>
-            <Link href="/auth/forgot-password" className="text-sm text-emerald-600 hover:text-emerald-700">
-              Esqueci a senha
-            </Link>
+            <label className="flex items-center"><input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" /><span className="ml-2 text-sm text-gray-600">Lembrar de mim</span></label>
+            <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:text-blue-700">Esqueci a senha</Link>
           </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50 font-medium"
-          >
+          <button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 font-medium">
             {isLoading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
 
-        {/* Sign Up Link */}
         <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            Não tem uma conta?{' '}
-            <Link href="/auth/signup" className="text-emerald-600 hover:text-emerald-700 font-medium">
-              Criar conta
-            </Link>
+          <p className="text-gray-600">Não tem uma conta?{' '}
+            <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700 font-medium">Criar conta</Link>
           </p>
         </div>
       </div>
     </div>
   );
 }
-

@@ -1,6 +1,7 @@
 'use client';
 
 import { GraduationCap, Award, Users, Clock } from 'lucide-react';
+import Image from 'next/image';
 
 export default function PsicologaInfo() {
   return (
@@ -9,11 +10,22 @@ export default function PsicologaInfo() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Foto e informações básicas */}
           <div className="text-center lg:text-left">
-            <div className="w-64 h-64 bg-gradient-to-br from-blue-200 to-green-200 rounded-full mx-auto lg:mx-0 mb-6 flex items-center justify-center">
-              <span className="text-6xl text-gray-600">👩‍⚕️</span>
+            <div className="relative w-64 h-64 rounded-full mx-auto lg:mx-0 mb-6 overflow-hidden shadow-lg">
+              <Image
+                src="/psicologa.jpg" // Lembrete: A imagem "psicologa.jpg" deve estar na pasta /public
+                alt="Foto da Dra. Jandira Frederick"
+                fill
+                sizes="(max-width: 1024px) 100vw, 256px"
+                className="object-cover transition-transform duration-500 hover:scale-110"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '[https://placehold.co/256x256/E0E7FF/4F46E5?text=Dra.+Jandira](https://placehold.co/256x256/E0E7FF/4F46E5?text=Dra.+Jandira)';
+                  target.onerror = null;
+                }}
+              />
             </div>
             <h3 className="text-3xl font-bold text-gray-800 mb-4">
-              Dra. Jandira
+              Dra. Jandira Frederick
             </h3>
             <p className="text-xl text-blue-600 mb-4">
               Psicóloga Clínica CRP 06/123456
@@ -96,4 +108,3 @@ export default function PsicologaInfo() {
     </section>
   );
 }
-
