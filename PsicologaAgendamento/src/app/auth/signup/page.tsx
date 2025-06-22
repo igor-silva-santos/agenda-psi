@@ -5,7 +5,7 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
@@ -15,6 +15,7 @@ const signUpSchema = z.object({
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres."),
   confirmPassword: z.string()
 }).superRefine((data, ctx) => {
+  // CORREÇÃO: Movida a validação específica para 'superRefine' para evitar conflitos de tipo.
   if (data.email !== 'teste@teste.com') {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -49,7 +50,7 @@ export default function SignUp() {
     resolver: zodResolver(signUpSchema),
   });
 
-  const onSubmit = async (data: SignUpFormType) => {
+  const onSubmit: SubmitHandler<SignUpFormType> = async (data) => {
     setServerError('');
     setIsLoading(true);
 

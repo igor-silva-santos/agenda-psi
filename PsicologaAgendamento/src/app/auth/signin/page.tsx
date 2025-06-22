@@ -5,10 +5,11 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
+// CORREÇÃO: A validação específica foi movida para .superRefine para evitar conflitos de tipo.
 const signInSchema = z.object({
   email: z.string().min(1, { message: "O e-mail é obrigatório." }).email('Formato de e-mail inválido.'),
   password: z.string().min(1, "A senha é obrigatória."),
@@ -38,14 +39,15 @@ export default function SignIn() {
     resolver: zodResolver(signInSchema),
   });
 
-  const onSubmit = async (data: SignInFormType) => {
+  const onSubmit: SubmitHandler<SignInFormType> = async (data) => {
     setServerError('');
     setIsLoading(true);
 
     try {
       const result = await signIn('credentials', {
         ...data,
-        redirect: false
+        isSignUp: 'false',
+        redirect: false,
       });
 
       if (result?.error) {
