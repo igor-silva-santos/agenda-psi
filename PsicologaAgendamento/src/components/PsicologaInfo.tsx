@@ -12,7 +12,7 @@ export default function PsicologaInfo() {
           <div className="text-center lg:text-left">
             <div className="relative w-64 h-64 rounded-full mx-auto lg:mx-0 mb-6 overflow-hidden shadow-lg">
               <Image
-                src="/psicologa.jpg"
+                src="/psicologa.jpg" // Lembrete: A imagem "psicologa.jpg" deve estar na pasta /public
                 alt="Foto da Dra. Jandira Frederick"
                 fill
                 sizes="(max-width: 1024px) 100vw, 256px"
