@@ -1,19 +1,25 @@
 'use client';
 
-// CORREÇÃO: Este ficheiro continha variáveis não utilizadas.
-// Ele parece ser um componente legado/antigo.
-// A versão limpa está abaixo. Se não o estiver a usar, pode apagá-lo.
+// CORREÇÃO: Este ficheiro continha variáveis não utilizadas e tipos 'any'.
+// A versão abaixo está limpa e funcional, mas este componente parece não estar
+// a ser utilizado no projeto principal, que usa 'AgendamentoFormMelhorado'.
+// Considere apagar este ficheiro se ele não for necessário.
 
 import { useState } from 'react';
 import CalendarioAgendamento from './CalendarioAgendamento';
 import { useForm } from 'react-hook-form';
 
-export default function AgendamentoForm() {
-  const [dataSelecionada, setDataSelecionada] = useState(new Date());
-  const { register, handleSubmit } = useForm();
+interface FormData {
+  nome: string;
+  whatsapp: string;
+}
 
-  const onAgendar = (dados: any) => {
-    console.log(dados);
+export default function AgendamentoForm() {
+  const [dataSelecionada] = useState(new Date()); // setDataSelecionada removido pois não era usado
+  const { register, handleSubmit } = useForm<FormData>();
+
+  const onAgendar = (dados: FormData) => {
+    console.log({ ...dados, data: dataSelecionada });
   };
 
   return (

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { showToast } from '../lib/toast';
-// CORREÇÃO: Removidos 'Calendar' e 'Clock' que não eram usados.
+// CORREÇÃO: Removidos os ícones não utilizados.
 import { Save, Trash2, Plus, ChevronLeft, ChevronRight, Loader2, XCircle } from 'lucide-react';
 
 interface TimeSlot {
