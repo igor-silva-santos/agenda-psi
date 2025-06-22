@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Clock, Loader2 } from 'lucide-react';
+// CORREÇÃO: Removidos 'Calendar' e 'Clock' que não eram usados neste ficheiro.
+import { ChevronLeft, ChevronRight, Loader2, Clock } from 'lucide-react';
 
 interface CalendarioAgendamentoProps {
   onSelect: (date: string, time: string) => void;
@@ -59,7 +60,7 @@ export default function CalendarioAgendamento({ onSelect }: CalendarioAgendament
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
       const newDate = new Date(prev);
-      newDate.setDate(1); // Avoid issues with different month lengths
+      newDate.setDate(1);
       newDate.setMonth(prev.getMonth() + (direction === 'next' ? 1 : -1));
       return newDate;
     });
