@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/igor.ssantos/Documents/psicologa-agendamento/src/app/providers.tsx"],"sourcesContent":["'use client';\n\nimport { SessionProvider } from 'next-auth/react';\n\nexport function Providers({ children }: { children: React.ReactNode }) {\n  return (\n    <SessionProvider>\n      {children}\n    </SessionProvider>\n  );\n}\n\n"],"names":[],"mappings":";;;;AAEA;AAFA;;;AAIO,SAAS,UAAU,EAAE,QAAQ,EAAiC;IACnE,qBACE,6LAAC,iJAAA,CAAA,kBAAe;kBACb;;;;;;AAGP;KANgB","debugId":null}}]
-}
