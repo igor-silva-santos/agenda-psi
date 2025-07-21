@@ -73,9 +73,19 @@ export async function POST(request: Request, { params }: { params: { date: strin
       return new NextResponse('Availability entry already exists for this date', { status: 409 });
     }
 
+    // Receber os campos obrigatórios do body
+    const { horaInicio, horaFim, almocoInicio, almocoFim } = await request.json();
+    if (!horaInicio || !horaFim) {
+      return new NextResponse('horaInicio e horaFim são obrigatórios', { status: 400 });
+    }
+
     const newEntry = await prisma.disponibilidadeDiaria.create({
       data: {
         data: targetDate,
+        horaInicio,
+        horaFim,
+        almocoInicio,
+        almocoFim,
       },
     });
 
