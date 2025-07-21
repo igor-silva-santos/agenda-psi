@@ -8,7 +8,7 @@ import { getToken } from 'next-auth/jwt';
 const horarioBloqueadoSchema = z.object({
   dataHoraInicio: z.string().datetime(),
   dataHoraFim: z.string().datetime(),
-  motivo: z.string().optional(),
+  // motivo: z.string().optional(), // Removido pois não existe no schema
 });
 
 export async function GET(request: Request) {
@@ -61,13 +61,13 @@ export async function POST(request: Request) {
       return new NextResponse(JSON.stringify({ error: 'Dados inválidos', details: validation.error.format() }), { status: 400 });
     }
 
-    const { dataHoraInicio, dataHoraFim, motivo } = validation.data;
+    const { dataHoraInicio, dataHoraFim } = validation.data;
 
     const newHorarioBloqueado = await prisma.horarioBloqueado.create({
       data: {
         dataHoraInicio: new Date(dataHoraInicio),
         dataHoraFim: new Date(dataHoraFim),
-        motivo,
+        // motivo, // Removido pois não existe no schema
       },
     });
 
