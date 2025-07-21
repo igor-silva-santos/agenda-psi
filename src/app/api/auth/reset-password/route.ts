@@ -22,7 +22,6 @@ export async function POST(request: Request) {
     const user = await prisma.user.findFirst({
       where: {
         passwordResetToken: token,
-        passwordResetExpires: { gt: new Date() }, // Verifica se o token não expirou
       },
     });
 
@@ -37,7 +36,6 @@ export async function POST(request: Request) {
       data: {
         password: hashedPassword,
         passwordResetToken: null, // Invalida o token após o uso
-        passwordResetExpires: null,
       },
     });
 
