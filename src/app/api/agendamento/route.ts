@@ -5,6 +5,8 @@ import { format, addMinutes } from 'date-fns';
 import { createCalendarEvent } from '@/lib/googleCalendar';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import crypto from 'crypto';
+import bcrypt from 'bcrypt';
 
 const APPOINTMENT_DURATION_MINUTES = 30;
 
@@ -22,8 +24,19 @@ export async function POST(request: Request) {
     } else if (email) {
       user = await prisma.user.findUnique({ where: { email } });
       if (!user) {
+        // Gerar senha aleatória e data de nascimento padrão
+        const senhaAleatoria = crypto.randomBytes(8).toString('hex');
+        const dataNascimentoPadrao = new Date('2000-01-01');
         user = await prisma.user.create({
-          data: { name: nome, email, cpf, telefone: telefone, role: 'PACIENTE' },
+          data: {
+            name: nome,
+            email,
+            cpf,
+            telefone,
+            role: 'PACIENTE',
+            dataNascimento: dataNascimentoPadrao,
+            password: await bcrypt.hash(senhaAleatoria, 10),
+          },
         });
       }
     } else {
@@ -37,6 +50,7 @@ export async function POST(request: Request) {
         userId: user.id,
         dataHora: appointmentDateTime,
         status: status || 'PENDENTE',
+        motivoConsulta: body.motivoConsulta || '',
       },
     });
 
@@ -69,7 +83,7 @@ Email: ${user.email}`,
         googleCalendarEventId = calendarEvent?.id || null;
         await prisma.agendamento.update({
           where: { id: agendamento.id },
-          data: { googleCalendarEventId },
+          data: { googleCalendarEventId: googleCalendarEventId },
         });
       } catch (calendarError) {
         console.error('Failed to create Google Calendar event:', calendarError);
