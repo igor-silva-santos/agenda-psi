@@ -319,11 +319,26 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
           <input
             {...register("dataNascimento")}
             type="text"
-            placeholder="ddmmaaaa ou aaaa-mm-dd"
+            placeholder="dd/mm/aaaa"
+            inputMode="numeric"
+            maxLength={10}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder:text-gray-500"
+            value={watch('dataNascimento') || ''}
+            onChange={e => {
+              let value = e.target.value.replace(/\D/g, '');
+              if (value.length > 2) value = value.slice(0,2) + '/' + value.slice(2);
+              if (value.length > 5) value = value.slice(0,5) + '/' + value.slice(5,9);
+              if (value.length > 10) value = value.slice(0, 10);
+              setValue('dataNascimento', value);
+            }}
             onBlur={e => {
-              const normalizada = normalizarDataNascimento(e.target.value);
-              setValue('dataNascimento', normalizada);
+              const parts = e.target.value.split('/');
+              if (parts.length === 3) {
+                const [dia, mes, ano] = parts;
+                if (dia.length === 2 && mes.length === 2 && ano.length === 4) {
+                  setValue('dataNascimento', `${ano}-${mes}-${dia}`);
+                }
+              }
             }}
           />
           {errors.dataNascimento && <p className="text-red-500 text-sm mt-1">{errors.dataNascimento.message}</p>}
