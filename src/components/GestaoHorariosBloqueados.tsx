@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { HorarioBloqueado } from '@prisma/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarOff, Trash2, PlusCircle, Loader2 } from 'lucide-react';
 
 export default function GestaoHorariosBloqueados() {
-  const [horariosBloqueados, setHorariosBloqueados] = useState<HorarioBloqueado[]>([]);
+  const [horariosBloqueados, setHorariosBloqueados] = useState<Array<{ id: number; dataHoraInicio: Date; dataHoraFim: Date }>>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchHorariosBloqueados = async () => {
@@ -15,7 +14,7 @@ export default function GestaoHorariosBloqueados() {
     const response = await fetch('/api/admin/horarios-bloqueados');
     const data = await response.json();
     // Ordena para mostrar os bloqueios mais recentes primeiro
-    setHorariosBloqueados(data.sort((a: HorarioBloqueado, b: HorarioBloqueado) => new Date(b.dataHoraInicio).getTime() - new Date(a.dataHoraInicio).getTime()));
+    setHorariosBloqueados(data.sort((a: { id: number; dataHoraInicio: Date; dataHoraFim: Date }, b: { id: number; dataHoraInicio: Date; dataHoraFim: Date }) => new Date(b.dataHoraInicio).getTime() - new Date(a.dataHoraInicio).getTime()));
     setLoading(false);
   };
 
@@ -88,7 +87,7 @@ export default function GestaoHorariosBloqueados() {
               <div className="flex items-center">
                 <CalendarOff className="h-5 w-5 mr-3 text-red-500 flex-shrink-0" />
                 <div>
-                    <p className="text-sm font-semibold text-red-800">{block.motivo || 'Período bloqueado'}</p>
+                    <p className="text-sm font-semibold text-red-800">{'Período bloqueado'}</p>
                     <p className="text-xs text-red-700">
                         {format(new Date(block.dataHoraInicio), "dd/MM/yy HH:mm", { locale: ptBR })} até {format(new Date(block.dataHoraFim), "dd/MM/yy HH:mm", { locale: ptBR })}
                     </p>
