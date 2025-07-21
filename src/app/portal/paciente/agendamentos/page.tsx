@@ -11,21 +11,22 @@ export default function MeusAgendamentosPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchAgendamentos = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/portal/agendamentos');
+      if (!response.ok) throw new Error('Falha ao buscar dados');
+      const data = await response.json();
+      setAgendamentos(data);
+    } catch (err: any) {
+      setError('Erro ao buscar');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchAgendamentos = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch('/api/portal/agendamentos');
-        if (!response.ok) throw new Error('Falha ao buscar dados');
-        const data = await response.json();
-        setAgendamentos(data);
-      } catch (err: any) {
-        setError('Erro ao buscar');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchAgendamentos();
   }, []);
 
