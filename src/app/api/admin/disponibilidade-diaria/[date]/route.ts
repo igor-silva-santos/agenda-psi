@@ -76,7 +76,6 @@ export async function POST(request: Request, { params }: { params: { date: strin
     const newEntry = await prisma.disponibilidadeDiaria.create({
       data: {
         data: targetDate,
-        disponibilidade: true, // Assuming default to true for new entries
       },
     });
 
