@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 
-export async function POST(_request: Request) {
-  const token = await getToken({ req: _request, secret: process.env.NEXTAUTH_SECRET });
+export async function POST(request: NextRequest) {
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   if (!token) {
     return new Response('Unauthorized', { status: 401 });
   }
