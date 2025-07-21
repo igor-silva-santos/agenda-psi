@@ -4,10 +4,10 @@ import bcrypt from 'bcrypt';
 
 export async function POST(request: Request) {
   try {
-    const { email, password, name, role } = await request.json();
+    const { email, password, name, role, cpf, dataNascimento, telefone } = await request.json();
 
-    if (!email || !password || !name || !role) {
-      return new NextResponse('Email, password, name, and role are required', { status: 400 });
+    if (!email || !password || !name || !role || !cpf || !dataNascimento || !telefone) {
+      return new NextResponse('Email, password, name, role, cpf, dataNascimento e telefone são obrigatórios', { status: 400 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -18,6 +18,9 @@ export async function POST(request: Request) {
         password: hashedPassword,
         name,
         role,
+        cpf,
+        dataNascimento: new Date(dataNascimento),
+        telefone,
       },
     });
 
