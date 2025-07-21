@@ -144,6 +144,8 @@ export async function POST(request: Request) {
       result = await prisma.disponibilidadeDiaria.create({
         data: {
           data: parsedDate,
+          horaInicio,
+          horaFim,
           almocoInicio: almocoInicio || null,
           almocoFim: almocoFim || null,
         },
