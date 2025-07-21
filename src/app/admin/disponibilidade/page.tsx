@@ -54,7 +54,7 @@ const VisualizacaoDia = ({ date, onActionComplete }: { date: Date, onActionCompl
 
   // Atualiza a lista quando a ação no modal for concluída
   useEffect(() => {
-    onActionComplete && fetchSlots();
+    fetchSlots();
   }, [onActionComplete]);
 
   const handleSaveDailyAvailability = async (e: React.FormEvent) => {
