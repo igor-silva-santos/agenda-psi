@@ -136,7 +136,6 @@ export async function POST(request: Request) {
       result = await prisma.disponibilidadeDiaria.update({
         where: { id: existingEntry.id },
         data: {
-          horarios: JSON.stringify(generatedHorarios),
           almocoInicio: almocoInicio || null,
           almocoFim: almocoFim || null,
         },
@@ -145,7 +144,6 @@ export async function POST(request: Request) {
       result = await prisma.disponibilidadeDiaria.create({
         data: {
           data: parsedDate,
-          horarios: JSON.stringify(generatedHorarios),
           almocoInicio: almocoInicio || null,
           almocoFim: almocoFim || null,
         },
