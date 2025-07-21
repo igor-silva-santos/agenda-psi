@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       where: { id: user.id },
       data: {
         passwordResetToken: resetToken,
-        passwordResetExpires: passwordResetExpires,
+        // passwordResetExpires: passwordResetExpires, // Removido pois não existe no schema
       },
     });
 
