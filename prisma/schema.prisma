@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  email               String   @unique
+  cpf                 String   @unique
+  dataNascimento      DateTime
+  telefone            String
+  role                String
+  password            String
+  image               String?
+  address             String?
+  passwordResetToken  String?
+  emailVerified       DateTime?
+  currentSessionId    String?
+  agendamentos        Agendamento[]
+}
+
+model Agendamento {
+  id              String   @id @default(cuid())
+  userId          Int
+  dataHora        DateTime
+  status          String
+  motivoConsulta  String
+  user            User     @relation(fields: [userId], references: [id])
+  recomendacoes   Recomendacao[]
+  laudos          Laudo[]
+  prontuarios     Prontuario[]
+}
+
+model Recomendacao {
+  id             Int      @id @default(autoincrement())
+  agendamentoId  String
+  texto          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  agendamento    Agendamento @relation(fields: [agendamentoId], references: [id])
+}
+
+model Laudo {
+  id             Int      @id @default(autoincrement())
+  agendamentoId  String
+  texto          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  agendamento    Agendamento @relation(fields: [agendamentoId], references: [id])
+}
+
+model Prontuario {
+  id             Int      @id @default(autoincrement())
+  agendamentoId  String
+  texto          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  agendamento    Agendamento @relation(fields: [agendamentoId], references: [id])
+}
+
+model HorarioAtuacao {
+  id          Int    @id @default(autoincrement())
+  diaDaSemana Int    // 0 para Domingo, 1 para Segunda, ..., 6 para Sábado
+  horaInicio  String // Ex: "09:00"
+  horaFim     String // Ex: "12:00"
+  almocoInicio String? // Ex: "12:00"
+  almocoFim   String? // Ex: "13:00"
+}
+
+model BookableSlot {
+  id             Int      @id @default(autoincrement())
+  startDateTime  DateTime
+  endDateTime    DateTime
+  isBooked       Boolean  @default(false)
+}
+
+model HorarioBloqueado {
+  id             Int      @id @default(autoincrement())
+  dataHoraInicio DateTime
+  dataHoraFim    DateTime
+}
