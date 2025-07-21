@@ -58,8 +58,9 @@ export async function POST(request: Request) {
           cpf,
           role: 'PACIENTE',
           passwordResetToken,
-          passwordResetExpires,
-          // dataNascimento não está disponível aqui, pois não vem do frontend neste endpoint
+          dataNascimento: new Date('2000-01-01'),
+          telefone: telefone || '',
+          password: crypto.randomBytes(8).toString('hex'),
         },
       });
     }
