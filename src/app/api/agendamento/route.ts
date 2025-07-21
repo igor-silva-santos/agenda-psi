@@ -6,7 +6,7 @@ import { createCalendarEvent } from '@/lib/googleCalendar';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const APPOINTMENT_DURATION_MINUTES = 30;
 
