@@ -107,16 +107,18 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
     },
   });
 
-  const password = watch("password");
+  const passwordValue = watch('password');
+  const confirmPasswordValue = watch('confirmPassword');
+  const senhaCoincide = confirmPasswordValue === passwordValue && confirmPasswordValue.length > 0;
 
   useEffect(() => {
-    if (password) {
-      const result = zxcvbn(password);
+    if (passwordValue) {
+      const result = zxcvbn(passwordValue);
       
-      const hasUpperCase = /[A-Z]/.test(password);
-      const hasLowerCase = /[a-z]/.test(password);
-      const hasNumber = /[0-9]/.test(password);
-      const hasSpecialChar = /[^a-zA-Z0-9]/.test(password);
+      const hasUpperCase = /[A-Z]/.test(passwordValue);
+      const hasLowerCase = /[a-z]/.test(passwordValue);
+      const hasNumber = /[0-9]/.test(passwordValue);
+      const hasSpecialChar = /[^a-zA-Z0-9]/.test(passwordValue);
 
       let metCriteriaCount = 0;
       if (hasUpperCase) metCriteriaCount++;
@@ -134,16 +136,21 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
     } else {
       setPasswordStrength(null);
     }
-  }, [password]);
+  }, [passwordValue]);
 
   useErrorScrollToTop(serverError);
 
   const onSubmit: SubmitHandler<SignUpFormType> = async (data) => {
     setServerError('');
     setIsLoading(true);
-
-    // Normalizar e corrigir dataNascimento para formato ISO-8601 completo
-    let dataNascimentoISO = normalizarDataNascimento(data.dataNascimento);
+    let dataNascimentoISO = '';
+    // Converter dd/mm/aaaa para yyyy-mm-dd
+    if (data.dataNascimento && data.dataNascimento.length === 10) {
+      const [dia, mes, ano] = data.dataNascimento.split('/');
+      if (dia && mes && ano) {
+        dataNascimentoISO = `${ano}-${mes}-${dia}`;
+      }
+    }
     if (dataNascimentoISO) {
       dataNascimentoISO = `${dataNascimentoISO}T00:00:00.000Z`;
     }
@@ -277,7 +284,7 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
-          {password && (
+          {passwordValue && (
             <div className="mt-2">
               {passwordStrength && passwordStrength.score !== undefined && (
                 <>
@@ -305,11 +312,19 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
             Confirmar senha
           </label>
           <div className="relative">
-            <input {...register("confirmPassword")} type={showConfirmPassword ? 'text' : 'password'} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 text-gray-900 placeholder:text-gray-500" placeholder="Digite a senha novamente"/>
+            <input
+              {...register("confirmPassword")}
+              type={showConfirmPassword ? 'text' : 'password'}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 text-gray-900 placeholder:text-gray-500 ${confirmPasswordValue && !senhaCoincide ? 'border-red-500' : 'border-gray-300'}`}
+              placeholder="Digite a senha novamente"
+            />
             <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
               {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
+          {confirmPasswordValue && !senhaCoincide && (
+            <p className="text-red-500 text-sm mt-1">As senhas não coincidem.</p>
+          )}
           {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>}
         </div>
         <div>
@@ -331,15 +346,7 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
               if (value.length > 10) value = value.slice(0, 10);
               setValue('dataNascimento', value);
             }}
-            onBlur={e => {
-              const parts = e.target.value.split('/');
-              if (parts.length === 3) {
-                const [dia, mes, ano] = parts;
-                if (dia.length === 2 && mes.length === 2 && ano.length === 4) {
-                  setValue('dataNascimento', `${ano}-${mes}-${dia}`);
-                }
-              }
-            }}
+            // Remover a conversão para yyyy-mm-dd do onBlur
           />
           {errors.dataNascimento && <p className="text-red-500 text-sm mt-1">{errors.dataNascimento.message}</p>}
         </div>
