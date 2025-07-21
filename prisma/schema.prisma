@@ -85,3 +85,12 @@ model HorarioBloqueado {
   dataHoraInicio DateTime
   dataHoraFim    DateTime
 }
+
+model DisponibilidadeDiaria {
+  id            Int      @id @default(autoincrement())
+  data          DateTime @unique
+  horaInicio    String
+  horaFim       String
+  almocoInicio  String?
+  almocoFim     String?
+}
