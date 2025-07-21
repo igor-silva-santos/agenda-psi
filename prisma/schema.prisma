@@ -30,6 +30,7 @@ model Agendamento {
   dataHora        DateTime
   status          String
   motivoConsulta  String
+  googleCalendarEventId String? // Adicionado para integração com Google Calendar
   user            User     @relation(fields: [userId], references: [id])
   recomendacoes   Recomendacao[]
   laudos          Laudo[]
