@@ -171,8 +171,8 @@ export default function AdminAgendamentosPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {format(new Date(agendamento.dataHora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 max-w-xs truncate" title={agendamento.recomendacoes || ''}>
-                        {agendamento.recomendacoes || <span className="italic text-gray-400">Não informado</span>}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 max-w-xs truncate" title={agendamento.motivoConsulta || ''}>
+                        {agendamento.motivoConsulta || <span className="italic text-gray-400">Não informado</span>}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <StatusChip status={agendamento.status} />
