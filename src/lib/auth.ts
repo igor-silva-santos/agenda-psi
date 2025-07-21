@@ -3,7 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
-import bcrypt, { compare } from "bcrypt";
+import bcrypt from 'bcryptjs';
+const { compare } = bcrypt;
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { randomUUID } from 'crypto';
 
