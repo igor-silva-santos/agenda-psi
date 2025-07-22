@@ -17,8 +17,8 @@ export default function MeusAgendamentosPage() {
     try {
       const response = await fetch('/api/portal/agendamentos');
       if (response.status === 401) {
-        localStorage.setItem('sessaoExpirada', 'true');
-        window.location.href = '/conta/login';
+        setError('Sessão expirada ou não autenticado. Faça login novamente.');
+        setLoading(false);
         return;
       }
       if (!response.ok) throw new Error('Falha ao buscar dados');
@@ -39,8 +39,7 @@ export default function MeusAgendamentosPage() {
     if (!confirm('Tem certeza que deseja confirmar esta consulta?')) return;
     const response = await fetch(`/api/portal/agendamentos/${id}/confirmar`, { method: 'PUT' });
     if (response.status === 401) {
-      localStorage.setItem('sessaoExpirada', 'true');
-      window.location.href = '/conta/login';
+      setError('Sessão expirada ou não autenticado. Faça login novamente.');
       return;
     }
     fetchAgendamentos(); // Re-fetch para atualizar a lista
@@ -50,8 +49,7 @@ export default function MeusAgendamentosPage() {
     if (!confirm('Tem certeza que deseja cancelar esta consulta?')) return;
     const response = await fetch(`/api/portal/agendamentos/${id}/cancelar`, { method: 'PUT' });
     if (response.status === 401) {
-      localStorage.setItem('sessaoExpirada', 'true');
-      window.location.href = '/conta/login';
+      setError('Sessão expirada ou não autenticado. Faça login novamente.');
       return;
     }
     fetchAgendamentos(); // Re-fetch para atualizar a lista

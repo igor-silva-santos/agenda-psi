@@ -18,8 +18,8 @@ export default function MinhasRecomendacoesPage() {
       try {
         const response = await fetch('/api/portal/agendamentos');
         if (response.status === 401) {
-          localStorage.setItem('sessaoExpirada', 'true');
-          window.location.href = '/conta/login';
+          setError('Sessão expirada ou não autenticado. Faça login novamente.');
+          setLoading(false);
           return;
         }
         if (!response.ok) throw new Error('Falha ao buscar dados');
@@ -31,8 +31,7 @@ export default function MinhasRecomendacoesPage() {
             .map(async (a: any) => {
               const recRes = await fetch(`/api/agendamentos/${a.id}/recomendacoes`);
               if (recRes.status === 401) {
-                localStorage.setItem('sessaoExpirada', 'true');
-                window.location.href = '/conta/login';
+                setError('Sessão expirada ou não autenticado. Faça login novamente.');
                 return;
               }
               let recomendacao = '';

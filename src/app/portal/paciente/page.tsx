@@ -19,8 +19,8 @@ export default function PacienteDashboard() {
       try {
         const response = await fetch('/api/portal/agendamentos');
         if (response.status === 401) {
-          localStorage.setItem('sessaoExpirada', 'true');
-          window.location.href = '/conta/login';
+          setError('Sessão expirada ou não autenticado. Faça login novamente.');
+          setLoading(false);
           return;
         }
         if (!response.ok) throw new Error('Falha ao buscar dados');
