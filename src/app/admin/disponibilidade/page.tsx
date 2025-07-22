@@ -98,6 +98,11 @@ const VisualizacaoDia = ({ date, onActionComplete }: { date: Date, onActionCompl
                 id="dailyHoraInicio"
                 value={dailyHoraInicio}
                 onChange={(e) => setDailyHoraInicio(e.target.value)}
+                onBlur={(e) => {
+                  if (/^\d{1,2}$/.test(e.target.value)) {
+                    setDailyHoraInicio(e.target.value.padStart(2, '0') + ':00');
+                  }
+                }}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               />
             </div>
