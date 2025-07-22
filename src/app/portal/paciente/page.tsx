@@ -18,6 +18,11 @@ export default function PacienteDashboard() {
       setError(null);
       try {
         const response = await fetch('/api/portal/agendamentos');
+        if (response.status === 401) {
+          localStorage.setItem('sessaoExpirada', 'true');
+          window.location.href = '/conta/login';
+          return;
+        }
         if (!response.ok) throw new Error('Falha ao buscar dados');
         const data = await response.json();
         setAgendamentos(data);

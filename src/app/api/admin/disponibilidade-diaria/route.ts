@@ -48,25 +48,29 @@ const generateTimeSlots = (
 
 
 export async function GET(request: Request) {
+  console.log('[DISPONIBILIDADE-DIARIA][GET] Início da requisição');
   const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
   if (!token) {
+    console.warn('[DISPONIBILIDADE-DIARIA][GET] Token ausente');
     return new NextResponse('Unauthorized', { status: 401 });
   }
   const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
   if (!user || (user as any).currentSessionId !== token.sessionId) {
+    console.warn('[DISPONIBILIDADE-DIARIA][GET] Sessão concorrente detectada ou usuário não encontrado', { user, token });
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
   const session = await getServerSession(authOptions);
+  console.log('[DISPONIBILIDADE-DIARIA][GET] session:', session);
   if (!session || session.user?.email !== process.env.ADMIN_EMAIL) {
+    console.warn('[DISPONIBILIDADE-DIARIA][GET] Sessão inválida ou usuário não é admin', { session });
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
   try {
     const { searchParams } = new URL(request.url);
     const dateParam = searchParams.get('date');
-
     if (!dateParam) {
-      // If no date is provided, return all daily availabilities (optional, depending on UI needs)
+      console.log('[DISPONIBILIDADE-DIARIA][GET] Listando todas as disponibilidades diárias');
       const disponibilidades = await prisma.disponibilidadeDiaria.findMany({
         orderBy: {
           data: 'asc',
@@ -74,14 +78,12 @@ export async function GET(request: Request) {
       });
       return NextResponse.json({ disponibilidades });
     }
-
     const targetDate = parseISO(dateParam);
     targetDate.setUTCHours(0, 0, 0, 0);
-
+    console.log('[DISPONIBILIDADE-DIARIA][GET] Buscando disponibilidade para data:', targetDate);
     const disponibilidade = await prisma.disponibilidadeDiaria.findUnique({
       where: { data: targetDate },
     });
-
     const slots = await prisma.bookableSlot.findMany({
       where: {
         startDateTime: {
@@ -93,11 +95,10 @@ export async function GET(request: Request) {
         startDateTime: 'asc',
       },
     });
-
     return NextResponse.json({ disponibilidade, slots });
   } catch (error) {
-    console.error('Erro ao buscar disponibilidades diárias:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    console.error('[DISPONIBILIDADE-DIARIA][GET] ERRO:', error);
+    return new NextResponse('Erro interno ao buscar disponibilidade diária', { status: 500 });
   }
 }
 

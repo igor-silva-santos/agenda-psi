@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 export async function GET(request: Request) {
+  console.log('[USERS][GET] Início da requisição');
   try {
     const { searchParams } = new URL(request.url);
     const role = searchParams.get('role');
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
     });
     return NextResponse.json(users);
   } catch (error) {
-    console.error('Error fetching users:', error);
-    return new NextResponse('Failed to fetch users', { status: 500 });
+    console.error('[USERS][GET] ERRO:', error);
+    return new NextResponse('Erro interno ao buscar usuários', { status: 500 });
   }
 }

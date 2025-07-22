@@ -12,20 +12,22 @@ const horarioBloqueadoSchema = z.object({
 });
 
 export async function GET(request: Request) {
+  console.log('[HORARIOS-BLOQUEADOS][GET] Início da requisição');
   const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
   if (!token) {
+    console.warn('[HORARIOS-BLOQUEADOS][GET] Token ausente');
     return new NextResponse('Unauthorized', { status: 401 });
   }
   const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
   if (!user || (user as any).currentSessionId !== token.sessionId) {
+    console.warn('[HORARIOS-BLOQUEADOS][GET] Sessão concorrente detectada ou usuário não encontrado', { user, token });
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
   const session = await getServerSession(authOptions);
-
   if (!session || session.user?.role !== 'ADMIN') {
+    console.warn('[HORARIOS-BLOQUEADOS][GET] Sessão inválida ou usuário não é admin', { session });
     return new NextResponse('Unauthorized', { status: 401 });
   }
-
   try {
     const horariosBloqueados = await prisma.horarioBloqueado.findMany({
       orderBy: {
@@ -34,8 +36,8 @@ export async function GET(request: Request) {
     });
     return NextResponse.json(horariosBloqueados);
   } catch (error) {
-    console.error('Erro ao buscar horários bloqueados:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    console.error('[HORARIOS-BLOQUEADOS][GET] ERRO:', error);
+    return new NextResponse('Erro interno ao buscar horários bloqueados', { status: 500 });
   }
 }
 

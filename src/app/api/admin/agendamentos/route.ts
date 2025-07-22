@@ -6,30 +6,29 @@ import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth 
 import { getToken } from 'next-auth/jwt';
 
 export async function GET(request: Request) {
+  console.log('[AGENDAMENTOS][GET] Início da requisição');
   const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
   if (!token) {
+    console.warn('[AGENDAMENTOS][GET] Token ausente');
     return new NextResponse('Unauthorized', { status: 401 });
   }
   const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
   if (!user || (user as any).currentSessionId !== token.sessionId) {
+    console.warn('[AGENDAMENTOS][GET] Sessão concorrente detectada ou usuário não encontrado', { user, token });
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
   const session = await getServerSession(authOptions);
-
   if (!session || session.user?.role !== 'ADMIN') {
+    console.warn('[AGENDAMENTOS][GET] Sessão inválida ou usuário não é admin', { session });
     return new NextResponse('Unauthorized', { status: 401 });
   }
-
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
-  const range = searchParams.get('range'); // 'day', 'week', 'month'
-
+  const range = searchParams.get('range');
   const where: any = {};
-
   if (status) {
     where.status = status;
   }
-
   const now = new Date();
   if (range) {
     let startDate, endDate;
@@ -48,20 +47,19 @@ export async function GET(request: Request) {
       lte: endDate,
     };
   }
-
   try {
     const agendamentos = await prisma.agendamento.findMany({
       where,
       include: {
-        user: true, // Inclui os dados do user associado
+        user: true,
       },
       orderBy: {
-        dataHora: 'asc', // Ordena por data e hora
+        dataHora: 'asc',
       },
     });
     return NextResponse.json(agendamentos);
   } catch (error) {
-    console.error('Erro ao buscar agendamentos:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    console.error('[AGENDAMENTOS][GET] ERRO:', error);
+    return new NextResponse('Erro interno ao buscar agendamentos', { status: 500 });
   }
 }

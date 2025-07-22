@@ -86,9 +86,9 @@ describe('Admin Panel', () => {
   // --- Usuários Tab Tests ---
   it('should navigate to Usuários tab and display link to all users', async () => {
     const usersTab = screen.getByRole('button', { name: /Usuários/i });
-    fireEvent.click(usersTab);
-    expect(screen.getByText('Gerenciar Usuários')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Ver Todos os Usuários/i })).toBeInTheDocument();
+      fireEvent.click(usersTab);
+      expect(screen.getByText('Gerenciar Usuários')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Ver Todos os Usuários/i })).toBeInTheDocument();
   });
 
   // --- Disponibilidade Tab Tests ---

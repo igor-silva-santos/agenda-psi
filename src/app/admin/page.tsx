@@ -77,6 +77,10 @@ export default function AdminDashboard() {
       try {
         // Busca agendamentos do dia
         const response = await fetch('/api/admin/agendamentos?range=day');
+        if (response.status === 401) {
+          window.location.href = '/conta/login';
+          return;
+        }
         if (!response.ok) {
           throw new Error('Falha ao buscar agendamentos do dia');
         }

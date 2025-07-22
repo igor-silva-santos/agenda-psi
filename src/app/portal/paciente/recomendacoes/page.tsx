@@ -17,6 +17,11 @@ export default function MinhasRecomendacoesPage() {
       setError(null);
       try {
         const response = await fetch('/api/portal/agendamentos');
+        if (response.status === 401) {
+          localStorage.setItem('sessaoExpirada', 'true');
+          window.location.href = '/conta/login';
+          return;
+        }
         if (!response.ok) throw new Error('Falha ao buscar dados');
         const data = await response.json();
         // Buscar recomendações para cada agendamento
@@ -25,6 +30,11 @@ export default function MinhasRecomendacoesPage() {
             .filter((a: any) => new Date(a.dataHora) < new Date())
             .map(async (a: any) => {
               const recRes = await fetch(`/api/agendamentos/${a.id}/recomendacoes`);
+              if (recRes.status === 401) {
+                localStorage.setItem('sessaoExpirada', 'true');
+                window.location.href = '/conta/login';
+                return;
+              }
               let recomendacao = '';
               if (recRes.ok) {
                 const recData = await recRes.json();

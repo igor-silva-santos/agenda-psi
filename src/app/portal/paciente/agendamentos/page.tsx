@@ -16,6 +16,11 @@ export default function MeusAgendamentosPage() {
     setError(null);
     try {
       const response = await fetch('/api/portal/agendamentos');
+      if (response.status === 401) {
+        localStorage.setItem('sessaoExpirada', 'true');
+        window.location.href = '/conta/login';
+        return;
+      }
       if (!response.ok) throw new Error('Falha ao buscar dados');
       const data = await response.json();
       setAgendamentos(data);
@@ -32,13 +37,23 @@ export default function MeusAgendamentosPage() {
 
   const handleConfirmar = async (id: string) => {
     if (!confirm('Tem certeza que deseja confirmar esta consulta?')) return;
-    await fetch(`/api/portal/agendamentos/${id}/confirmar`, { method: 'PUT' });
+    const response = await fetch(`/api/portal/agendamentos/${id}/confirmar`, { method: 'PUT' });
+    if (response.status === 401) {
+      localStorage.setItem('sessaoExpirada', 'true');
+      window.location.href = '/conta/login';
+      return;
+    }
     fetchAgendamentos(); // Re-fetch para atualizar a lista
   };
 
   const handleCancelar = async (id: string) => {
     if (!confirm('Tem certeza que deseja cancelar esta consulta?')) return;
-    await fetch(`/api/portal/agendamentos/${id}/cancelar`, { method: 'PUT' });
+    const response = await fetch(`/api/portal/agendamentos/${id}/cancelar`, { method: 'PUT' });
+    if (response.status === 401) {
+      localStorage.setItem('sessaoExpirada', 'true');
+      window.location.href = '/conta/login';
+      return;
+    }
     fetchAgendamentos(); // Re-fetch para atualizar a lista
   };
 

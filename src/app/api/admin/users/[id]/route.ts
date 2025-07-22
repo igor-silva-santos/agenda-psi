@@ -57,3 +57,26 @@ export async function DELETE(request: Request, { params }: { params: { id: numbe
     return new NextResponse(error.message || 'Failed to delete user', { status: 500 });
   }
 }
+
+export async function GET(request: Request, { params }: { params: { id: number } }) {
+  console.log('[USERS][GET][id] Início da requisição', { params });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: Number(params.id) },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    });
+    if (!user) {
+      console.warn('[USERS][GET][id] Usuário não encontrado', { params });
+      return new NextResponse('Usuário não encontrado', { status: 404 });
+    }
+    return NextResponse.json(user);
+  } catch (error) {
+    console.error('[USERS][GET][id] ERRO:', error);
+    return new NextResponse('Erro interno ao buscar usuário', { status: 500 });
+  }
+}

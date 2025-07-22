@@ -84,7 +84,8 @@ export default function CombinedLoginForm({ onOpenSignUp, error: initialError }:
       const sessionRes = await fetch('/api/auth/session');
       const session = await sessionRes.json();
       const targetUrl = session?.user?.role === 'ADMIN' ? '/admin' : '/portal/paciente';
-      router.push(targetUrl);
+      console.log('Login bem-sucedido, redirecionando para:', targetUrl);
+      window.location.href = targetUrl;
     }
     setLoading(false);
   };

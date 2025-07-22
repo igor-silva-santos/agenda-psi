@@ -1,7 +1,15 @@
 "use client";
 import CombinedLoginForm from '@/components/CombinedLoginForm';
+import { useEffect, useState } from 'react';
 
 export default function ContaLoginPage() {
+  const [sessaoExpirada, setSessaoExpirada] = useState(false);
+  useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('sessaoExpirada')) {
+      setSessaoExpirada(true);
+      localStorage.removeItem('sessaoExpirada');
+    }
+  }, []);
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <header className="bg-white shadow-sm">
@@ -11,6 +19,11 @@ export default function ContaLoginPage() {
       </header>
       <main className="flex-grow flex items-center justify-center">
         <div className="p-8 bg-white rounded-xl shadow-md w-full max-w-md m-4">
+          {sessaoExpirada && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-center text-sm font-medium">
+              Sua sessão expirou. Faça login novamente.
+            </div>
+          )}
           <CombinedLoginForm onOpenSignUp={() => {}} />
         </div>
       </main>

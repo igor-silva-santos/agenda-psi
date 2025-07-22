@@ -11,44 +11,47 @@ const perfilSchema = z.object({
   image: z.string().url('URL da imagem inválida').optional(),
 });
 
-export async function PUT(request: Request) {
+export async function GET(request: Request) {
+  console.log('[PORTAL-PERFIL][GET] Início da requisição');
   const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
   if (!token) {
+    console.warn('[PORTAL-PERFIL][GET] Token ausente');
     return new NextResponse('Unauthorized', { status: 401 });
   }
   const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
   if (!user || (user as any).currentSessionId !== token.sessionId) {
+    console.warn('[PORTAL-PERFIL][GET] Sessão concorrente detectada ou usuário não encontrado', { user, token });
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
+  try {
+    return NextResponse.json(user);
+  } catch (error) {
+    console.error('[PORTAL-PERFIL][GET] ERRO:', error);
+    return new NextResponse('Erro interno ao buscar perfil', { status: 500 });
+  }
+}
+
+export async function PUT(request: Request) {
+  console.log('[PORTAL-PERFIL][PUT] Início da requisição');
+  const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
+  if (!token) {
+    console.warn('[PORTAL-PERFIL][PUT] Token ausente');
     return new NextResponse('Unauthorized', { status: 401 });
   }
-
+  const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
+  if (!user || (user as any).currentSessionId !== token.sessionId) {
+    console.warn('[PORTAL-PERFIL][PUT] Sessão concorrente detectada ou usuário não encontrado', { user, token });
+    return new NextResponse('Sessão concorrente detectada', { status: 401 });
+  }
   try {
-    const body = await request.json();
-    const validation = perfilSchema.safeParse(body);
-
-    if (!validation.success) {
-      return new NextResponse(JSON.stringify({ error: 'Dados inválidos', details: validation.error.format() }), { status: 400 });
-    }
-
-    const { name, cpf, image } = validation.data;
-
-    const updatedUser = await prisma.user.update({
-      where: {
-        id: session.user.id,
-      },
-      data: {
-        name,
-        cpf,
-        image,
-      },
+    const data = await request.json();
+    const updated = await prisma.user.update({
+      where: { id: Number(token.id) },
+      data,
     });
-
-    return NextResponse.json(updatedUser);
+    return NextResponse.json(updated);
   } catch (error) {
-    console.error('Erro ao atualizar perfil do paciente:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    console.error('[PORTAL-PERFIL][PUT] ERRO:', error);
+    return new NextResponse('Erro interno ao atualizar perfil', { status: 500 });
   }
 }
