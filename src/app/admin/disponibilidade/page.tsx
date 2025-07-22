@@ -113,6 +113,11 @@ const VisualizacaoDia = ({ date, onActionComplete }: { date: Date, onActionCompl
                 id="dailyHoraFim"
                 value={dailyHoraFim}
                 onChange={(e) => setDailyHoraFim(e.target.value)}
+                onBlur={(e) => {
+                  if (/^\d{1,2}$/.test(e.target.value)) {
+                    setDailyHoraFim(e.target.value.padStart(2, '0') + ':00');
+                  }
+                }}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               />
             </div>
@@ -125,6 +130,11 @@ const VisualizacaoDia = ({ date, onActionComplete }: { date: Date, onActionCompl
                 id="dailyAlmocoInicio"
                 value={dailyAlmocoInicio}
                 onChange={(e) => setDailyAlmocoInicio(e.target.value)}
+                onBlur={(e) => {
+                  if (/^\d{1,2}$/.test(e.target.value)) {
+                    setDailyAlmocoInicio(e.target.value.padStart(2, '0') + ':00');
+                  }
+                }}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               />
             </div>
@@ -135,6 +145,11 @@ const VisualizacaoDia = ({ date, onActionComplete }: { date: Date, onActionCompl
                 id="dailyAlmocoFim"
                 value={dailyAlmocoFim}
                 onChange={(e) => setDailyAlmocoFim(e.target.value)}
+                onBlur={(e) => {
+                  if (/^\d{1,2}$/.test(e.target.value)) {
+                    setDailyAlmocoFim(e.target.value.padStart(2, '0') + ':00');
+                  }
+                }}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               />
             </div>
