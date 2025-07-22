@@ -7,7 +7,7 @@ export default async function PortalLayout({ children }: { children: React.React
   const session = await getServerSession(authOptions);
 
   if (!session || session.user.role !== 'PACIENTE') {
-    redirect("/conta/login");
+    redirect('/conta/login?msg=faça-login-primeiro');
   }
 
   return <PortalClientLayout session={session}>{children}</PortalClientLayout>;

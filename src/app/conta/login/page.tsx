@@ -1,9 +1,12 @@
 "use client";
 import CombinedLoginForm from '@/components/CombinedLoginForm';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 export default function ContaLoginPage() {
   const [sessaoExpirada, setSessaoExpirada] = useState(false);
+  const searchParams = useSearchParams();
+  const msg = searchParams.get('msg');
   useEffect(() => {
     if (typeof window !== 'undefined' && localStorage.getItem('sessaoExpirada')) {
       setSessaoExpirada(true);
@@ -19,6 +22,11 @@ export default function ContaLoginPage() {
       </header>
       <main className="flex-grow flex items-center justify-center">
         <div className="p-8 bg-white rounded-xl shadow-md w-full max-w-md m-4">
+          {msg === 'faça-login-primeiro' && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-blue-800 text-center text-sm font-medium">
+              Faça login primeiro.
+            </div>
+          )}
           {sessaoExpirada && (
             <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-center text-sm font-medium">
               Sua sessão expirou. Faça login novamente.
