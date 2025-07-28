@@ -5,15 +5,7 @@ import { useInactivityLogout } from './useInactivityLogout';
 
 export function InactivityProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
-  
-  // Só aplica o logout por inatividade se o usuário estiver autenticado
-  if (status === 'loading') {
-    return <>{children}</>;
-  }
-  
-  if (session?.user) {
-    useInactivityLogout();
-  }
-  
+  // Chame sempre o hook, mas ele só ativa se o usuário estiver autenticado
+  useInactivityLogout(session?.user);
   return <>{children}</>;
 } 

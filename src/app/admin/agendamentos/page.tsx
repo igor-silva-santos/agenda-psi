@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState, Fragment } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Agendamento, User } from '@prisma/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -36,7 +38,10 @@ export default function AdminAgendamentosPage() {
   const [filterRange, setFilterRange] = useState<string>('week'); // Padrão para esta semana
   const [searchTerm, setSearchTerm] = useState('');
 
-  const fetchAgendamentos = async () => {
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  const fetchAgendamentos = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -56,11 +61,13 @@ export default function AdminAgendamentosPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus, filterRange]);
 
   useEffect(() => {
-    fetchAgendamentos();
-  }, [filterStatus, filterRange]);
+    if (session?.user) {
+      fetchAgendamentos();
+    }
+  }, [session?.user, fetchAgendamentos]);
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     // Adicionar um modal de confirmação aqui seria o ideal

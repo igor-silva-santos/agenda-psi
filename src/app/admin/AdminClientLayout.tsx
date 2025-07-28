@@ -1,10 +1,12 @@
 'use client';
 
+import React from 'react';
 import { useState } from 'react';
 import { Session } from 'next-auth';
-import { signOut } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { Menu, X, LayoutDashboard, Calendar, Users, Shield, LogOut, Clock, Heart } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -52,12 +54,27 @@ export default function AdminClientLayout({ session, children }: AdminClientLayo
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-        <div className="flex items-center flex-shrink-0 px-4 space-x-3">
-            <img className="h-10 w-10 rounded-full border-2 border-blue-600" src={session.user.image || '/default-user.png'} alt={session.user.name || 'Usuário'} />
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-gray-900 leading-tight">{session.user.name}</span>
-              <span className="text-xs text-gray-500">Administrador(a)</span>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+              <Image
+                src={session?.user?.image || '/default-avatar.png'}
+                alt="Avatar"
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
             </div>
+            <span className="text-sm font-medium text-gray-700">
+              {session?.user?.name || 'Admin'}
+            </span>
+          </div>
+          <button
+            onClick={() => signOut({ callbackUrl: '/conta/login' })}
+            className="text-sm text-gray-500 hover:text-gray-700"
+          >
+            Sair
+          </button>
         </div>
         <nav className="mt-8 flex-1 px-3 space-y-2">
           {navItems.map((item) => (

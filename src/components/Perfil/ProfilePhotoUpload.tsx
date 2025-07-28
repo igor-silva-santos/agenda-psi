@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Camera, Upload, X, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Button from '@/components/ui/Button';
+import Image from 'next/image';
 
 interface ProfilePhotoUploadProps {
   currentImage?: string | null;
@@ -66,7 +67,7 @@ export default function ProfilePhotoUpload({
     }
   };
 
-  const removeImage = () => {
+  const handleRemovePhoto = () => {
     setPreviewUrl(null);
     setError(null);
     onImageChange('');
@@ -87,9 +88,11 @@ export default function ProfilePhotoUpload({
         <div className="relative">
           <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
             {previewUrl ? (
-              <img
+              <Image
                 src={previewUrl}
                 alt="Foto de perfil"
+                width={96}
+                height={96}
                 className="w-full h-full object-cover"
                 onError={() => setError('Erro ao carregar a imagem. Verifique a URL.')}
               />
@@ -139,7 +142,7 @@ export default function ProfilePhotoUpload({
             <Button
               variant="outline"
               size="sm"
-              onClick={removeImage}
+              onClick={handleRemovePhoto}
               className="text-red-600 hover:text-red-700"
             >
               <X className="h-4 w-4 mr-1" />

@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import GestaoCalendario from '@/components/GestaoCalendario';
 import GestaoHorariosAtuacao from '@/components/GestaoHorariosAtuacao';
 import GestaoHorariosBloqueados from '@/components/GestaoHorariosBloqueados';
@@ -20,7 +22,7 @@ const VisualizacaoDia = ({ date, onActionComplete }: { date: Date, onActionCompl
   const [dailyAlmocoInicio, setDailyAlmocoInicio] = useState<string>('');
   const [dailyAlmocoFim, setDailyAlmocoFim] = useState<string>('');
 
-  const fetchSlots = async () => {
+  const fetchSlots = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/admin/disponibilidade-diaria/${format(date, 'yyyy-MM-dd')}`);
@@ -52,16 +54,16 @@ const VisualizacaoDia = ({ date, onActionComplete }: { date: Date, onActionCompl
     } finally {
       setLoading(false);
     }
-  };
+  }, [date]);
 
   useEffect(() => {
     fetchSlots();
-  }, [date]);
+  }, [fetchSlots]);
 
   // Atualiza a lista quando a ação no modal for concluída
   useEffect(() => {
     fetchSlots();
-  }, [onActionComplete]);
+  }, [onActionComplete, fetchSlots]);
 
   const handleSaveDailyAvailability = async (e: React.FormEvent) => {
     e.preventDefault();
