@@ -80,21 +80,43 @@ export const authOptions: AuthOptions = {
           let user = null;
 
           if (credentials.email) {
+            // Buscar por email - usar .maybeSingle() para evitar erro de múltiplos registros
             const { data, error } = await supabase
               .from('User')
               .select('*')
               .eq('email', credentials.email)
-              .single();
-            if (error) throw new Error("Erro ao buscar usuário: " + error.message);
+              .maybeSingle();
+            
+            if (error) {
+              console.error("[LOGIN] Erro ao buscar usuário por email:", error);
+              throw new Error("Erro ao buscar usuário: " + error.message);
+            }
+            
+            if (!data) {
+              throw new Error("Nenhuma conta encontrada com este email.");
+            }
+            
             user = data;
           } else if (credentials.cpf) {
+            // Buscar por CPF - usar .maybeSingle() para evitar erro de múltiplos registros
             const { data, error } = await supabase
               .from('User')
               .select('*')
               .eq('cpf', credentials.cpf)
-              .single();
-            if (error) throw new Error("Erro ao buscar usuário: " + error.message);
+              .maybeSingle();
+            
+            if (error) {
+              console.error("[LOGIN] Erro ao buscar usuário por CPF:", error);
+              throw new Error("Erro ao buscar usuário: " + error.message);
+            }
+            
+            if (!data) {
+              throw new Error("Nenhuma conta encontrada com este CPF.");
+            }
+            
             user = data;
+          } else {
+            throw new Error("Email ou CPF é obrigatório.");
           }
 
           if (!user) {
@@ -150,10 +172,9 @@ export const authOptions: AuthOptions = {
             .from('User')
             .select('*')
             .eq('email', user.email)
-            .single();
+            .maybeSingle();
 
-          if (findError && findError.code !== 'PGRST116') {
-            // Erro diferente de "não encontrado"
+          if (findError) {
             console.error("Erro ao buscar usuário Google:", findError);
             return false;
           }
