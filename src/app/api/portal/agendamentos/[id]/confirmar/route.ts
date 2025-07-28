@@ -28,10 +28,10 @@ export async function PUT(
   }
   const session = await getServerSession(authOptions);
 
-  if (!session || !session.user || session.user.role !== 'PACIENTE') {
+  if (!session || !session.user || (session.user.role !== 'PACIENTE' && session.user.role !== 'ADMIN')) {
     return NextResponse.json({ 
       error: 'Unauthorized',
-      details: { reason: 'Usuário não é paciente', userRole: session?.user?.role }
+      details: { reason: 'Usuário não tem permissão', userRole: session?.user?.role }
     }, { status: 401 });
   }
 

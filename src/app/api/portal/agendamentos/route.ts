@@ -27,11 +27,11 @@ export async function GET(request: Request) {
     }, { status: 401 });
   }
   const session = await getServerSession(authOptions);
-  if (!session || !session.user || session.user.role !== 'PACIENTE') {
-    console.warn('[PORTAL-AGENDAMENTOS][GET] Sessão inválida ou usuário não é paciente', { session });
+  if (!session || !session.user || (session.user.role !== 'PACIENTE' && session.user.role !== 'ADMIN')) {
+    console.warn('[PORTAL-AGENDAMENTOS][GET] Sessão inválida ou usuário não tem permissão', { session });
     return NextResponse.json({ 
       error: 'Unauthorized',
-      details: { reason: 'Usuário não é paciente', userRole: session?.user?.role }
+      details: { reason: 'Usuário não tem permissão', userRole: session?.user?.role }
     }, { status: 401 });
   }
   try {
