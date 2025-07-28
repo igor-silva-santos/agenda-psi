@@ -5,7 +5,11 @@ import { Agendamento } from '@prisma/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, AlertCircle, ArrowRight, Plus, FileText, User } from 'lucide-react';
+import DashboardCard from '@/components/Dashboard/DashboardCard';
+import Card from '@/components/ui/Card';
+import Badge from '@/components/ui/Badge';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 export default function PacienteDashboard() {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
@@ -27,7 +31,7 @@ export default function PacienteDashboard() {
         const data = await response.json();
         setAgendamentos(data);
       } catch (err: any) {
-        setError('Erro ao buscar');
+        setError('Erro ao buscar dados');
       } finally {
         setLoading(false);
       }
@@ -39,28 +43,210 @@ export default function PacienteDashboard() {
     .filter(a => new Date(a.dataHora) > new Date() && a.status === 'CONFIRMADO')
     .sort((a, b) => new Date(a.dataHora).getTime() - new Date(b.dataHora).getTime())[0];
 
-  return (
-    <div className="max-w-3xl mx-auto px-4 py-8 w-full">
-      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center text-blue-800" data-testid="titulo-dashboard">Dashboard do Paciente</h1>
-      {loading ? (
-        <div className="flex justify-center items-center min-h-[200px]"><Loader2 className="h-8 w-8 animate-spin text-blue-600" /><span data-testid="loading">Carregando...</span></div>
-      ) : error ? (
-        <p className="text-red-500" data-testid="erro">{error}</p>
-      ) : agendamentos.length === 0 ? (
-        <h2 className="text-2xl font-semibold mb-4 text-blue-700" data-testid="vazio">Nenhuma consulta confirmada encontrada.</h2>
-      ) : (
-        <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8 flex flex-col items-center text-center">
-          <h2 className="text-2xl font-semibold mb-4 text-blue-700">Sua Próxima Consulta</h2>
-          <p className="text-lg mb-2"><strong>Data:</strong> {format(new Date(proximaConsulta.dataHora), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
-          <p className="text-lg mb-2"><strong>Horário:</strong> {format(new Date(proximaConsulta.dataHora), "HH:mm", { locale: ptBR })}</p>
-          <p className="text-lg mb-2"><strong>Status:</strong> <span className="font-semibold text-green-600">{proximaConsulta.status}</span></p>
-        </div>
-      )}
-      <div className="flex flex-col md:flex-row gap-4 justify-center mt-4">
-        <Link href="/portal/paciente/agendamentos" className="flex-1 bg-white rounded-lg shadow p-4 text-center hover:bg-blue-50 transition-colors font-medium text-blue-700">Meus Agendamentos</Link>
-        <Link href="/portal/paciente/recomendacoes" className="flex-1 bg-white rounded-lg shadow p-4 text-center hover:bg-blue-50 transition-colors font-medium text-blue-700">Minhas Recomendações</Link>
-        <Link href="/portal/paciente/perfil" className="flex-1 bg-white rounded-lg shadow p-4 text-center hover:bg-blue-50 transition-colors font-medium text-blue-700">Meu Perfil</Link>
+  const agendamentosConfirmados = agendamentos.filter(a => a.status === 'CONFIRMADO').length;
+  const agendamentosPendentes = agendamentos.filter(a => a.status === 'PENDENTE').length;
+  const agendamentosCancelados = agendamentos.filter(a => a.status === 'CANCELADO').length;
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <LoadingSpinner size="lg" text="Carregando dashboard..." />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Card className="max-w-md mx-auto text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Erro ao carregar</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Tentar novamente
+          </button>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-1">Bem-vindo ao seu portal de saúde</p>
+        </div>
+        <div className="mt-4 sm:mt-0">
+          <Link 
+            href="/portal/paciente/agendamentos"
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Novo Agendamento
+          </Link>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <DashboardCard
+          title="Consultas Confirmadas"
+          value={agendamentosConfirmados}
+          icon={CheckCircle}
+          trend={{ value: 12, isPositive: true }}
+        />
+        <DashboardCard
+          title="Consultas Pendentes"
+          value={agendamentosPendentes}
+          icon={Clock}
+          trend={{ value: 5, isPositive: false }}
+        />
+        <DashboardCard
+          title="Consultas Canceladas"
+          value={agendamentosCancelados}
+          icon={AlertCircle}
+        />
+        <DashboardCard
+          title="Total de Consultas"
+          value={agendamentos.length}
+          icon={Calendar}
+        />
+      </div>
+
+      {/* Próxima Consulta */}
+      {proximaConsulta ? (
+        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar className="h-5 w-5 text-blue-600" />
+                <h2 className="text-lg font-semibold text-gray-900">Próxima Consulta</h2>
+                <Badge variant="success">Confirmada</Badge>
+              </div>
+              <div className="space-y-2 text-gray-700">
+                <p className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  {format(new Date(proximaConsulta.dataHora), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                </p>
+                <p className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  {format(new Date(proximaConsulta.dataHora), "HH:mm", { locale: ptBR })}
+                </p>
+              </div>
+            </div>
+            <Link 
+              href="/portal/paciente/agendamentos"
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Ver detalhes
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </Card>
+      ) : (
+        <Card className="text-center py-8">
+          <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma consulta agendada</h3>
+          <p className="text-gray-600 mb-4">Agende sua primeira consulta para começar</p>
+          <Link 
+            href="/portal/paciente/agendamentos"
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Agendar Consulta
+          </Link>
+        </Card>
+      )}
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Link href="/portal/paciente/agendamentos">
+          <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                <Calendar className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">Meus Agendamentos</h3>
+                <p className="text-sm text-gray-600">Visualize e gerencie suas consultas</p>
+              </div>
+              <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+            </div>
+          </Card>
+        </Link>
+
+        <Link href="/portal/paciente/recomendacoes">
+          <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                <FileText className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors">Minhas Recomendações</h3>
+                <p className="text-sm text-gray-600">Acesse suas recomendações médicas</p>
+              </div>
+              <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-green-600 transition-colors" />
+            </div>
+          </Card>
+        </Link>
+
+        <Link href="/portal/paciente/perfil">
+          <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                <User className="h-6 w-6 text-purple-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">Meu Perfil</h3>
+                <p className="text-sm text-gray-600">Atualize suas informações pessoais</p>
+              </div>
+              <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
+            </div>
+          </Card>
+        </Link>
+      </div>
+
+      {/* Recent Activity */}
+      {agendamentos.length > 0 && (
+        <Card>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Atividade Recente</h3>
+          <div className="space-y-3">
+            {agendamentos.slice(0, 3).map((agendamento) => (
+              <div key={agendamento.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      Consulta em {format(new Date(agendamento.dataHora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Status: <Badge 
+                        variant={agendamento.status === 'CONFIRMADO' ? 'success' : agendamento.status === 'PENDENTE' ? 'warning' : 'danger'}
+                        size="sm"
+                      >
+                        {agendamento.status}
+                      </Badge>
+                    </p>
+                  </div>
+                </div>
+                <Link 
+                  href={`/portal/paciente/agendamentos`}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  Ver detalhes
+                </Link>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
