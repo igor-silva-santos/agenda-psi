@@ -67,8 +67,6 @@ export default function AgendamentoFormMelhorado() {
   // Adicionar estado para confirmar senha
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [senhaErro, setSenhaErro] = useState('');
-  // Adicionar estado para mostrar/ocultar confirmar senha
-  const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
 
   useErrorScrollToTop(error);
 
@@ -436,25 +434,14 @@ export default function AgendamentoFormMelhorado() {
               </div>
               <div className="md:col-span-2">
                 <label htmlFor="senha" className="block text-base font-semibold text-blue-900 mb-1">Senha</label>
-                <div className="relative">
-                  <Controller name="senha" control={controlStep2} render={({ field }) => (
-                    <input
-                      {...field}
-                      id="senha"
-                      type={showPassword ? 'text' : 'password'}
-                      className="mt-1 block w-full rounded-md border-gray-400 shadow-sm text-gray-900 bg-gray-50 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-500"
-                    />
-                  )} />
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-blue-700"
-                    onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                  >
-                    {showPassword ? 'Ocultar' : 'Mostrar'}
-                  </button>
-                </div>
+                <Controller name="senha" control={controlStep2} render={({ field }) => (
+                  <input
+                    {...field}
+                    id="senha"
+                    type={showPassword ? 'text' : 'password'}
+                    className="mt-1 block w-full rounded-md border-gray-400 shadow-sm text-gray-900 bg-gray-50 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-500"
+                  />
+                )} />
                 {typeof errorsStep2.senha?.message === 'string' && <p className="text-red-500 text-xs font-semibold mt-1">{errorsStep2.senha.message}</p>}
                 {/* Barra de força da senha */}
                 {password && (
@@ -478,11 +465,11 @@ export default function AgendamentoFormMelhorado() {
                 )}
                 {/* Confirmar Senha só aparece se for novo paciente */}
                 {!camposBloqueados && userData === null && displayCpf.length === 14 && (
-                  <div className="relative">
+                  <div>
                     <label htmlFor="confirmarSenha" className="block text-base font-semibold text-blue-900 mb-1">Confirmar Senha</label>
                     <input
                       id="confirmarSenha"
-                      type={showConfirmarSenha ? 'text' : 'password'}
+                      type={showPassword ? 'text' : 'password'}
                       value={confirmarSenha}
                       onChange={e => {
                         setConfirmarSenha(e.target.value);
@@ -494,19 +481,10 @@ export default function AgendamentoFormMelhorado() {
                       }}
                       className="mt-1 block w-full rounded-md border-gray-400 shadow-sm text-gray-900 bg-gray-50 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-500"
                     />
-                    <button
-                      type="button"
-                      tabIndex={-1}
-                      className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-blue-700"
-                      onClick={() => setShowConfirmarSenha((v) => !v)}
-                      aria-label={showConfirmarSenha ? 'Ocultar senha' : 'Mostrar senha'}
-                    >
-                      {showConfirmarSenha ? 'Ocultar' : 'Mostrar'}
-                    </button>
                     {senhaErro && <p className="text-red-500 text-xs font-semibold mt-1">{senhaErro}</p>}
                   </div>
                 )}
-                {/* Adicionar checkbox para mostrar senha (abaixo dos campos de senha) */}
+                {/* Checkbox para mostrar senha (funciona para ambos os campos) */}
                 <div className="flex items-center mt-2">
                   <input
                     id="mostrarSenha"
