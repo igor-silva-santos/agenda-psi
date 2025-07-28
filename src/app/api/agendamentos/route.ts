@@ -58,6 +58,8 @@ export async function POST(request: Request) {
       return new NextResponse(JSON.stringify({ error: 'Este horário não está mais disponível. Por favor, selecione outro.' }), { status: 409 });
     }
 
+    console.log('[AGENDAMENTOS][POST] Verificando se usuário existe para email:', email);
+
     // Busca ou cria usuário
     let { data: user, error: userError } = await supabase
       .from('User')
@@ -71,6 +73,18 @@ export async function POST(request: Request) {
       isNewUser = true;
       const passwordResetToken = crypto.randomBytes(32).toString('hex');
       const senhaAleatoria = crypto.randomBytes(8).toString('hex');
+      
+      console.log('[AGENDAMENTOS][POST] Dados do novo usuário:', {
+        name: nomeCompleto,
+        email,
+        cpf,
+        role: 'PACIENTE',
+        passwordResetToken,
+        dataNascimento: new Date('2000-01-01'),
+        telefone: telefone || '',
+        password: senhaAleatoria,
+      });
+      
       const { data: createdUser, error: createUserError } = await supabase
         .from('User')
         .insert([
@@ -87,9 +101,10 @@ export async function POST(request: Request) {
         ])
         .select()
         .single();
+        
       if (createUserError || !createdUser) {
         console.error('[AGENDAMENTOS][POST] Erro ao criar usuário:', createUserError);
-        return new NextResponse(JSON.stringify({ error: 'Erro ao criar usuário.' }), { status: 500 });
+        return new NextResponse(JSON.stringify({ error: 'Erro ao criar usuário.', details: createUserError }), { status: 500 });
       }
       user = createdUser;
       console.log('[AGENDAMENTOS][POST] Usuário criado:', user.id);
@@ -98,6 +113,12 @@ export async function POST(request: Request) {
     }
 
     console.log('[AGENDAMENTOS][POST] Criando agendamento para usuário:', user.id);
+    console.log('[AGENDAMENTOS][POST] Dados do agendamento:', {
+      dataHora: slot.startDateTime,
+      status: 'PRE_AGENDADO',
+      userId: user.id,
+      motivoConsulta: motivoConsulta || 'Consulta agendada via sistema',
+    });
 
     // Cria o agendamento
     const { data: agendamento, error: agendamentoError } = await supabase
@@ -112,9 +133,10 @@ export async function POST(request: Request) {
       ])
       .select()
       .single();
+      
     if (agendamentoError || !agendamento) {
       console.error('[AGENDAMENTOS][POST] Erro ao criar agendamento:', agendamentoError);
-      return new NextResponse(JSON.stringify({ error: 'Erro ao criar agendamento.' }), { status: 500 });
+      return new NextResponse(JSON.stringify({ error: 'Erro ao criar agendamento.', details: agendamentoError }), { status: 500 });
     }
 
     console.log('[AGENDAMENTOS][POST] Agendamento criado:', agendamento.id);
@@ -221,6 +243,6 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('[AGENDAMENTOS][POST] Erro ao criar agendamento:', error);
-    return new NextResponse(JSON.stringify({ error: 'Ocorreu um erro no servidor. Tente novamente mais tarde.' }), { status: 500 });
+    return new NextResponse(JSON.stringify({ error: 'Ocorreu um erro no servidor. Tente novamente mais tarde.', details: error }), { status: 500 });
   }
 }
