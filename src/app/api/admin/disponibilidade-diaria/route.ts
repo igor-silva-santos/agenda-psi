@@ -63,44 +63,20 @@ export async function GET(request: Request) {
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
   const session = await getServerSession(authOptions);
-  console.log('[DISPONIBILIDADE-DIARIA][GET] session:', session);
-  if (!session || session.user?.email !== process.env.ADMIN_EMAIL) {
+  if (!session || !session.user || session.user.role !== 'ADMIN') {
     console.warn('[DISPONIBILIDADE-DIARIA][GET] Sessão inválida ou usuário não é admin', { session });
     return new NextResponse('Unauthorized', { status: 401 });
   }
-
   try {
-    const { searchParams } = new URL(request.url);
-    const dateParam = searchParams.get('date');
-    if (!dateParam) {
-      console.log('[DISPONIBILIDADE-DIARIA][GET] Listando todas as disponibilidades diárias');
-      const { data: disponibilidades, error: dispError } = await supabase
-        .from('DisponibilidadeDiaria')
-        .select('*')
-        .order('data', { ascending: true });
-      if (dispError) throw dispError;
-      return NextResponse.json({ disponibilidades });
-    }
-    const targetDate = parseISO(dateParam);
-    targetDate.setUTCHours(0, 0, 0, 0);
-    console.log('[DISPONIBILIDADE-DIARIA][GET] Buscando disponibilidade para data:', targetDate);
-    const { data: disponibilidade, error: dispError } = await supabase
+    const { data: disponibilidades, error: dispError } = await supabase
       .from('DisponibilidadeDiaria')
       .select('*')
-      .eq('data', targetDate.toISOString())
-      .single();
-    const { data: slots, error: slotsError } = await supabase
-      .from('BookableSlot')
-      .select('*')
-      .gte('startDateTime', targetDate.toISOString())
-      .lt('startDateTime', addHours(targetDate, 24).toISOString())
-      .order('startDateTime', { ascending: true });
+      .order('data', { ascending: false });
     if (dispError) throw dispError;
-    if (slotsError) throw slotsError;
-    return NextResponse.json({ disponibilidade, slots });
+    return new NextResponse(JSON.stringify(disponibilidades), { status: 200 });
   } catch (error) {
     console.error('[DISPONIBILIDADE-DIARIA][GET] ERRO:', error);
-    return new NextResponse('Erro interno ao buscar disponibilidade diária', { status: 500 });
+    return new NextResponse('Erro interno ao buscar disponibilidades diárias', { status: 500 });
   }
 }
 
@@ -118,85 +94,47 @@ export async function POST(request: Request) {
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
   const session = await getServerSession(authOptions);
-  if (!session || session.user?.email !== process.env.ADMIN_EMAIL) {
+  if (!session || !session.user || session.user.role !== 'ADMIN') {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
   try {
-    const { date, horaInicio, horaFim, almocoInicio, almocoFim } = await request.json();
-
-    if (!date || !horaInicio || !horaFim) {
-      return new NextResponse('Missing required fields', { status: 400 });
+    const { data, horaInicio, horaFim, almocoInicio, almocoFim } = await request.json();
+    if (!data || !horaInicio || !horaFim) {
+      return new NextResponse('data, horaInicio e horaFim são obrigatórios', { status: 400 });
     }
 
-    const parsedDate = parseISO(date); // Use parseISO for yyyy-MM-dd format
-    parsedDate.setUTCHours(0, 0, 0, 0);
+    const targetDate = new Date(data);
+    targetDate.setUTCHours(0, 0, 0, 0);
 
-    const generatedHorarios = generateTimeSlots(parsedDate, horaInicio, horaFim, almocoInicio, almocoFim);
-
-    // Verifica se já existe disponibilidade para a data
     const { data: existingEntry } = await supabase
       .from('DisponibilidadeDiaria')
       .select('*')
-      .eq('data', parsedDate.toISOString())
+      .eq('data', targetDate.toISOString())
       .single();
 
-    let result;
     if (existingEntry) {
-      const { data: updated, error: updateError } = await supabase
-        .from('DisponibilidadeDiaria')
-        .update({
-          almocoInicio: almocoInicio || null,
-          almocoFim: almocoFim || null,
-        })
-        .eq('id', existingEntry.id)
-        .select()
-        .single();
-      if (updateError) throw updateError;
-      result = updated;
-    } else {
-      const { data: created, error: createError } = await supabase
-        .from('DisponibilidadeDiaria')
-        .insert([
-          {
-            data: parsedDate.toISOString(),
-            horaInicio,
-            horaFim,
-            almocoInicio: almocoInicio || null,
-            almocoFim: almocoFim || null,
-          },
-        ])
-        .select()
-        .single();
-      if (createError) throw createError;
-      result = created;
+      return new NextResponse('Availability entry already exists for this date', { status: 409 });
     }
 
-    // Remove existing bookable slots for this date
-    await supabase
-      .from('BookableSlot')
-      .delete()
-      .gte('startDateTime', parsedDate.toISOString())
-      .lt('startDateTime', addHours(parsedDate, 24).toISOString());
+    const { data: newEntry, error: createError } = await supabase
+      .from('DisponibilidadeDiaria')
+      .insert([
+        {
+          data: targetDate.toISOString(),
+          horaInicio,
+          horaFim,
+          almocoInicio,
+          almocoFim,
+        },
+      ])
+      .select()
+      .single();
+    if (createError) throw createError;
 
-    // Create new bookable slots based on generatedHorarios
-    const newBookableSlots = generatedHorarios.map((slot: any) => ({
-      startDateTime: setMinutes(setHours(parsedDate, parseInt(slot.start.split(':')[0])), parseInt(slot.start.split(':')[1])),
-      endDateTime: setMinutes(setHours(parsedDate, parseInt(slot.end.split(':')[0])), parseInt(slot.end.split(':')[1])),
-    }));
-
-    if (newBookableSlots.length > 0) {
-      await supabase
-        .from('BookableSlot')
-        .insert(newBookableSlots);
-    }
-
-    return NextResponse.json(result, { status: existingEntry ? 200 : 201 });
+    return new NextResponse(JSON.stringify(newEntry), { status: 201 });
   } catch (error) {
-    console.error('Erro ao salvar disponibilidade diária:', error);
-    if (error instanceof Error) {
-      return new NextResponse('Erro ao salvar disponibilidade diária: ' + error.message, { status: 500 });
-    }
+    console.error('Erro ao criar disponibilidade diária:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

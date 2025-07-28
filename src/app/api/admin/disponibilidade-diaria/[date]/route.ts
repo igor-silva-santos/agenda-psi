@@ -21,7 +21,7 @@ export async function GET(request: Request, { params }: { params: { date: string
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
   const session = await getServerSession(authOptions);
-  if (!session || session.user?.email !== process.env.ADMIN_EMAIL) {
+  if (!session || !session.user || session.user.role !== 'ADMIN') {
     console.warn('[DISPONIBILIDADE-DIARIA][GET][date] Sessão inválida ou usuário não é admin', { session });
     return new NextResponse('Unauthorized', { status: 401 });
   }
@@ -63,7 +63,7 @@ export async function POST(request: Request, { params }: { params: { date: strin
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
   const session = await getServerSession(authOptions);
-  if (!session || session.user?.email !== process.env.ADMIN_EMAIL) {
+  if (!session || !session.user || session.user.role !== 'ADMIN') {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
@@ -131,7 +131,7 @@ export async function DELETE(
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
   const session = await getServerSession(authOptions);
-  if (!session || session.user?.email !== process.env.ADMIN_EMAIL) {
+  if (!session || !session.user || session.user.role !== 'ADMIN') {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
