@@ -9,9 +9,15 @@ export default withAuth(
       return NextResponse.redirect(new URL("/conta/login", req.url));
     }
 
+    // Verificar se o usuário tem role válido
+    if (!token.role) {
+      return NextResponse.redirect(new URL("/conta/login", req.url));
+    }
+
     if (
       req.nextUrl.pathname.startsWith("/portal") &&
-      token?.role !== "PACIENTE"
+      token?.role !== "PACIENTE" &&
+      token?.role !== "ADMIN"
     ) {
       return NextResponse.redirect(new URL("/conta/login", req.url));
     }

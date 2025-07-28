@@ -12,20 +12,25 @@ const agendamentoSchema = z.object({
   email: z.string().email("E-mail inválido"),
   telefone: z.string().min(10, "Telefone inválido"),
   cpf: z.string(),
-  motivoConsulta: z.string().min(10, "Motivo da consulta é obrigatório"),
+  motivoConsulta: z.string().optional(),
   slotId: z.string(),
 });
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    console.log('[AGENDAMENTOS][POST] Dados recebidos:', body);
+    
     const validation = agendamentoSchema.safeParse(body);
 
     if (!validation.success) {
+      console.error('[AGENDAMENTOS][POST] Erro de validação:', validation.error.format());
       return new NextResponse(JSON.stringify({ error: 'Dados inválidos', details: validation.error.format() }), { status: 400 });
     }
 
     const { nomeCompleto, email, telefone, cpf, motivoConsulta, slotId } = validation.data;
+
+    console.log('[AGENDAMENTOS][POST] Verificando slot:', slotId);
 
     // Verifica se o slot ainda está disponível
     const { data: slot, error: slotError } = await supabase
@@ -36,8 +41,11 @@ export async function POST(request: Request) {
       .single();
 
     if (slotError || !slot) {
+      console.error('[AGENDAMENTOS][POST] Slot não encontrado ou já reservado:', slotError);
       return new NextResponse(JSON.stringify({ error: 'Este horário não está mais disponível. Por favor, selecione outro.' }), { status: 409 });
     }
+
+    console.log('[AGENDAMENTOS][POST] Slot encontrado:', slot);
 
     // Busca ou cria usuário
     let { data: user, error: userError } = await supabase
@@ -48,9 +56,9 @@ export async function POST(request: Request) {
 
     let isNewUser = false;
     if (userError || !user) {
+      console.log('[AGENDAMENTOS][POST] Criando novo usuário para:', email);
       isNewUser = true;
       const passwordResetToken = crypto.randomBytes(32).toString('hex');
-      // const passwordResetExpires = new Date(Date.now() + 3600000); // Se quiser usar
       const senhaAleatoria = crypto.randomBytes(8).toString('hex');
       const { data: createdUser, error: createUserError } = await supabase
         .from('User')
@@ -69,10 +77,16 @@ export async function POST(request: Request) {
         .select()
         .single();
       if (createUserError || !createdUser) {
+        console.error('[AGENDAMENTOS][POST] Erro ao criar usuário:', createUserError);
         return new NextResponse(JSON.stringify({ error: 'Erro ao criar usuário.' }), { status: 500 });
       }
       user = createdUser;
+      console.log('[AGENDAMENTOS][POST] Usuário criado:', user.id);
+    } else {
+      console.log('[AGENDAMENTOS][POST] Usuário existente encontrado:', user.id);
     }
+
+    console.log('[AGENDAMENTOS][POST] Criando agendamento para usuário:', user.id);
 
     // Cria o agendamento
     const { data: agendamento, error: agendamentoError } = await supabase
@@ -82,14 +96,17 @@ export async function POST(request: Request) {
           dataHora: slot.startDateTime,
           status: 'PRE_AGENDADO',
           userId: user.id,
-          motivoConsulta: motivoConsulta,
+          motivoConsulta: motivoConsulta || 'Consulta agendada via sistema',
         }
       ])
       .select()
       .single();
     if (agendamentoError || !agendamento) {
+      console.error('[AGENDAMENTOS][POST] Erro ao criar agendamento:', agendamentoError);
       return new NextResponse(JSON.stringify({ error: 'Erro ao criar agendamento.' }), { status: 500 });
     }
+
+    console.log('[AGENDAMENTOS][POST] Agendamento criado:', agendamento.id);
 
     // Atualiza o slot para isBooked: true
     const { error: updateSlotError } = await supabase
@@ -97,8 +114,11 @@ export async function POST(request: Request) {
       .update({ isBooked: true })
       .eq('id', parseInt(slotId));
     if (updateSlotError) {
+      console.error('[AGENDAMENTOS][POST] Erro ao atualizar slot:', updateSlotError);
       return new NextResponse(JSON.stringify({ error: 'Erro ao atualizar slot.' }), { status: 500 });
     }
+
+    console.log('[AGENDAMENTOS][POST] Slot atualizado para reservado');
 
     // --- Envio de E-mails de Confirmação ---
     const formattedDate = format(new Date(agendamento.dataHora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
@@ -185,17 +205,23 @@ export async function POST(request: Request) {
           <li><strong>Paciente:</strong> ${user.name} (${user.email})</li>
           <li><strong>Data e Hora:</strong> ${formattedDate}</li>
           <li><strong>Status:</strong> ${agendamento.status}</li>
-          <li><strong>Motivo da Consulta:</strong> ${motivoConsulta}</li>
+          <li><strong>Motivo da Consulta:</strong> ${motivoConsulta || 'Não informado'}</li>
         </ul>
         <p>Acesse o painel administrativo para mais detalhes e para confirmar o agendamento.</p>
       `,
     });
     // --- Fim do Envio de E-mails ---
 
-    return NextResponse.json({ message: 'Seu pré-agendamento foi realizado com sucesso! Um e-mail de confirmação foi enviado.', agendamento }, { status: 201 });
+    console.log('[AGENDAMENTOS][POST] Agendamento finalizado com sucesso');
+
+    return NextResponse.json({ 
+      message: 'Seu pré-agendamento foi realizado com sucesso! Um e-mail de confirmação foi enviado.', 
+      agendamento,
+      user: { id: user.id, email: user.email, role: user.role }
+    }, { status: 201 });
 
   } catch (error) {
-    console.error('Erro ao criar agendamento:', error);
+    console.error('[AGENDAMENTOS][POST] Erro ao criar agendamento:', error);
     return new NextResponse(JSON.stringify({ error: 'Ocorreu um erro no servidor. Tente novamente mais tarde.' }), { status: 500 });
   }
 }
