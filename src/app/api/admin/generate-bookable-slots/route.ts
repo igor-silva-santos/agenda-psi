@@ -2,13 +2,31 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getToken } from 'next-auth/jwt';
 import { addMinutes, setHours, setMinutes, parseISO } from "date-fns";
 
 const APPOINTMENT_DURATION_MINUTES = 30;
 
 export async function POST(request: Request) {
+  const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
+  if (!token) {
+    return NextResponse.json({ 
+      error: 'Unauthorized',
+      details: { reason: 'Token ausente' }
+    }, { status: 401 });
+  }
+  const { data: user, error: userError } = await supabase
+    .from('User')
+    .select('*')
+    .eq('id', token.id)
+    .single();
+  if (userError || !user || user.currentSessionId !== token.sessionId) {
+    return NextResponse.json({ 
+      error: 'Sessão concorrente detectada',
+      details: { userId: token.id, sessionId: token.sessionId }
+    }, { status: 401 });
+  }
   const session = await getServerSession(authOptions);
-
   if (!session || !session.user || session.user.role !== "ADMIN") {
     return NextResponse.json({ 
       error: "Unauthorized",
@@ -56,10 +74,11 @@ export async function POST(request: Request) {
 
     const { data: createdSlots, error: createError } = await supabase
       .from('BookableSlot')
-      .insert(newSlots);
+      .insert(newSlots)
+      .select();
     if (createError) throw createError;
 
-    const count = Array.isArray(createdSlots) ? createdSlots.length : 0;
+    const count = createdSlots ? createdSlots.length : 0;
     return NextResponse.json({ count });
   } catch (error) {
     console.error("Error generating bookable slots:", error);
