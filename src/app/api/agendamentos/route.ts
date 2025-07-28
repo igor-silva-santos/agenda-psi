@@ -32,20 +32,31 @@ export async function POST(request: Request) {
 
     console.log('[AGENDAMENTOS][POST] Verificando slot:', slotId);
 
-    // Verifica se o slot ainda está disponível
+    // Verifica se o slot existe
     const { data: slot, error: slotError } = await supabase
       .from('BookableSlot')
       .select('*')
       .eq('id', parseInt(slotId))
-      .eq('isBooked', false)
       .single();
 
     if (slotError || !slot) {
-      console.error('[AGENDAMENTOS][POST] Slot não encontrado ou já reservado:', slotError);
+      console.error('[AGENDAMENTOS][POST] Slot não encontrado:', slotError);
       return new NextResponse(JSON.stringify({ error: 'Este horário não está mais disponível. Por favor, selecione outro.' }), { status: 409 });
     }
 
     console.log('[AGENDAMENTOS][POST] Slot encontrado:', slot);
+
+    // Verifica se já existe um agendamento para este slot
+    const { data: existingAgendamento, error: agendamentoCheckError } = await supabase
+      .from('Agendamento')
+      .select('*')
+      .eq('dataHora', slot.startDateTime)
+      .single();
+
+    if (existingAgendamento) {
+      console.error('[AGENDAMENTOS][POST] Slot já possui agendamento:', existingAgendamento);
+      return new NextResponse(JSON.stringify({ error: 'Este horário não está mais disponível. Por favor, selecione outro.' }), { status: 409 });
+    }
 
     // Busca ou cria usuário
     let { data: user, error: userError } = await supabase
@@ -107,18 +118,6 @@ export async function POST(request: Request) {
     }
 
     console.log('[AGENDAMENTOS][POST] Agendamento criado:', agendamento.id);
-
-    // Atualiza o slot para isBooked: true
-    const { error: updateSlotError } = await supabase
-      .from('BookableSlot')
-      .update({ isBooked: true })
-      .eq('id', parseInt(slotId));
-    if (updateSlotError) {
-      console.error('[AGENDAMENTOS][POST] Erro ao atualizar slot:', updateSlotError);
-      return new NextResponse(JSON.stringify({ error: 'Erro ao atualizar slot.' }), { status: 500 });
-    }
-
-    console.log('[AGENDAMENTOS][POST] Slot atualizado para reservado');
 
     // --- Envio de E-mails de Confirmação ---
     const formattedDate = format(new Date(agendamento.dataHora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
