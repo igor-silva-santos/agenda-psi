@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 interface Appointment {
   id: string;
-  dataHora: string;
+  dataHora: string | Date;
   status: 'CONFIRMADO' | 'PENDENTE' | 'CANCELADO' | 'PRE_AGENDADO';
 }
 
