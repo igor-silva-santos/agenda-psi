@@ -133,16 +133,24 @@ export const authOptions: AuthOptions = {
             throw new Error("Credenciais inválidas.");
           }
 
-          // Sessão única: gerar novo sessionId e salvar no usuário (opcional)
-          // const sessionId = randomUUID();
-          // await supabase.from('User').update({ currentSessionId: sessionId }).eq('id', user.id);
+          // Gerar novo sessionId e atualizar no banco
+          const sessionId = randomUUID();
+          const { error: updateError } = await supabase
+            .from('User')
+            .update({ currentSessionId: sessionId })
+            .eq('id', user.id);
+
+          if (updateError) {
+            console.error("[LOGIN] Erro ao atualizar sessionId:", updateError);
+            // Não falhar o login por erro de sessionId
+          }
 
           return {
             id: String(user.id),
             email: user.email,
             name: user.name,
             role: user.role,
-            // sessionId: sessionId,
+            sessionId: sessionId,
           };
         }
       },
