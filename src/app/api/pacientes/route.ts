@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
@@ -22,7 +22,12 @@ export async function POST(request: Request) {
     }
     console.log('Recebido dataNascimento:', dataNascimento);
     // Verifica se já existe paciente com o mesmo CPF
-    const existing = await prisma.user.findUnique({ where: { cpf } });
+    const { data: existing, error: existingError } = await supabase
+      .from('User')
+      .select('*')
+      .eq('cpf', cpf)
+      .single();
+    
     if (existing) {
       if (existing.role === 'ADMIN') {
         return NextResponse.json({ 
@@ -36,8 +41,9 @@ export async function POST(request: Request) {
       }, { status: 409 });
     }
     const hashed = await bcrypt.hash(senha, 10);
-    const paciente = await prisma.user.create({
-      data: {
+    const { data: paciente, error: createError } = await supabase
+      .from('User')
+      .insert([{
         name: nomeCompleto,
         email,
         cpf,
@@ -45,17 +51,25 @@ export async function POST(request: Request) {
         password: hashed,
         telefone,
         role: 'PACIENTE',
-      } as any,
-    });
+      }])
+      .select()
+      .single();
+
+    if (createError || !paciente) {
+      return NextResponse.json({ 
+        error: 'Erro interno ao cadastrar paciente.',
+        details: { message: createError?.message || 'Erro desconhecido' }
+      }, { status: 500 });
+    }
+
     // Não retornar a senha
     const { password: _, ...pacienteSemSenha } = paciente;
     // Retornar dataNascimento apenas como 'YYYY-MM-DD'
-    return NextResponse.json({ ...pacienteSemSenha, dataNascimento: paciente.dataNascimento ? paciente.dataNascimento.toISOString().split('T')[0] : null }, { status: 201 });
+    return NextResponse.json({ ...pacienteSemSenha, dataNascimento: paciente.dataNascimento ? paciente.dataNascimento.split('T')[0] : null }, { status: 201 });
   } catch (error) {
     console.error('Erro ao cadastrar paciente:', error);
-    // Prisma duplicate error
-    const prismaError = error as any;
-    if (prismaError.code === 'P2002' && prismaError.meta && prismaError.meta.target && prismaError.meta.target.includes('email')) {
+    // Supabase duplicate error
+    if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
       return NextResponse.json({ 
         error: 'Já existe um paciente com este e-mail.',
         details: { email, constraint: 'email_unique' }

@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
-    const user = await prisma.user.findUnique({ where: { cpf: params.id } });
-    if (!user) {
+    const { data: user, error } = await supabase
+      .from('User')
+      .select('*')
+      .eq('cpf', params.id)
+      .single();
+      
+    if (error || !user) {
       return NextResponse.json({ 
         error: 'Usuário não encontrado.',
         details: { cpf: params.id }
