@@ -32,31 +32,23 @@ export async function POST(request: Request) {
 
     console.log('[AGENDAMENTOS][POST] Verificando slot:', slotId);
 
-    // Verifica se o slot existe
-    const { data: slot, error: slotError } = await supabase
-      .from('BookableSlot')
-      .select('*')
-      .eq('id', parseInt(slotId))
-      .single();
+    // Como os slots são gerados dinamicamente, vamos converter o slotId (timestamp) para Date
+    const slotDateTime = new Date(parseInt(slotId));
+    console.log('[AGENDAMENTOS][POST] Data/Hora do slot:', slotDateTime.toISOString());
 
-    if (slotError || !slot) {
-      console.error('[AGENDAMENTOS][POST] Slot não encontrado:', slotError);
-      return new NextResponse(JSON.stringify({ error: 'Este horário não está mais disponível. Por favor, selecione outro.' }), { status: 409 });
-    }
-
-    console.log('[AGENDAMENTOS][POST] Slot encontrado:', slot);
-
-    // Verifica se já existe um agendamento para este slot
+    // Verifica se já existe um agendamento para este horário
     const { data: existingAgendamento, error: agendamentoCheckError } = await supabase
       .from('Agendamento')
       .select('*')
-      .eq('dataHora', slot.startDateTime)
+      .eq('dataHora', slotDateTime.toISOString())
       .single();
 
     if (existingAgendamento) {
       console.error('[AGENDAMENTOS][POST] Slot já possui agendamento:', existingAgendamento);
       return new NextResponse(JSON.stringify({ error: 'Este horário não está mais disponível. Por favor, selecione outro.' }), { status: 409 });
     }
+
+    console.log('[AGENDAMENTOS][POST] Slot disponível para agendamento');
 
     console.log('[AGENDAMENTOS][POST] Verificando se usuário existe para email:', email);
 
@@ -114,7 +106,7 @@ export async function POST(request: Request) {
 
     console.log('[AGENDAMENTOS][POST] Criando agendamento para usuário:', user.id);
     console.log('[AGENDAMENTOS][POST] Dados do agendamento:', {
-      dataHora: slot.startDateTime,
+      dataHora: slotDateTime.toISOString(),
       status: 'PRE_AGENDADO',
       userId: user.id,
       motivoConsulta: motivoConsulta || 'Consulta agendada via sistema',
@@ -125,7 +117,7 @@ export async function POST(request: Request) {
       .from('Agendamento')
       .insert([
         {
-          dataHora: slot.startDateTime,
+          dataHora: slotDateTime.toISOString(),
           status: 'PRE_AGENDADO',
           userId: user.id,
           motivoConsulta: motivoConsulta || 'Consulta agendada via sistema',
