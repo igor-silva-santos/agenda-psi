@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
       return NextResponse.json({ 
         error: 'Já existe um paciente com este e-mail.',
-        details: { email, constraint: 'email_unique' }
+        details: { constraint: 'email_unique' }
       }, { status: 409 });
     }
     return NextResponse.json({ 
