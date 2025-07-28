@@ -13,7 +13,7 @@ const agendamentoSchema = z.object({
   telefone: z.string().min(10, "Telefone inválido"),
   cpf: z.string(),
   motivoConsulta: z.string().optional(),
-  slotId: z.string(),
+  slotId: z.union([z.string(), z.number()]).transform(val => String(val)),
 });
 
 export async function POST(request: Request) {
