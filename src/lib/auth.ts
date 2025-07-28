@@ -139,7 +139,76 @@ export const authOptions: AuthOptions = {
       console.log("signIn callback - user:", user);
       console.log("signIn callback - account:", account);
       console.log("signIn callback - profile:", profile);
-      return true; // Allow sign in
+
+      // Se for login com Google
+      if (account?.provider === 'google') {
+        try {
+          const sessionId = randomUUID();
+          
+          // Verificar se o usuário já existe no Supabase
+          const { data: existingUser, error: findError } = await supabase
+            .from('User')
+            .select('*')
+            .eq('email', user.email)
+            .single();
+
+          if (findError && findError.code !== 'PGRST116') {
+            // Erro diferente de "não encontrado"
+            console.error("Erro ao buscar usuário Google:", findError);
+            return false;
+          }
+
+          if (existingUser) {
+            // Usuário existe, atualizar sessionId
+            const { error: updateError } = await supabase
+              .from('User')
+              .update({ currentSessionId: sessionId })
+              .eq('id', existingUser.id);
+
+            if (updateError) {
+              console.error("Erro ao atualizar sessionId do usuário Google:", updateError);
+              return false;
+            }
+
+            // Atualizar dados do usuário para a sessão
+            user.id = String(existingUser.id);
+            user.role = existingUser.role;
+            (user as any).sessionId = sessionId;
+          } else {
+            // Usuário não existe, criar novo
+            const { data: newUser, error: createError } = await supabase
+              .from('User')
+              .insert([
+                {
+                  email: user.email!,
+                  name: user.name!,
+                  role: 'PACIENTE', // Default role para novos usuários Google
+                  currentSessionId: sessionId,
+                  // Não definir password para usuários Google
+                }
+              ])
+              .select()
+              .single();
+
+            if (createError) {
+              console.error("Erro ao criar usuário Google:", createError);
+              return false;
+            }
+
+            // Atualizar dados do usuário para a sessão
+            user.id = String(newUser.id);
+            user.role = newUser.role;
+            (user as any).sessionId = sessionId;
+          }
+
+          return true;
+        } catch (error) {
+          console.error("Erro no callback signIn do Google:", error);
+          return false;
+        }
+      }
+
+      return true; // Allow sign in for other providers
     },
     async jwt({ token, user }) {
       console.log("jwt callback - token (before):", token);
