@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
 import { sendEmail } from '@/lib/email';
 import { format } from 'date-fns';
@@ -11,7 +11,7 @@ const agendamentoSchema = z.object({
   nomeCompleto: z.string().min(3, "Nome é obrigatório"),
   email: z.string().email("E-mail inválido"),
   telefone: z.string().min(10, "Telefone inválido"),
-  cpf: z.string(), // A validação do CPF será feita no backend
+  cpf: z.string(),
   motivoConsulta: z.string().min(10, "Motivo da consulta é obrigatório"),
   slotId: z.string(),
 });
@@ -27,63 +27,78 @@ export async function POST(request: Request) {
 
     const { nomeCompleto, email, telefone, cpf, motivoConsulta, slotId } = validation.data;
 
-    // Tratamento de Conflito: Verifica se o slot ainda está disponível
-    const slot = await prisma.bookableSlot.findFirst({
-      where: {
-        id: parseInt(slotId),
-        isBooked: false,
-      },
-    });
+    // Verifica se o slot ainda está disponível
+    const { data: slot, error: slotError } = await supabase
+      .from('BookableSlot')
+      .select('*')
+      .eq('id', parseInt(slotId))
+      .eq('isBooked', false)
+      .single();
 
-    if (!slot) {
-      return new NextResponse(JSON.stringify({ error: 'Este horário não está mais disponível. Por favor, selecione outro.' }), { status: 409 }); // 409 Conflict
+    if (slotError || !slot) {
+      return new NextResponse(JSON.stringify({ error: 'Este horário não está mais disponível. Por favor, selecione outro.' }), { status: 409 });
     }
 
-    // Lógica para criar ou encontrar o usuário
-    let user = await prisma.user.findUnique({
-      where: { email },
-    });
+    // Busca ou cria usuário
+    let { data: user, error: userError } = await supabase
+      .from('User')
+      .select('*')
+      .eq('email', email)
+      .single();
 
     let isNewUser = false;
-    if (!user) {
+    if (userError || !user) {
       isNewUser = true;
-      // Gerar token seguro para o novo usuário definir a senha
       const passwordResetToken = crypto.randomBytes(32).toString('hex');
-      const passwordResetExpires = new Date(Date.now() + 3600000); // Token válido por 1 hora
-
-      user = await prisma.user.create({
-        data: {
-          name: nomeCompleto,
-          email,
-          cpf,
-          role: 'PACIENTE',
-          passwordResetToken,
-          dataNascimento: new Date('2000-01-01'),
-          telefone: telefone || '',
-          password: crypto.randomBytes(8).toString('hex'),
-        },
-      });
+      // const passwordResetExpires = new Date(Date.now() + 3600000); // Se quiser usar
+      const senhaAleatoria = crypto.randomBytes(8).toString('hex');
+      const { data: createdUser, error: createUserError } = await supabase
+        .from('User')
+        .insert([
+          {
+            name: nomeCompleto,
+            email,
+            cpf,
+            role: 'PACIENTE',
+            passwordResetToken,
+            dataNascimento: new Date('2000-01-01'),
+            telefone: telefone || '',
+            password: senhaAleatoria,
+          }
+        ])
+        .select()
+        .single();
+      if (createUserError || !createdUser) {
+        return new NextResponse(JSON.stringify({ error: 'Erro ao criar usuário.' }), { status: 500 });
+      }
+      user = createdUser;
     }
 
-    // Cria o agendamento e atualiza o slot em uma transação
-    const [agendamento, updatedSlot] = await prisma.$transaction([
-      prisma.agendamento.create({
-        data: {
+    // Cria o agendamento
+    const { data: agendamento, error: agendamentoError } = await supabase
+      .from('Agendamento')
+      .insert([
+        {
           dataHora: slot.startDateTime,
           status: 'PRE_AGENDADO',
           userId: user.id,
           motivoConsulta: motivoConsulta,
-        },
-      }),
-      prisma.bookableSlot.update({
-        where: {
-          id: parseInt(slotId),
-        },
-        data: {
-          isBooked: true,
-        },
-      }),
-    ]);
+        }
+      ])
+      .select()
+      .single();
+    if (agendamentoError || !agendamento) {
+      return new NextResponse(JSON.stringify({ error: 'Erro ao criar agendamento.' }), { status: 500 });
+    }
+
+    // Atualiza o slot para isBooked: true
+    const { error: updateSlotError } = await supabase
+      .from('BookableSlot')
+      .update({ isBooked: true })
+      .eq('id', parseInt(slotId));
+    if (updateSlotError) {
+      return new NextResponse(JSON.stringify({ error: 'Erro ao atualizar slot.' }), { status: 500 });
+    }
 
     // --- Envio de E-mails de Confirmação ---
     const formattedDate = format(new Date(agendamento.dataHora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
@@ -93,7 +108,6 @@ export async function POST(request: Request) {
     try {
       const startDate = new Date(agendamento.dataHora);
       const endDate = new Date(startDate.getTime() + 30 * 60000); // 30 minutos de duração
-      // Garantir arrays de 5 elementos [ano, mês, dia, hora, minuto]
       const startArr = [
         startDate.getFullYear(),
         startDate.getMonth() + 1,
@@ -108,7 +122,6 @@ export async function POST(request: Request) {
         endDate.getHours(),
         endDate.getMinutes()
       ];
-      // Forçar o tipo para [number, number, number, number, number]
       const startTuple: [number, number, number, number, number] = startArr as [number, number, number, number, number];
       const endTuple: [number, number, number, number, number] = endArr as [number, number, number, number, number];
       const event = {

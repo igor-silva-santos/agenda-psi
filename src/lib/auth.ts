@@ -1,15 +1,12 @@
 import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import prisma from "@/lib/prisma";
 import bcrypt from 'bcryptjs';
 const { compare } = bcrypt;
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { randomUUID } from 'crypto';
+import { supabase } from "@/lib/supabase";
 
 export const authOptions: AuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -43,35 +40,39 @@ export const authOptions: AuthOptions = {
 
           try {
             const sessionId = randomUUID();
-            const newUser = await prisma.user.create({
-              data: {
-                email: credentials.email,
-                password: hashedPassword,
-                name: credentials.name,
-                cpf: credentials.cpf,
-                role: "PACIENTE", // Default role for new sign-ups
-                dataNascimento: credentials.dataNascimento,
-                telefone: credentials.telefone,
-                currentSessionId: sessionId,
-              } as any,
-            });
+            // MIGRADO PARA SUPABASE
+            const { data: newUser, error: createError } = await supabase
+              .from('User')
+              .insert([
+                {
+                  email: credentials.email,
+                  password: hashedPassword,
+                  name: credentials.name,
+                  cpf: credentials.cpf,
+                  role: "PACIENTE", // Default role for new sign-ups
+                  dataNascimento: credentials.dataNascimento,
+                  telefone: credentials.telefone,
+                  currentSessionId: sessionId,
+                }
+              ])
+              .select()
+              .single();
+            if (createError) {
+              if (createError.code === '23505' && createError.message.includes('email')) {
+                throw new Error("Este e-mail já está em uso.");
+              } else if (createError.code === '23505' && createError.message.includes('cpf')) {
+                throw new Error("Este CPF já está em uso.");
+              }
+              throw new Error("Erro ao criar conta. Tente novamente. [" + createError.message + "]");
+            }
             console.log("[SIGNUP] New user created:", newUser);
             return { id: String(newUser.id), email: newUser.email, name: newUser.name, role: newUser.role, sessionId };
           } catch (error) {
             console.error("[SIGNUP] Error creating new user:", error);
-            if (error instanceof PrismaClientKnownRequestError) {
-              if (error.code === 'P2002') { // Unique constraint violation
-                if (Array.isArray(error.meta?.target) && error.meta?.target.includes('email')) {
-                  throw new Error("Este e-mail já está em uso.");
-                } else if (Array.isArray(error.meta?.target) && error.meta?.target.includes('cpf')) {
-                  throw new Error("Este CPF já está em uso.");
-                }
-              }
-            }
             throw new Error("Erro ao criar conta. Tente novamente. [" + error + "]");
           }
         } else {
-          // Existing login logic
+          // LOGIN COM SUPABASE
           if (!credentials?.password) {
             throw new Error("Senha não fornecida.");
           }
@@ -79,13 +80,21 @@ export const authOptions: AuthOptions = {
           let user = null;
 
           if (credentials.email) {
-            user = await prisma.user.findUnique({
-              where: { email: credentials.email },
-            });
+            const { data, error } = await supabase
+              .from('User')
+              .select('*')
+              .eq('email', credentials.email)
+              .single();
+            if (error) throw new Error("Erro ao buscar usuário: " + error.message);
+            user = data;
           } else if (credentials.cpf) {
-            user = await prisma.user.findUnique({
-              where: { cpf: credentials.cpf },
-            });
+            const { data, error } = await supabase
+              .from('User')
+              .select('*')
+              .eq('cpf', credentials.cpf)
+              .single();
+            if (error) throw new Error("Erro ao buscar usuário: " + error.message);
+            user = data;
           }
 
           if (!user) {
@@ -102,15 +111,16 @@ export const authOptions: AuthOptions = {
             throw new Error("Credenciais inválidas.");
           }
 
-          // Sessão única: gerar novo sessionId e salvar no usuário
-          const sessionId = randomUUID();
-          await prisma.user.update({ where: { id: user.id }, data: { currentSessionId: sessionId } as any });
+          // Sessão única: gerar novo sessionId e salvar no usuário (opcional)
+          // const sessionId = randomUUID();
+          // await supabase.from('User').update({ currentSessionId: sessionId }).eq('id', user.id);
+
           return {
             id: String(user.id),
             email: user.email,
             name: user.name,
             role: user.role,
-            sessionId: sessionId,
+            // sessionId: sessionId,
           };
         }
       },

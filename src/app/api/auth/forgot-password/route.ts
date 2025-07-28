@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { sendEmail } from '@/lib/email';
 import crypto from 'crypto';
 
@@ -8,30 +8,47 @@ export async function POST(request: Request) {
     const { email } = await request.json();
 
     if (!email) {
-      return new NextResponse('E-mail é obrigatório', { status: 400 });
+      return NextResponse.json({ 
+        error: 'E-mail é obrigatório',
+        details: { missingField: 'email' }
+      }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    // Buscar usuário pelo e-mail no Supabase
+    const { data: user, error: findError } = await supabase
+      .from('User')
+      .select('*')
+      .eq('email', email)
+      .single();
 
-    if (!user || !user.email) {
+    if (findError || !user || !user.email) {
       // Para segurança, não informamos se o e-mail não foi encontrado.
       // Apenas enviamos uma mensagem genérica de sucesso.
-      return new NextResponse('Se um e-mail cadastrado for encontrado, um link para redefinição de senha será enviado.', { status: 200 });
+      return NextResponse.json({ 
+        message: 'Se um e-mail cadastrado for encontrado, um link para redefinição de senha será enviado.'
+      }, { status: 200 });
     }
 
     // Gerar token seguro
     const resetToken = crypto.randomBytes(32).toString('hex');
-    const passwordResetExpires = new Date(Date.now() + 3600000); // Token válido por 1 hora
+    // const passwordResetExpires = new Date(Date.now() + 3600000); // Token válido por 1 hora
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
+    // Atualizar usuário com o token de redefinição
+    const { error: updateError } = await supabase
+      .from('User')
+      .update({
         passwordResetToken: resetToken,
-        // passwordResetExpires: passwordResetExpires, // Removido pois não existe no schema
-      },
-    });
+        // passwordResetExpires: passwordResetExpires, // Se existir no schema
+      })
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error('Erro ao salvar token de redefinição:', updateError);
+      return NextResponse.json({ 
+        error: 'Ocorreu um erro ao processar o pedido.',
+        details: { userId: user.id, message: updateError.message }
+      }, { status: 500 });
+    }
 
     const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken}`;
 
@@ -49,10 +66,15 @@ export async function POST(request: Request) {
       `,
     });
 
-    return new NextResponse('Se um e-mail cadastrado for encontrado, um link para redefinição de senha será enviado.', { status: 200 });
+    return NextResponse.json({ 
+      message: 'Se um e-mail cadastrado for encontrado, um link para redefinição de senha será enviado.'
+    }, { status: 200 });
 
   } catch (error) {
     console.error('Erro ao solicitar redefinição de senha:', error);
-    return new NextResponse('Ocorreu um erro no servidor. Tente novamente mais tarde.', { status: 500 });
+    return NextResponse.json({ 
+      error: 'Ocorreu um erro no servidor. Tente novamente mais tarde.',
+      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }, { status: 500 });
   }
 }

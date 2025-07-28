@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
@@ -7,26 +7,47 @@ export async function POST(request: Request) {
     const { email, password, name, role, cpf, dataNascimento, telefone } = await request.json();
 
     if (!email || !password || !name || !role || !cpf || !dataNascimento || !telefone) {
-      return new NextResponse('Email, password, name, role, cpf, dataNascimento e telefone são obrigatórios', { status: 400 });
+      return NextResponse.json({ 
+        error: 'Email, password, name, role, cpf, dataNascimento e telefone são obrigatórios',
+        details: {
+          missingFields: [
+            !email && 'email',
+            !password && 'password',
+            !name && 'name',
+            !role && 'role',
+            !cpf && 'cpf',
+            !dataNascimento && 'dataNascimento',
+            !telefone && 'telefone'
+          ].filter(Boolean)
+        }
+      }, { status: 400 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-        role,
-        cpf,
-        dataNascimento: new Date(dataNascimento),
-        telefone,
-      },
-    });
+    const { data: user, error } = await supabase
+      .from('User')
+      .insert([
+        {
+          email,
+          password: hashedPassword,
+          name,
+          role,
+          cpf,
+          dataNascimento: new Date(dataNascimento),
+          telefone,
+        },
+      ])
+      .select('id, email, name, role')
+      .single();
+    if (error) throw error;
 
-    return NextResponse.json({ message: 'User created successfully', user: { id: user.id, email: user.email, name: user.name, role: user.role } }, { status: 201 });
+    return NextResponse.json({ message: 'User created successfully', user }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating user:', error);
-    return new NextResponse(error.message || 'Failed to create user', { status: 500 });
+    return NextResponse.json({ 
+      error: error.message || 'Failed to create user',
+      details: { message: error.message || 'Erro desconhecido' }
+    }, { status: 500 });
   }
 }

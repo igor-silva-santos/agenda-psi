@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
@@ -10,24 +10,37 @@ export async function GET(request: Request) {
   const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
   if (!token) {
     console.warn('[AGENDAMENTOS][GET] Token ausente');
-    return new NextResponse('Unauthorized', { status: 401 });
+    return NextResponse.json({ 
+      error: 'Unauthorized',
+      details: { reason: 'Token ausente' }
+    }, { status: 401 });
   }
-  const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
-  if (!user || (user as any).currentSessionId !== token.sessionId) {
+  const { data: user, error: userError } = await supabase
+    .from('User')
+    .select('*')
+    .eq('id', token.id)
+    .single();
+  if (userError || !user || user.currentSessionId !== token.sessionId) {
     console.warn('[AGENDAMENTOS][GET] Sessão concorrente detectada ou usuário não encontrado', { user, token });
-    return new NextResponse('Sessão concorrente detectada', { status: 401 });
+    return NextResponse.json({ 
+      error: 'Sessão concorrente detectada',
+      details: { userId: token.id, sessionId: token.sessionId }
+    }, { status: 401 });
   }
   const session = await getServerSession(authOptions);
   if (!session || session.user?.role !== 'ADMIN') {
     console.warn('[AGENDAMENTOS][GET] Sessão inválida ou usuário não é admin', { session });
-    return new NextResponse('Unauthorized', { status: 401 });
+    return NextResponse.json({ 
+      error: 'Unauthorized',
+      details: { reason: 'Usuário não é admin', userRole: session?.user?.role }
+    }, { status: 401 });
   }
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
   const range = searchParams.get('range');
-  const where: any = {};
+  let filters: any = {};
   if (status) {
-    where.status = status;
+    filters.status = status;
   }
   const now = new Date();
   if (range) {
@@ -42,24 +55,32 @@ export async function GET(request: Request) {
       startDate = startOfMonth(now);
       endDate = endOfMonth(now);
     }
-    where.dataHora = {
-      gte: startDate,
-      lte: endDate,
-    };
+    if (startDate && endDate) {
+      filters.dataHora = `gte.${startDate.toISOString()},lte.${endDate.toISOString()}`;
+    }
   }
   try {
-    const agendamentos = await prisma.agendamento.findMany({
-      where,
-      include: {
-        user: true,
-      },
-      orderBy: {
-        dataHora: 'asc',
-      },
-    });
+    let query = supabase
+      .from('Agendamento')
+      .select('*, user:User(*)')
+      .order('dataHora', { ascending: true });
+    if (filters.status) {
+      query = query.eq('status', filters.status);
+    }
+    if (filters.dataHora) {
+      const [gte, lte] = filters.dataHora.replace('gte.', '').replace('lte.', '').split(',');
+      query = query.gte('dataHora', gte).lte('dataHora', lte);
+    }
+    const { data: agendamentos, error: agendamentoError } = await query;
+    if (agendamentoError) {
+      throw agendamentoError;
+    }
     return NextResponse.json(agendamentos);
   } catch (error) {
     console.error('[AGENDAMENTOS][GET] ERRO:', error);
-    return new NextResponse('Erro interno ao buscar agendamentos', { status: 500 });
+    return NextResponse.json({ 
+      error: 'Erro interno ao buscar agendamentos',
+      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }, { status: 500 });
   }
 }

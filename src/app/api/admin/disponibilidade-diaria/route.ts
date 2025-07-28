@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { format, parseISO, setHours, setMinutes, addHours, isBefore, isAfter, isWithinInterval } from 'date-fns';
@@ -46,7 +46,6 @@ const generateTimeSlots = (
   return slots;
 };
 
-
 export async function GET(request: Request) {
   console.log('[DISPONIBILIDADE-DIARIA][GET] Início da requisição');
   const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
@@ -54,8 +53,12 @@ export async function GET(request: Request) {
     console.warn('[DISPONIBILIDADE-DIARIA][GET] Token ausente');
     return new NextResponse('Unauthorized', { status: 401 });
   }
-  const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
-  if (!user || (user as any).currentSessionId !== token.sessionId) {
+  const { data: user, error: userError } = await supabase
+    .from('User')
+    .select('*')
+    .eq('id', token.id)
+    .single();
+  if (userError || !user || user.currentSessionId !== token.sessionId) {
     console.warn('[DISPONIBILIDADE-DIARIA][GET] Sessão concorrente detectada ou usuário não encontrado', { user, token });
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
@@ -71,30 +74,29 @@ export async function GET(request: Request) {
     const dateParam = searchParams.get('date');
     if (!dateParam) {
       console.log('[DISPONIBILIDADE-DIARIA][GET] Listando todas as disponibilidades diárias');
-      const disponibilidades = await prisma.disponibilidadeDiaria.findMany({
-        orderBy: {
-          data: 'asc',
-        },
-      });
+      const { data: disponibilidades, error: dispError } = await supabase
+        .from('DisponibilidadeDiaria')
+        .select('*')
+        .order('data', { ascending: true });
+      if (dispError) throw dispError;
       return NextResponse.json({ disponibilidades });
     }
     const targetDate = parseISO(dateParam);
     targetDate.setUTCHours(0, 0, 0, 0);
     console.log('[DISPONIBILIDADE-DIARIA][GET] Buscando disponibilidade para data:', targetDate);
-    const disponibilidade = await prisma.disponibilidadeDiaria.findUnique({
-      where: { data: targetDate },
-    });
-    const slots = await prisma.bookableSlot.findMany({
-      where: {
-        startDateTime: {
-          gte: targetDate,
-          lt: addHours(targetDate, 24),
-        },
-      },
-      orderBy: {
-        startDateTime: 'asc',
-      },
-    });
+    const { data: disponibilidade, error: dispError } = await supabase
+      .from('DisponibilidadeDiaria')
+      .select('*')
+      .eq('data', targetDate.toISOString())
+      .single();
+    const { data: slots, error: slotsError } = await supabase
+      .from('BookableSlot')
+      .select('*')
+      .gte('startDateTime', targetDate.toISOString())
+      .lt('startDateTime', addHours(targetDate, 24).toISOString())
+      .order('startDateTime', { ascending: true });
+    if (dispError) throw dispError;
+    if (slotsError) throw slotsError;
     return NextResponse.json({ disponibilidade, slots });
   } catch (error) {
     console.error('[DISPONIBILIDADE-DIARIA][GET] ERRO:', error);
@@ -107,8 +109,12 @@ export async function POST(request: Request) {
   if (!token) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
-  const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
-  if (!user || (user as any).currentSessionId !== token.sessionId) {
+  const { data: user, error: userError } = await supabase
+    .from('User')
+    .select('*')
+    .eq('id', token.id)
+    .single();
+  if (userError || !user || user.currentSessionId !== token.sessionId) {
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
   const session = await getServerSession(authOptions);
@@ -128,40 +134,50 @@ export async function POST(request: Request) {
 
     const generatedHorarios = generateTimeSlots(parsedDate, horaInicio, horaFim, almocoInicio, almocoFim);
 
-    const existingEntry = await prisma.disponibilidadeDiaria.findUnique({
-      where: { data: parsedDate },
-    });
+    // Verifica se já existe disponibilidade para a data
+    const { data: existingEntry } = await supabase
+      .from('DisponibilidadeDiaria')
+      .select('*')
+      .eq('data', parsedDate.toISOString())
+      .single();
 
     let result;
     if (existingEntry) {
-      result = await prisma.disponibilidadeDiaria.update({
-        where: { id: existingEntry.id },
-        data: {
+      const { data: updated, error: updateError } = await supabase
+        .from('DisponibilidadeDiaria')
+        .update({
           almocoInicio: almocoInicio || null,
           almocoFim: almocoFim || null,
-        },
-      });
+        })
+        .eq('id', existingEntry.id)
+        .select()
+        .single();
+      if (updateError) throw updateError;
+      result = updated;
     } else {
-      result = await prisma.disponibilidadeDiaria.create({
-        data: {
-          data: parsedDate,
-          horaInicio,
-          horaFim,
-          almocoInicio: almocoInicio || null,
-          almocoFim: almocoFim || null,
-        },
-      });
+      const { data: created, error: createError } = await supabase
+        .from('DisponibilidadeDiaria')
+        .insert([
+          {
+            data: parsedDate.toISOString(),
+            horaInicio,
+            horaFim,
+            almocoInicio: almocoInicio || null,
+            almocoFim: almocoFim || null,
+          },
+        ])
+        .select()
+        .single();
+      if (createError) throw createError;
+      result = created;
     }
 
     // Remove existing bookable slots for this date
-    await prisma.bookableSlot.deleteMany({
-      where: {
-        startDateTime: {
-          gte: parsedDate,
-          lt: addHours(parsedDate, 24), // Up to the next day
-        },
-      },
-    });
+    await supabase
+      .from('BookableSlot')
+      .delete()
+      .gte('startDateTime', parsedDate.toISOString())
+      .lt('startDateTime', addHours(parsedDate, 24).toISOString());
 
     // Create new bookable slots based on generatedHorarios
     const newBookableSlots = generatedHorarios.map((slot: any) => ({
@@ -169,9 +185,11 @@ export async function POST(request: Request) {
       endDateTime: setMinutes(setHours(parsedDate, parseInt(slot.end.split(':')[0])), parseInt(slot.end.split(':')[1])),
     }));
 
-    await prisma.bookableSlot.createMany({
-      data: newBookableSlots,
-    });
+    if (newBookableSlots.length > 0) {
+      await supabase
+        .from('BookableSlot')
+        .insert(newBookableSlots);
+    }
 
     return NextResponse.json(result, { status: existingEntry ? 200 : 201 });
   } catch (error) {

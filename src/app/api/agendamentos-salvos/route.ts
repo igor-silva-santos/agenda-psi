@@ -1,19 +1,18 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 
 export async function GET() {
   try {
-    const agendamentos = await prisma.agendamento.findMany({
-      include: {
-        user: true, // Inclui os dados do usuário associado
-      },
-      orderBy: {
-        dataHora: 'asc', // Ordena por data e hora
-      },
-    });
+    const { data: agendamentos, error } = await supabase
+      .from('Agendamento')
+      .select('*, user:User(*)')
+      .order('dataHora', { ascending: true });
+    if (error) throw error;
     return NextResponse.json(agendamentos);
   } catch (error) {
-    
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({ 
+      error: 'Internal Server Error',
+      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }, { status: 500 });
   }
 }

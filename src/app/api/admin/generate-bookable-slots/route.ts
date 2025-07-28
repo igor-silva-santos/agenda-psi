@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { supabase } from "@/lib/supabase";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { addMinutes, setHours, setMinutes, parseISO } from "date-fns";
@@ -10,7 +10,10 @@ export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user || session.user.role !== "ADMIN") {
-    return new NextResponse("Unauthorized", { status: 401 });
+    return NextResponse.json({ 
+      error: "Unauthorized",
+      details: { reason: 'Usuário não é admin', userRole: session?.user?.role }
+    }, { status: 401 });
   }
 
   const { date, startTime, endTime } = await request.json();
@@ -34,16 +37,13 @@ export async function POST(request: Request) {
       currentSlotStart = slotEnd;
     }
 
-    const existingSlots = await prisma.bookableSlot.findMany({
-      where: {
-        OR: slotsToCreate.map(slot => ({
-          startDateTime: new Date(slot.startDateTime),
-          endDateTime: new Date(slot.endDateTime),
-        })),
-      },
-    });
+    // Buscar slots existentes
+    const { data: existingSlots, error: existingError } = await supabase
+      .from('BookableSlot')
+      .select('startDateTime, endDateTime');
+    if (existingError) throw existingError;
 
-    const existingSlotTimes = new Set(existingSlots.map(s => `${s.startDateTime.toISOString()}_${s.endDateTime.toISOString()}`));
+    const existingSlotTimes = new Set((existingSlots || []).map(s => `${new Date(s.startDateTime).toISOString()}_${new Date(s.endDateTime).toISOString()}`));
 
     const newSlots = slotsToCreate.filter(slot => {
       const slotTime = `${new Date(slot.startDateTime).toISOString()}_${new Date(slot.endDateTime).toISOString()}`;
@@ -54,16 +54,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Nenhum novo horário para adicionar.' }, { status: 200 });
     }
 
-    const createdSlots = await prisma.bookableSlot.createMany({
-      data: newSlots.map(slot => ({
-        startDateTime: new Date(slot.startDateTime),
-        endDateTime: new Date(slot.endDateTime),
-      })),
-    });
+    const { data: createdSlots, error: createError } = await supabase
+      .from('BookableSlot')
+      .insert(newSlots);
+    if (createError) throw createError;
 
-    return NextResponse.json({ count: createdSlots.count });
+    const count = Array.isArray(createdSlots) ? createdSlots.length : 0;
+    return NextResponse.json({ count });
   } catch (error) {
     console.error("Error generating bookable slots:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return NextResponse.json({ 
+      error: "Internal Server Error",
+      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }, { status: 500 });
   }
 }

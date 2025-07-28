@@ -1,15 +1,25 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getToken } from "next-auth/jwt";
-import prisma from "@/lib/prisma";
+import { supabase } from "@/lib/supabase";
 
 export async function POST(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   if (!token) {
-    return new Response('Unauthorized', { status: 401 });
+    return NextResponse.json({ 
+      error: 'Unauthorized',
+      details: { reason: 'Token ausente' }
+    }, { status: 401 });
   }
-  const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
-  if (!user || (user as any).currentSessionId !== token.sessionId) {
-    return new Response('Sessão concorrente detectada', { status: 401 });
+  const { data: user, error: userError } = await supabase
+    .from('User')
+    .select('*')
+    .eq('id', Number(token.id))
+    .single();
+  if (!user || user.currentSessionId !== token.sessionId) {
+    return NextResponse.json({ 
+      error: 'Sessão concorrente detectada',
+      details: { userId: token.id, sessionId: token.sessionId }
+    }, { status: 401 });
   }
   try {
     // --- LÓGICA DA API COMENTADA ---
@@ -23,6 +33,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, message: 'Rota de WhatsApp contactada (lógica não implementada).' });
   } catch (error) {
     console.error("Erro na rota de WhatsApp:", error);
-    return NextResponse.json({ success: false, message: 'Erro ao processar a rota de WhatsApp' }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Erro ao processar a rota de WhatsApp',
+      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }, { status: 500 });
   }
 }

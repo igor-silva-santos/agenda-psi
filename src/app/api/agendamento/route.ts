@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { sendEmail } from '@/lib/email';
 import { format, addMinutes } from 'date-fns';
 import { createCalendarEvent } from '@/lib/googleCalendar';
@@ -17,48 +17,92 @@ export async function POST(request: Request) {
     const { userId, dataHora, status, nome, email, cpf, telefone, bookableSlotId } = body;
     let user;
     if (userId) {
-      user = await prisma.user.findUnique({ where: { id: userId } });
-      if (!user) {
-        return new NextResponse('User not found', { status: 404 });
+      const { data: foundUser, error: userError } = await supabase
+        .from('User')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      if (userError || !foundUser) {
+        return NextResponse.json({ 
+          error: 'User not found',
+          details: { userId }
+        }, { status: 404 });
       }
+      user = foundUser;
     } else if (email) {
-      user = await prisma.user.findUnique({ where: { email } });
-      if (!user) {
+      const { data: foundUser, error: userError } = await supabase
+        .from('User')
+        .select('*')
+        .eq('email', email)
+        .single();
+      if (userError || !foundUser) {
         // Gerar senha aleatória e data de nascimento padrão
         const senhaAleatoria = crypto.randomBytes(8).toString('hex');
         const dataNascimentoPadrao = new Date('2000-01-01');
-        user = await prisma.user.create({
-          data: {
-            name: nome,
-            email,
-            cpf,
-            telefone,
-            role: 'PACIENTE',
-            dataNascimento: dataNascimentoPadrao,
-            password: await bcrypt.hash(senhaAleatoria, 10),
-          },
-        });
+        const { data: createdUser, error: createUserError } = await supabase
+          .from('User')
+          .insert([
+            {
+              name: nome,
+              email,
+              cpf,
+              telefone,
+              role: 'PACIENTE',
+              dataNascimento: dataNascimentoPadrao,
+              password: await bcrypt.hash(senhaAleatoria, 10),
+            },
+          ])
+          .select()
+          .single();
+        if (createUserError || !createdUser) {
+          return NextResponse.json({ 
+            error: 'Erro ao criar usuário',
+            details: { email, message: createUserError?.message }
+          }, { status: 500 });
+        }
+        user = createdUser;
+      } else {
+        user = foundUser;
       }
     } else {
-      return new NextResponse('Missing userId or email for appointment', { status: 400 });
+      return NextResponse.json({ 
+        error: 'Missing userId or email for appointment',
+        details: { missingFields: ['userId', 'email'] }
+      }, { status: 400 });
     }
 
     const appointmentDateTime = new Date(dataHora);
 
-    const agendamento = await prisma.agendamento.create({
-      data: {
-        userId: user.id,
-        dataHora: appointmentDateTime,
-        status: status || 'PENDENTE',
-        motivoConsulta: body.motivoConsulta || '',
-      },
-    });
+    const { data: agendamento, error: agendamentoError } = await supabase
+      .from('Agendamento')
+      .insert([
+        {
+          userId: user.id,
+          dataHora: appointmentDateTime,
+          status: status || 'PENDENTE',
+          motivoConsulta: body.motivoConsulta || '',
+        },
+      ])
+      .select()
+      .single();
+    if (agendamentoError || !agendamento) {
+      return NextResponse.json({ 
+        error: 'Erro ao criar agendamento',
+        details: { userId: user.id, message: agendamentoError?.message }
+      }, { status: 500 });
+    }
 
     if (bookableSlotId) {
-      await prisma.bookableSlot.update({
-        where: { id: bookableSlotId },
-        data: { isBooked: true },
-      });
+      const { error: slotError } = await supabase
+        .from('BookableSlot')
+        .update({ isBooked: true })
+        .eq('id', bookableSlotId);
+      if (slotError) {
+        return NextResponse.json({ 
+          error: 'Erro ao atualizar slot',
+          details: { bookableSlotId, message: slotError.message }
+        }, { status: 500 });
+      }
     }
 
     if (agendamento.status === 'PENDENTE') {
@@ -67,8 +111,7 @@ export async function POST(request: Request) {
       try {
         const event = {
           summary: `Consulta com ${user.name}`,
-          description: `Paciente: ${user.name}
-Email: ${user.email}`,
+          description: `Paciente: ${user.name}\nEmail: ${user.email}`,
           start: {
             dateTime: appointmentDateTime.toISOString(),
             timeZone: 'America/Sao_Paulo',
@@ -81,10 +124,10 @@ Email: ${user.email}`,
         };
         const calendarEvent = await createCalendarEvent(event);
         googleCalendarEventId = calendarEvent?.id || null;
-        await prisma.agendamento.update({
-          where: { id: agendamento.id },
-          data: { googleCalendarEventId: googleCalendarEventId },
-        });
+        await supabase
+          .from('Agendamento')
+          .update({ googleCalendarEventId })
+          .eq('id', agendamento.id);
       } catch (calendarError) {
         console.error('Failed to create Google Calendar event:', calendarError);
       }
@@ -108,6 +151,9 @@ Email: ${user.email}`,
     return NextResponse.json(agendamento);
   } catch (error) {
     console.error('Error in /api/agendamento POST:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({ 
+      error: 'Internal Server Error',
+      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }, { status: 500 });
   }
 }

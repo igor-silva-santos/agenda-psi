@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { supabase } from "@/lib/supabase";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { sendEmail } from "@/lib/email";
@@ -12,36 +12,57 @@ const APPOINTMENT_DURATION_MINUTES = 30;
 export async function PUT(request: Request, { params }: { params: { id: number } }) {
   const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
   if (!token) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return NextResponse.json({ 
+      error: 'Unauthorized',
+      details: { reason: 'Token ausente' }
+    }, { status: 401 });
   }
-  const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
-  if (!user || (user as any).currentSessionId !== token.sessionId) {
-    return new NextResponse('Sessão concorrente detectada', { status: 401 });
+  const { data: user, error: userError } = await supabase
+    .from('User')
+    .select('*')
+    .eq('id', token.id)
+    .single();
+  if (userError || !user || user.currentSessionId !== token.sessionId) {
+    return NextResponse.json({ 
+      error: 'Sessão concorrente detectada',
+      details: { userId: token.id, sessionId: token.sessionId }
+    }, { status: 401 });
   }
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return NextResponse.json({ 
+      error: 'Unauthorized',
+      details: { reason: 'Sessão inválida' }
+    }, { status: 401 });
   }
 
   const { status } = await request.json();
 
-  const agendamento = await prisma.agendamento.findUnique({
-    where: { id: String(params.id) },
-    include: { user: true },
-  });
+  const { data: agendamento, error: agendamentoError } = await supabase
+    .from('Agendamento')
+    .select('*, user:User(*)')
+    .eq('id', params.id)
+    .single();
 
-  if (!agendamento || agendamento.userId !== session.user.id) {
-    return new NextResponse("Forbidden", { status: 403 });
+  if (agendamentoError || !agendamento || agendamento.userId !== session.user.id) {
+    return NextResponse.json({ 
+      error: "Forbidden",
+      details: { reason: 'Agendamento não pertence ao usuário', agendamentoId: params.id }
+    }, { status: 403 });
   }
 
-  const updatedAgendamento = await prisma.agendamento.update({
-    where: {
-      id: String(params.id),
-    },
-    data: {
-      status,
-    },
-  });
+  const { data: updatedAgendamento, error: updateError } = await supabase
+    .from('Agendamento')
+    .update({ status })
+    .eq('id', params.id)
+    .select()
+    .single();
+  if (updateError || !updatedAgendamento) {
+    return NextResponse.json({ 
+      error: 'Erro ao atualizar status do agendamento',
+      details: { agendamentoId: params.id, message: updateError?.message }
+    }, { status: 500 });
+  }
 
   if (updatedAgendamento.status === 'CONFIRMADO') {
     const appointmentDateTime = new Date(updatedAgendamento.dataHora);
@@ -50,8 +71,7 @@ export async function PUT(request: Request, { params }: { params: { id: number }
     try {
       const event = {
         summary: `Consulta com ${agendamento.user.name}`,
-        description: `Usuário: ${agendamento.user.name}
-Email: ${agendamento.user.email}`,
+        description: `Usuário: ${agendamento.user.name}\nEmail: ${agendamento.user.email}`,
         start: {
           dateTime: appointmentDateTime.toISOString(),
           timeZone: 'America/Sao_Paulo',
@@ -64,10 +84,10 @@ Email: ${agendamento.user.email}`,
       };
       const calendarEvent = await createCalendarEvent(event);
       googleCalendarEventId = calendarEvent?.id || null;
-      await prisma.agendamento.update({
-        where: { id: updatedAgendamento.id },
-        data: { googleCalendarEventId },
-      });
+      await supabase
+        .from('Agendamento')
+        .update({ googleCalendarEventId })
+        .eq('id', updatedAgendamento.id);
     } catch (calendarError) {
       console.error('Failed to create Google Calendar event:', calendarError);
     }
@@ -86,5 +106,5 @@ Email: ${agendamento.user.email}`,
     });
   }
 
-  return new NextResponse("OK", { status: 200 });
+  return NextResponse.json({ message: "OK" }, { status: 200 });
 }

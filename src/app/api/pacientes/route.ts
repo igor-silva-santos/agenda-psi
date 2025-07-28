@@ -6,16 +6,34 @@ export async function POST(request: Request) {
   try {
     const { nomeCompleto, email, cpf, dataNascimento, senha, telefone } = await request.json();
     if (!nomeCompleto || !email || !cpf || !dataNascimento || !senha || !telefone) {
-      return NextResponse.json({ error: 'Todos os campos são obrigatórios.' }, { status: 400 });
+      return NextResponse.json({ 
+        error: 'Todos os campos são obrigatórios.',
+        details: {
+          missingFields: [
+            !nomeCompleto && 'nomeCompleto',
+            !email && 'email',
+            !cpf && 'cpf',
+            !dataNascimento && 'dataNascimento',
+            !senha && 'senha',
+            !telefone && 'telefone'
+          ].filter(Boolean)
+        }
+      }, { status: 400 });
     }
     console.log('Recebido dataNascimento:', dataNascimento);
     // Verifica se já existe paciente com o mesmo CPF
     const existing = await prisma.user.findUnique({ where: { cpf } });
     if (existing) {
       if (existing.role === 'ADMIN') {
-        return NextResponse.json({ error: 'Não é possível agendar consulta para um usuário administrador.' }, { status: 403 });
+        return NextResponse.json({ 
+          error: 'Não é possível agendar consulta para um usuário administrador.',
+          details: { userId: existing.id, role: existing.role }
+        }, { status: 403 });
       }
-      return NextResponse.json({ error: 'Já existe um paciente com este CPF.' }, { status: 409 });
+      return NextResponse.json({ 
+        error: 'Já existe um paciente com este CPF.',
+        details: { cpf, existingUserId: existing.id }
+      }, { status: 409 });
     }
     const hashed = await bcrypt.hash(senha, 10);
     const paciente = await prisma.user.create({
@@ -38,8 +56,14 @@ export async function POST(request: Request) {
     // Prisma duplicate error
     const prismaError = error as any;
     if (prismaError.code === 'P2002' && prismaError.meta && prismaError.meta.target && prismaError.meta.target.includes('email')) {
-      return NextResponse.json({ error: 'Já existe um paciente com este e-mail.' }, { status: 409 });
+      return NextResponse.json({ 
+        error: 'Já existe um paciente com este e-mail.',
+        details: { email, constraint: 'email_unique' }
+      }, { status: 409 });
     }
-    return NextResponse.json({ error: 'Erro interno ao cadastrar paciente.' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Erro interno ao cadastrar paciente.',
+      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }, { status: 500 });
   }
 } 

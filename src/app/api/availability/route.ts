@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { format, isPast, parseISO, startOfDay } from 'date-fns';
 
 export async function GET(request: Request) {
@@ -8,40 +8,44 @@ export async function GET(request: Request) {
   const endDateParam = searchParams.get('end');
 
   if (!startDateParam || !endDateParam) {
-    return new NextResponse('Missing start or end date parameters', { status: 400 });
+    return NextResponse.json({ 
+      error: 'Missing start or end date parameters',
+      details: {
+        missingParams: [
+          !startDateParam && 'start',
+          !endDateParam && 'end'
+        ].filter(Boolean)
+      }
+    }, { status: 400 });
   }
 
   const startDate = new Date(startDateParam);
   const endDate = new Date(endDateParam);
 
   try {
-    const [bookableSlots, blockedPeriods] = await Promise.all([
-      prisma.bookableSlot.findMany({
-        where: {
-          startDateTime: {
-            gte: startDate,
-            lte: endDate,
-          },
-          isBooked: false, // Apenas slots não agendados
-        },
-        orderBy: {
-          startDateTime: 'asc',
-        },
-      }),
-      prisma.horarioBloqueado.findMany({
-        where: {
-          dataHoraInicio: { lte: endDate },
-          dataHoraFim: { gte: startDate },
-        },
-      }),
+    const [{ data: bookableSlots, error: slotsError }, { data: blockedPeriods, error: blockedError }] = await Promise.all([
+      supabase
+        .from('BookableSlot')
+        .select('*')
+        .gte('startDateTime', startDate.toISOString())
+        .lte('startDateTime', endDate.toISOString())
+        .eq('isBooked', false)
+        .order('startDateTime', { ascending: true }),
+      supabase
+        .from('HorarioBloqueado')
+        .select('*')
+        .lte('dataHoraInicio', endDate.toISOString())
+        .gte('dataHoraFim', startDate.toISOString()),
     ]);
+    if (slotsError) throw slotsError;
+    if (blockedError) throw blockedError;
 
     const availableSlots: { [key: string]: string[] } = {};
     const now = new Date();
 
-    bookableSlots.forEach(slot => {
-      const slotStart = parseISO(slot.startDateTime.toISOString());
-      const slotEnd = parseISO(slot.endDateTime.toISOString());
+    (bookableSlots || []).forEach(slot => {
+      const slotStart = parseISO(new Date(slot.startDateTime).toISOString());
+      const slotEnd = parseISO(new Date(slot.endDateTime).toISOString());
       const dateString = format(slotStart, 'yyyy-MM-dd');
       const timeString = format(slotStart, 'HH:mm');
 
@@ -51,9 +55,9 @@ export async function GET(request: Request) {
       }
 
       // Verifica se o slot está dentro de um período bloqueado
-      const isBlocked = blockedPeriods.some(block => {
-        const blockStart = parseISO(block.dataHoraInicio.toISOString());
-        const blockEnd = parseISO(block.dataHoraFim.toISOString());
+      const isBlocked = (blockedPeriods || []).some(block => {
+        const blockStart = parseISO(new Date(block.dataHoraInicio).toISOString());
+        const blockEnd = parseISO(new Date(block.dataHoraFim).toISOString());
         return (slotStart >= blockStart && slotStart < blockEnd) ||
                (slotEnd > blockStart && slotEnd <= blockEnd) ||
                (slotStart < blockStart && slotEnd > blockEnd);
@@ -75,6 +79,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ availableSlots });
   } catch (error) {
     console.error('Erro ao buscar disponibilidade:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({ 
+      error: 'Internal Server Error',
+      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }, { status: 500 });
   }
 }

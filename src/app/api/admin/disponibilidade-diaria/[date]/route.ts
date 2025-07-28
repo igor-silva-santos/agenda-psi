@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { getToken } from 'next-auth/jwt';
@@ -11,8 +11,12 @@ export async function GET(request: Request, { params }: { params: { date: string
     console.warn('[DISPONIBILIDADE-DIARIA][GET][date] Token ausente');
     return new NextResponse('Unauthorized', { status: 401 });
   }
-  const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
-  if (!user || (user as any).currentSessionId !== token.sessionId) {
+  const { data: user, error: userError } = await supabase
+    .from('User')
+    .select('*')
+    .eq('id', token.id)
+    .single();
+  if (userError || !user || user.currentSessionId !== token.sessionId) {
     console.warn('[DISPONIBILIDADE-DIARIA][GET][date] Sessão concorrente detectada ou usuário não encontrado', { user, token });
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
@@ -29,9 +33,12 @@ export async function GET(request: Request, { params }: { params: { date: string
     const targetDate = new Date(date);
     targetDate.setUTCHours(0, 0, 0, 0);
     console.log('[DISPONIBILIDADE-DIARIA][GET][date] Buscando disponibilidade para data:', targetDate);
-    const existingEntry = await prisma.disponibilidadeDiaria.findUnique({
-      where: { data: targetDate },
-    });
+    const { data: existingEntry, error: dispError } = await supabase
+      .from('DisponibilidadeDiaria')
+      .select('*')
+      .eq('data', targetDate.toISOString())
+      .single();
+    if (dispError) throw dispError;
     if (!existingEntry) {
       return new NextResponse('No availability entry found for this date', { status: 404 });
     }
@@ -47,8 +54,12 @@ export async function POST(request: Request, { params }: { params: { date: strin
   if (!token) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
-  const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
-  if (!user || (user as any).currentSessionId !== token.sessionId) {
+  const { data: user, error: userError } = await supabase
+    .from('User')
+    .select('*')
+    .eq('id', token.id)
+    .single();
+  if (userError || !user || user.currentSessionId !== token.sessionId) {
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
   const session = await getServerSession(authOptions);
@@ -65,9 +76,11 @@ export async function POST(request: Request, { params }: { params: { date: strin
     const targetDate = new Date(date);
     targetDate.setUTCHours(0, 0, 0, 0);
 
-    const existingEntry = await prisma.disponibilidadeDiaria.findUnique({
-      where: { data: targetDate },
-    });
+    const { data: existingEntry } = await supabase
+      .from('DisponibilidadeDiaria')
+      .select('*')
+      .eq('data', targetDate.toISOString())
+      .single();
 
     if (existingEntry) {
       return new NextResponse('Availability entry already exists for this date', { status: 409 });
@@ -79,15 +92,20 @@ export async function POST(request: Request, { params }: { params: { date: strin
       return new NextResponse('horaInicio e horaFim são obrigatórios', { status: 400 });
     }
 
-    const newEntry = await prisma.disponibilidadeDiaria.create({
-      data: {
-        data: targetDate,
-        horaInicio,
-        horaFim,
-        almocoInicio,
-        almocoFim,
-      },
-    });
+    const { data: newEntry, error: createError } = await supabase
+      .from('DisponibilidadeDiaria')
+      .insert([
+        {
+          data: targetDate.toISOString(),
+          horaInicio,
+          horaFim,
+          almocoInicio,
+          almocoFim,
+        },
+      ])
+      .select()
+      .single();
+    if (createError) throw createError;
 
     return new NextResponse(JSON.stringify(newEntry), { status: 201 });
   } catch (error) {
@@ -104,8 +122,12 @@ export async function DELETE(
   if (!token) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
-  const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
-  if (!user || (user as any).currentSessionId !== token.sessionId) {
+  const { data: user, error: userError } = await supabase
+    .from('User')
+    .select('*')
+    .eq('id', token.id)
+    .single();
+  if (userError || !user || user.currentSessionId !== token.sessionId) {
     return new NextResponse('Sessão concorrente detectada', { status: 401 });
   }
   const session = await getServerSession(authOptions);
@@ -122,17 +144,21 @@ export async function DELETE(
     const targetDate = new Date(date);
     targetDate.setUTCHours(0, 0, 0, 0);
 
-    const existingEntry = await prisma.disponibilidadeDiaria.findUnique({
-      where: { data: targetDate },
-    });
+    const { data: existingEntry } = await supabase
+      .from('DisponibilidadeDiaria')
+      .select('*')
+      .eq('data', targetDate.toISOString())
+      .single();
 
     if (!existingEntry) {
       return new NextResponse('No availability entry found for this date', { status: 404 });
     }
 
-    await prisma.disponibilidadeDiaria.delete({
-      where: { id: existingEntry.id },
-    });
+    const { error: deleteError } = await supabase
+      .from('DisponibilidadeDiaria')
+      .delete()
+      .eq('id', existingEntry.id);
+    if (deleteError) throw deleteError;
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

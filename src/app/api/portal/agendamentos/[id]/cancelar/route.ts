@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { sendEmail } from '@/lib/email';
@@ -13,46 +13,71 @@ export async function PUT(
 ) {
   const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
   if (!token) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return NextResponse.json({ 
+      error: 'Unauthorized',
+      details: { reason: 'Token ausente' }
+    }, { status: 401 });
   }
-  const user = await prisma.user.findUnique({ where: { id: Number(token.id) } });
-  if (!user || (user as any).currentSessionId !== token.sessionId) {
-    return new NextResponse('Sessão concorrente detectada', { status: 401 });
+  const { data: user, error: userError } = await supabase
+    .from('User')
+    .select('*')
+    .eq('id', token.id)
+    .single();
+  if (userError || !user || user.currentSessionId !== token.sessionId) {
+    return NextResponse.json({ 
+      error: 'Sessão concorrente detectada',
+      details: { userId: token.id, sessionId: token.sessionId }
+    }, { status: 401 });
   }
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user || session.user.role !== 'PACIENTE') {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return NextResponse.json({ 
+      error: 'Unauthorized',
+      details: { reason: 'Usuário não é paciente', userRole: session?.user?.role }
+    }, { status: 401 });
   }
 
   const { id } = params;
 
   try {
-    const agendamento = await prisma.agendamento.findFirst({
-      where: {
-        id: String(id),
-        userId: session.user.id, // Garante que o paciente só pode modificar seus próprios agendamentos
-      },
-      include: { user: true }, // Inclui dados do usuário para o e-mail
-    });
-
-    if (!agendamento) {
-      return new NextResponse('Agendamento não encontrado ou não autorizado', { status: 404 });
+    const { data: agendamento, error: agendamentoError } = await supabase
+      .from('Agendamento')
+      .select('*, user:User(*)')
+      .eq('id', id)
+      .eq('userId', session.user.id)
+      .single();
+    if (agendamentoError || !agendamento) {
+      return NextResponse.json({ 
+        error: 'Agendamento não encontrado ou não autorizado',
+        details: { agendamentoId: id, userId: session.user.id }
+      }, { status: 404 });
     }
 
-    // Regra de negócio: Não permitir cancelamento com menos de 24h de antecedência (exemplo)
+    // Regra de negócio: Não permitir cancelamento com menos de 24h de antecedência
     const agora = new Date();
     const dataConsulta = new Date(agendamento.dataHora);
     const diffHoras = (dataConsulta.getTime() - agora.getTime()) / (1000 * 60 * 60);
 
     if (diffHoras < 24) {
-      return new NextResponse('Não é possível cancelar com menos de 24 horas de antecedência.', { status: 403 });
+      return NextResponse.json({ 
+        error: 'Não é possível cancelar com menos de 24 horas de antecedência.',
+        details: { diffHoras: Math.round(diffHoras), dataConsulta: agendamento.dataHora }
+      }, { status: 403 });
     }
 
-    const updatedAgendamento = await prisma.agendamento.update({
-      where: { id: String(id) },
-      data: { status: 'CANCELADO' },
-    });
+    const { data: updatedAgendamento, error: updateError } = await supabase
+      .from('Agendamento')
+      .update({ status: 'CANCELADO' })
+      .eq('id', id)
+      .select()
+      .single();
+    if (updateError || !updatedAgendamento) {
+      return NextResponse.json({ 
+        error: 'Erro ao cancelar agendamento',
+        details: { agendamentoId: id, message: updateError?.message }
+      }, { status: 500 });
+    }
 
     // --- Envio de E-mails de Notificação de Cancelamento ---
     const formattedDate = format(new Date(agendamento.dataHora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
@@ -84,6 +109,9 @@ export async function PUT(
     return NextResponse.json(updatedAgendamento);
   } catch (error) {
     console.error(`Erro ao cancelar o agendamento ${id}:`, error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({ 
+      error: 'Internal Server Error',
+      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }, { status: 500 });
   }
 }

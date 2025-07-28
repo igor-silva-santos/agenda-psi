@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
@@ -14,35 +14,54 @@ export async function POST(request: Request) {
     const validation = resetPasswordSchema.safeParse(body);
 
     if (!validation.success) {
-      return new NextResponse(JSON.stringify({ error: 'Dados inválidos', details: validation.error.format() }), { status: 400 });
+      return NextResponse.json({ 
+        error: 'Dados inválidos', 
+        details: validation.error.format() 
+      }, { status: 400 });
     }
 
     const { token, password } = validation.data;
 
-    const user = await prisma.user.findFirst({
-      where: {
-        passwordResetToken: token,
-      },
-    });
+    // Buscar usuário pelo token no Supabase
+    const { data: user, error: findError } = await supabase
+      .from('User')
+      .select('*')
+      .eq('passwordResetToken', token)
+      .single();
 
-    if (!user) {
-      return new NextResponse('Token inválido ou expirado.', { status: 400 });
+    if (findError || !user) {
+      return NextResponse.json({ 
+        error: 'Token inválido ou expirado.',
+        details: { token: token.substring(0, 8) + '...' }
+      }, { status: 400 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
+    // Atualizar senha e limpar token
+    const { error: updateError } = await supabase
+      .from('User')
+      .update({
         password: hashedPassword,
-        passwordResetToken: null, // Invalida o token após o uso
-      },
-    });
+        passwordResetToken: null,
+      })
+      .eq('id', user.id);
 
-    return new NextResponse('Senha redefinida com sucesso!', { status: 200 });
+    if (updateError) {
+      console.error('Erro ao atualizar senha:', updateError);
+      return NextResponse.json({ 
+        error: 'Ocorreu um erro ao atualizar a senha.',
+        details: { userId: user.id, message: updateError.message }
+      }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: 'Senha redefinida com sucesso!' }, { status: 200 });
 
   } catch (error) {
     console.error('Erro ao redefinir senha:', error);
-    return new NextResponse('Ocorreu um erro no servidor. Tente novamente mais tarde.', { status: 500 });
+    return NextResponse.json({ 
+      error: 'Ocorreu um erro no servidor. Tente novamente mais tarde.',
+      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }, { status: 500 });
   }
 }
