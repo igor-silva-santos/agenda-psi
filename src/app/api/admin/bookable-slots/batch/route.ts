@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import { getToken } from 'next-auth/jwt';
 import { z } from 'zod';
 
 const batchSlotsSchema = z.object({
@@ -12,10 +13,30 @@ const batchSlotsSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
+  if (!token) {
+    return NextResponse.json({ 
+      error: 'Unauthorized',
+      details: { reason: 'Token ausente' }
+    }, { status: 401 });
+  }
+  const { data: user, error: userError } = await supabase
+    .from('User')
+    .select('*')
+    .eq('id', token.id)
+    .single();
+  if (userError || !user || user.currentSessionId !== token.sessionId) {
+    return NextResponse.json({ 
+      error: 'Sessão concorrente detectada',
+      details: { userId: token.id, sessionId: token.sessionId }
+    }, { status: 401 });
+  }
   const session = await getServerSession(authOptions);
-
   if (!session || session.user?.role !== 'ADMIN') {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return NextResponse.json({ 
+      error: 'Unauthorized',
+      details: { reason: 'Usuário não é admin', userRole: session?.user?.role }
+    }, { status: 401 });
   }
 
   try {
@@ -23,7 +44,10 @@ export async function POST(request: Request) {
     const validation = batchSlotsSchema.safeParse(body);
 
     if (!validation.success) {
-      return new NextResponse(JSON.stringify({ error: 'Dados inválidos', details: validation.error.format() }), { status: 400 });
+      return NextResponse.json({ 
+        error: 'Dados inválidos', 
+        details: validation.error.format() 
+      }, { status: 400 });
     }
 
     const { slots } = validation.data;
@@ -47,13 +71,17 @@ export async function POST(request: Request) {
 
     const { data: createdSlots, error: createError } = await supabase
       .from('BookableSlot')
-      .insert(newSlots);
+      .insert(newSlots)
+      .select();
     if (createError) throw createError;
 
-    const count = Array.isArray(createdSlots) ? createdSlots.length : 0;
+    const count = createdSlots ? createdSlots.length : 0;
     return NextResponse.json({ count }, { status: 201 });
   } catch (error) {
     console.error('Erro ao criar múltiplos horários:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({ 
+      error: 'Internal Server Error',
+      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }, { status: 500 });
   }
 }
