@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 const pushMock = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }) }));
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '@/../src/__tests__/test-utils';
 import AgendamentoFormMelhorado from '../AgendamentoFormMelhorado';
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { act } from 'react-dom/test-utils';

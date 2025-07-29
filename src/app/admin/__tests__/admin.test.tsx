@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@/../src/__tests__/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AdminPage from '../page';
 import { useSession } from 'next-auth/react';

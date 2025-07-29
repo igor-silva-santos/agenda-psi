@@ -1,4 +1,40 @@
+import { vi } from 'vitest';
 import '@testing-library/jest-dom';
+
+// Mock de useRouter
+vi.mock('next/router', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    prefetch: vi.fn(),
+    route: '/',
+    pathname: '',
+    query: {},
+    asPath: '',
+  }),
+}));
+
+// Mock de next/navigation
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  useSearchParams: () => ({
+    get: vi.fn(),
+  }),
+  usePathname: () => '',
+}));
+
+
+// Variáveis de ambiente para o Supabase
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'your-service-role-key';
+;
 import { beforeAll, vi } from 'vitest';
 
 beforeAll(() => {

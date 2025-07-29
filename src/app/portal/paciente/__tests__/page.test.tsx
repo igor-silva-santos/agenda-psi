@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@/../src/__tests__/test-utils';
 import PacienteDashboard from '../page';
 import { describe, it, expect, vi } from 'vitest';
 import '@testing-library/jest-dom';

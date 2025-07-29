@@ -7,14 +7,148 @@ Este documento serve como um guia de alto nível para o agente Gemini CLI, forne
 **Nome:** PsicologaAgendamento
 **Objetivo:** Sistema de agendamento online para uma psicóloga, permitindo que pacientes marquem, gerenciem e visualizem suas consultas, enquanto a profissional gerencia sua agenda, pacientes, prontuários e disponibilidade.
 
-**Funcionalidades Principais:**
-*   **Portal do Paciente:** Cadastro, login, agendamento de consulta, cancelamento de consulta, remarcar consulta, visualização de agendamentos futuros/recomendados pelas doutora e agendamentos passados, acesso a recomendações passadas pela propria doutora, atualização de perfil.
-*   **Painel Administrativo (Psicóloga):** visualização de agendamentos (confirmar, cancelar), gestão de pacientes (cadastro, prontuários), gestão de disponibilidade (horários padrão, bloqueios, geração de slots).
-*   **Autenticação:** Login/cadastro via credenciais (email/CPF) e Google.
-*   **Notificações:** Integração com e-mail (Nodemailer) e potencial para WhatsApp (Twilio).
-*   **Sincronização:** Integração com Google Calendar para agendamentos.
+**Tecnologias Principais:**
+- **Frontend:** Next.js 14.2.3, TypeScript, Tailwind CSS
+- **Backend:** Next.js API Routes, Supabase Client
+- **Autenticação:** NextAuth.js (Credentials + Google OAuth)
+- **Banco de Dados:** Supabase (PostgreSQL)
+- **Validação:** React Hook Form + Zod
+- **Testes:** Vitest, @testing-library/react
+- **Deploy:** Vercel
 
-## 2. Tecnologias Chave
+## 2. Funcionalidades por Portal
+
+### 🏥 **Portal do Paciente** (`/portal/paciente/`)
+
+#### **Dashboard Principal** (`/portal/paciente/`)
+- **Visão geral:** Estatísticas de consultas, próximo agendamento, ações rápidas
+- **Cards informativos:** Total de consultas, consultas confirmadas, próximas consultas
+- **Ações rápidas:** Agendar nova consulta, ver recomendações, editar perfil
+- **Atividade recente:** Lista das últimas atividades do paciente
+
+#### **Agendamentos** (`/portal/paciente/agendamentos/`)
+- **Calendário interativo:** Visualização mensal com indicadores de consultas
+- **Filtros avançados:** Por status, data, motivo da consulta
+- **Lista de consultas:** Próximas consultas e histórico
+- **Ações por consulta:** Confirmar, cancelar, ver detalhes
+- **Status das consultas:** PRE_AGENDADO, CONFIRMADO, CANCELADO
+- **Responsividade:** Layout adaptável para mobile e desktop
+
+#### **Perfil** (`/portal/paciente/perfil/`)
+- **Informações pessoais:** Nome, email, CPF, telefone, data de nascimento
+- **Foto do perfil:** Upload e gerenciamento de foto
+- **Preferências:** Configurações de notificação e comunicação
+- **Atividade recente:** Log de ações realizadas
+- **Estatísticas:** Resumo de uso do sistema
+
+#### **Recomendações** (`/portal/paciente/recomendacoes/`)
+- **Lista de recomendações:** Todas as recomendações da psicóloga
+- **Filtros:** Por data, busca por texto
+- **Estatísticas:** Total, recentes, média de caracteres, última recomendação
+- **Cards informativos:** Data, motivo da consulta, recomendação completa
+- **Design responsivo:** Layout moderno e adaptável
+
+### 👩‍⚕️ **Portal Administrativo** (`/admin/`)
+
+#### **Dashboard Administrativo** (`/admin/`)
+- **Visão geral:** Estatísticas de agendamentos, pacientes, disponibilidade
+- **Cards informativos:** Total de pacientes, agendamentos pendentes, horários disponíveis
+- **Ações rápidas:** Gerenciar agendamentos, pacientes, disponibilidade
+- **Atividade recente:** Últimas ações administrativas
+
+#### **Gestão de Agendamentos** (`/admin/agendamentos/`)
+- **Lista de agendamentos:** Todos os agendamentos do sistema
+- **Filtros avançados:** Por paciente, data, status, psicóloga
+- **Ações por agendamento:** Confirmar, cancelar, editar, ver detalhes
+- **Status management:** PRE_AGENDADO, CONFIRMADO, CANCELADO
+- **Integração Google Calendar:** Sincronização automática de eventos
+- **Responsividade:** Layout adaptável para diferentes telas
+
+#### **Gestão de Pacientes** (`/admin/pacientes/`)
+- **Lista de pacientes:** Todos os pacientes cadastrados
+- **Busca e filtros:** Por nome, email, CPF
+- **Detalhes do paciente:** Informações completas, histórico de consultas
+- **Prontuários:** Criação e edição de prontuários médicos
+- **Recomendações:** Adicionar recomendações para cada paciente
+- **Ações:** Editar, desativar, ver histórico completo
+
+#### **Gestão de Disponibilidade** (`/admin/disponibilidade/`)
+- **Horários de Atuação:** Definir horários padrão de trabalho
+- **Horários Bloqueados:** Marcar períodos indisponíveis
+- **Disponibilidade Diária:** Configurar disponibilidade específica por dia
+- **Geração de Slots:** Criar horários agendáveis automaticamente
+- **Visualização:** Calendário com horários disponíveis e bloqueados
+- **Integração:** Sincronização com Google Calendar
+
+#### **Gestão de Administradores** (`/admin/administradores/`)
+- **Lista de administradores:** Todos os usuários ADMIN
+- **Criação de usuários:** Adicionar novos administradores
+- **Gerenciamento de roles:** ADMIN, PACIENTE
+- **Controle de acesso:** Permissões e sessões
+- **Segurança:** Validação de sessões e roles
+
+### 🔐 **Sistema de Autenticação**
+
+#### **Login/Cadastro** (`/auth/`)
+- **Login por credenciais:** Email/CPF + senha
+- **Login Google:** OAuth 2.0 com Google
+- **Cadastro de pacientes:** Formulário completo de registro
+- **Recuperação de senha:** Esqueci minha senha + reset
+- **Validação:** Zod schemas para todos os formulários
+- **Segurança:** bcryptjs para hash de senhas
+
+#### **Sessões e Segurança**
+- **Session management:** NextAuth.js com sessionId único
+- **Role-based access:** ADMIN e PACIENTE
+- **Middleware:** Proteção de rotas por role
+- **Inactivity logout:** Logout automático por inatividade
+- **Concurrent sessions:** Detecção de sessões concorrentes
+
+### 📅 **Sistema de Agendamento**
+
+#### **Agendamento de Consultas**
+- **Modal de agendamento:** Interface moderna e responsiva
+- **Calendário interativo:** Seleção de data com visualização clara
+- **Seleção de horários:** Grid de horários disponíveis
+- **Formulário de dados:** Nome, email, CPF, telefone, motivo
+- **Validação em tempo real:** Feedback imediato de erros
+- **Confirmação:** Resumo antes de confirmar agendamento
+
+#### **Gestão de Horários**
+- **Bookable Slots:** Horários disponíveis para agendamento
+- **Geração automática:** Baseada em horários de atuação
+- **Verificação de disponibilidade:** Checagem em tempo real
+- **Integração Google Calendar:** Sincronização bidirecional
+- **Responsividade:** Adaptação para mobile e desktop
+
+### 📧 **Sistema de Notificações**
+
+#### **Email (Nodemailer)**
+- **Confirmação de agendamento:** Email para paciente e psicóloga
+- **Lembretes:** Notificações antes da consulta
+- **Cancelamentos:** Confirmação de cancelamento
+- **Templates:** HTML responsivo e profissional
+
+#### **WhatsApp (Twilio)**
+- **Notificações SMS:** Lembretes e confirmações
+- **Integração:** API Twilio para envio
+- **Templates:** Mensagens personalizadas
+
+### 🔄 **Integrações Externas**
+
+#### **Google Calendar**
+- **Sincronização automática:** Eventos criados automaticamente
+- **Configuração:** OAuth 2.0 com Google APIs
+- **Eventos:** Consultas confirmadas sincronizadas
+- **Teste de conexão:** Endpoint para verificar integração
+
+#### **Supabase**
+- **Banco de dados:** PostgreSQL em nuvem
+- **Autenticação:** Row Level Security (RLS)
+- **Real-time:** Subscriptions para atualizações
+- **Backup:** Automático e seguro
+
+## 3. Tecnologias Chave
 
 *   **Framework:** Next.js (v14.2.3)
 *   **Linguagem:** TypeScript
@@ -24,7 +158,9 @@ Este documento serve como um guia de alto nível para o agente Gemini CLI, forne
 *   **Validação de Formulários:** React Hook Form + Zod
 *   **Manipulação de Datas:** `date-fns`
 *   **Ícones:** `lucide-react`
-*   **Testes:** Vitest, `@testing-library/react`, `jsdom`
+*   **Testes:** Vitest, `@testing-library/react`, `jsdom` (com `customRender` para `SessionProvider` e mocks de `useRouter`)
+*   **Análise de Segurança:** `eslint-plugin-security`
+*   **Hooks de Pré-commit:** `husky`, `lint-staged`
 
 ## 3. Estrutura de Diretórios Importantes
 
