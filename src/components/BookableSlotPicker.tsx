@@ -6,7 +6,7 @@ import { format, isToday, isPast, parseISO, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Calendar, Clock } from 'lucide-react';
 
 interface BookableSlotPickerProps {
   onSelectSlot: (slot: BookableSlot) => void;
@@ -39,8 +39,20 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
     fetchSlots();
   }, []);
 
-  if (loading) return <div className="flex justify-center items-center min-h-[120px]"><Loader2 className="h-6 w-6 animate-spin text-blue-600" /></div>;
-  if (error) return <p className="text-red-500">Erro ao carregar horários: {error}</p>;
+  if (loading) return (
+    <div className="flex justify-center items-center min-h-[200px]">
+      <div className="flex items-center space-x-3">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <span className="text-lg text-gray-600">Carregando horários disponíveis...</span>
+      </div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+      <p className="text-red-600 font-medium">Erro ao carregar horários: {error}</p>
+    </div>
+  );
 
   const availableDates = allSlots.map(slot => startOfDay(parseISO(slot.startDateTime.toString())));
   const uniqueAvailableDates = Array.from(new Set(availableDates.map(date => date.toISOString()))).map(isoDate => new Date(isoDate));
@@ -55,76 +67,184 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
     : [];
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-12 w-full justify-center">
-      <div className="w-full md:w-[340px] lg:w-[380px] flex-shrink-0 mx-auto md:mx-0 bg-white rounded-2xl shadow-lg border border-gray-100 p-4 md:p-6 flex items-center justify-center min-h-[340px]">
-        <DayPicker
-          mode="single"
-          selected={selectedDay}
-          onSelect={setSelectedDay}
-          disabled={disabledDays}
-          locale={ptBR}
-          showOutsideDays
-          modifiersClassNames={{
-            selected: darkMode ? 'my-selected-dark' : 'my-selected',
-            today: darkMode ? 'my-today-dark' : 'my-today',
-          }}
-          styles={{
-            caption: { color: '#1e293b', fontWeight: 700 }, // azul-escuro
-            day: {
-              borderRadius: '0.5rem',
-              transition: 'background-color 0.2s ease-in-out',
-              color: '#1e293b', // sempre texto escuro
-              fontWeight: 500,
-              fontSize: '1rem',
-              background: 'transparent',
-            },
-            head_cell: { color: '#1e293b', fontWeight: 700, fontSize: '1rem', background: 'transparent' },
-            cell: { background: 'transparent' },
-          }}
-        />
-        <style jsx global>{`
-          .my-selected-dark {
-            background: #1e293b !important;
-            color: #fff !important;
-            font-weight: bold;
-          }
-          .my-today-dark {
-            border: 2px solid #1e293b !important;
-            color: #1e293b !important;
-            background: #e0e7ef !important;
-          }
-        `}</style>
-      </div>
-      <div className="flex-1 mt-6 md:mt-0 p-4 bg-gray-50 border border-gray-200 rounded-xl shadow-sm min-w-[220px] max-w-[340px] mx-auto md:mx-0">
-        <h3 className="text-lg font-semibold mb-3 text-gray-900">Horários para {selectedDay ? format(selectedDay, 'dd/MM/yyyy') : 'selecione um dia'}</h3>
-        {selectedDaySlots.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {selectedDaySlots.map((slot) => {
-              const slotDate = parseISO(slot.startDateTime.toString());
-              const isSlotPast = isPast(slotDate);
-              const isDisabled = slot.isBooked || isSlotPast;
-              return (
-                <button
-                  key={slot.id}
-                  type="button"
-                  onClick={() => onSelectSlot(slot)}
-                  disabled={isDisabled}
-                  className={`px-4 py-2 rounded-full border transition-colors duration-200
-                    ${slot.id !== undefined && selectedSlot === slot.id.toString()
-                      ? (darkMode ? 'bg-blue-900 text-white border-blue-900' : 'bg-blue-600 text-white border-blue-600')
-                      : isDisabled
-                        ? 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed line-through'
-                        : (darkMode ? 'bg-gray-100 text-gray-900 border-gray-400 hover:bg-blue-100 hover:border-blue-700' : 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-blue-100 hover:border-blue-400')
-                    }`}
-                >
-                  {format(slotDate, 'HH:mm')}
-                </button>
-              );
-            })}
+    <div className="w-full max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* Calendário */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg border border-blue-100 p-6">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Calendar className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">Selecione uma Data</h3>
+              <p className="text-sm text-gray-600">Escolha o dia da sua consulta</p>
+            </div>
           </div>
-        ) : (
-          <p className="text-gray-900">Nenhum horário disponível para este dia.</p>
-        )}
+          
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <DayPicker
+              mode="single"
+              selected={selectedDay}
+              onSelect={setSelectedDay}
+              disabled={disabledDays}
+              locale={ptBR}
+              showOutsideDays
+              modifiersClassNames={{
+                selected: 'my-selected-modern',
+                today: 'my-today-modern',
+                disabled: 'my-disabled-modern',
+              }}
+              styles={{
+                caption: { 
+                  color: '#1e40af', 
+                  fontWeight: 700, 
+                  fontSize: '1.1rem',
+                  marginBottom: '1rem'
+                },
+                day: {
+                  borderRadius: '0.75rem',
+                  transition: 'all 0.2s ease-in-out',
+                  color: '#374151',
+                  fontWeight: 500,
+                  fontSize: '1rem',
+                  background: 'transparent',
+                  width: '2.5rem',
+                  height: '2.5rem',
+                  margin: '0.125rem',
+                },
+                head_cell: { 
+                  color: '#6b7280', 
+                  fontWeight: 600, 
+                  fontSize: '0.875rem', 
+                  background: 'transparent',
+                  padding: '0.5rem 0'
+                },
+                cell: { 
+                  background: 'transparent',
+                  padding: '0.125rem'
+                },
+                nav: {
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '1rem'
+                },
+                nav_button: {
+                  backgroundColor: '#f3f4f6',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.5rem',
+                  padding: '0.5rem',
+                  color: '#374151',
+                  transition: 'all 0.2s ease-in-out',
+                  ':hover': {
+                    backgroundColor: '#e5e7eb',
+                    color: '#1f2937'
+                  }
+                }
+              }}
+            />
+          </div>
+          
+          <style jsx global>{`
+            .my-selected-modern {
+              background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+              color: #ffffff !important;
+              font-weight: 600 !important;
+              box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+              transform: scale(1.05) !important;
+            }
+            .my-today-modern {
+              border: 2px solid #3b82f6 !important;
+              color: #3b82f6 !important;
+              background: #eff6ff !important;
+              font-weight: 600 !important;
+            }
+            .my-disabled-modern {
+              color: #d1d5db !important;
+              background: #f9fafb !important;
+              cursor: not-allowed !important;
+            }
+            .rdp-day:hover:not(.my-disabled-modern):not(.my-selected-modern) {
+              background: #eff6ff !important;
+              color: #1d4ed8 !important;
+              transform: scale(1.05) !important;
+            }
+          `}</style>
+        </div>
+
+        {/* Horários */}
+        <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-lg border border-gray-100 p-6">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <Clock className="h-6 w-6 text-gray-600" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">Horários Disponíveis</h3>
+              <p className="text-sm text-gray-600">
+                {selectedDay ? format(selectedDay, 'dd/MM/yyyy') : 'Selecione um dia primeiro'}
+              </p>
+            </div>
+          </div>
+
+          {selectedDaySlots.length > 0 ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {selectedDaySlots.map((slot) => {
+                  const slotDate = parseISO(slot.startDateTime.toString());
+                  const isSlotPast = isPast(slotDate);
+                  const isDisabled = slot.isBooked || isSlotPast;
+                  const isSelected = slot.id !== undefined && selectedSlot === slot.id.toString();
+                  
+                  return (
+                    <button
+                      key={slot.id}
+                      type="button"
+                      onClick={() => onSelectSlot(slot)}
+                      disabled={isDisabled}
+                      className={`
+                        px-4 py-3 rounded-xl border-2 transition-all duration-200 font-medium text-sm
+                        ${isSelected
+                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg transform scale-105'
+                          : isDisabled
+                            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through'
+                            : 'bg-white text-gray-700 border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 hover:shadow-md'
+                        }
+                      `}
+                    >
+                      {format(slotDate, 'HH:mm')}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              {selectedSlot && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <p className="text-blue-800 font-medium">
+                    ✅ Horário selecionado: {selectedDay && format(selectedDay, 'dd/MM/yyyy')} às {
+                      selectedDaySlots.find(slot => slot.id?.toString() === selectedSlot) 
+                        ? format(parseISO(selectedDaySlots.find(slot => slot.id?.toString() === selectedSlot)!.startDateTime.toString()), 'HH:mm')
+                        : ''
+                    }
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : selectedDay ? (
+            <div className="text-center py-8">
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                <p className="text-yellow-800 font-medium">Nenhum horário disponível para este dia</p>
+                <p className="text-yellow-600 text-sm mt-1">Tente selecionar outra data</p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                <p className="text-gray-600 font-medium">Selecione uma data para ver os horários</p>
+                <p className="text-gray-500 text-sm mt-1">Os horários disponíveis aparecerão aqui</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
