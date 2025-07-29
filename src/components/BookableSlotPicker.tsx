@@ -135,11 +135,7 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
                   borderRadius: '0.5rem',
                   padding: '0.5rem',
                   color: '#374151',
-                  transition: 'all 0.2s ease-in-out',
-                  ':hover': {
-                    backgroundColor: '#e5e7eb',
-                    color: '#1f2937'
-                  }
+                  transition: 'all 0.2s ease-in-out'
                 }
               }}
             />
@@ -168,6 +164,10 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
               background: #eff6ff !important;
               color: #1d4ed8 !important;
               transform: scale(1.05) !important;
+            }
+            .rdp-nav_button:hover {
+              background-color: #e5e7eb !important;
+              color: #1f2937 !important;
             }
           `}</style>
         </div>
