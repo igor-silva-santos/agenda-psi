@@ -68,7 +68,7 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4">
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 xl:gap-12 items-start">
         {/* Calendário */}
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg border border-blue-100 p-4 xl:p-8">
           <div className="flex items-center space-x-3 mb-4 xl:mb-6">
@@ -188,7 +188,7 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
 
           {selectedDaySlots.length > 0 ? (
             <div className="space-y-3">
-              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3 gap-2 xl:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-2 xl:gap-3">
                 {selectedDaySlots.map((slot) => {
                   const slotDate = parseISO(slot.startDateTime.toString());
                   const isSlotPast = isPast(slotDate);
