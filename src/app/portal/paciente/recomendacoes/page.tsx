@@ -126,7 +126,7 @@ export default function MinhasRecomendacoesPage() {
       : 0;
     
     const lastRecommendation = agendamentos.length > 0 
-      ? agendamentos.sort((a, b) => new Date(b.dataHora).getTime() - new Date(a.dataHora).getTime())[0].dataHora
+      ? new Date(agendamentos.sort((a, b) => new Date(b.dataHora).getTime() - new Date(a.dataHora).getTime())[0].dataHora)
       : undefined;
 
     return {
