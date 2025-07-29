@@ -117,7 +117,7 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
                 caption: { 
                   color: '#1e40af', 
                   fontWeight: 700, 
-                  fontSize: '1rem',
+                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
                   marginBottom: '0.75rem'
                 },
                 day: {
@@ -125,16 +125,16 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
                   transition: 'all 0.2s ease-in-out',
                   color: '#374151',
                   fontWeight: 500,
-                  fontSize: '0.875rem',
+                  fontSize: 'clamp(0.75rem, 1.5vw, 0.875rem)',
                   background: 'transparent',
-                  width: '2rem',
-                  height: '2rem',
+                  width: 'clamp(1.75rem, 4vw, 2rem)',
+                  height: 'clamp(1.75rem, 4vw, 2rem)',
                   margin: '0.125rem',
                 },
                 head_cell: { 
                   color: '#6b7280', 
                   fontWeight: 600, 
-                  fontSize: '0.75rem', 
+                  fontSize: 'clamp(0.625rem, 1.5vw, 0.75rem)', 
                   background: 'transparent',
                   padding: '0.25rem 0'
                 },
