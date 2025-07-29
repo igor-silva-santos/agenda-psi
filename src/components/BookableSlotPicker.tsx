@@ -39,6 +39,21 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
     fetchSlots();
   }, []);
 
+  // Scroll automático para horários em mobile quando um dia é selecionado
+  useEffect(() => {
+    if (selectedDay && window.innerWidth < 1024) {
+      const horariosSection = document.getElementById('horarios-section');
+      if (horariosSection) {
+        setTimeout(() => {
+          horariosSection.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }, 100);
+      }
+    }
+  }, [selectedDay]);
+
   if (loading) return (
     <div className="flex justify-center items-center min-h-[200px]">
       <div className="flex items-center space-x-3">
@@ -68,9 +83,13 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 xl:gap-12 items-start">
+      <div className={`grid gap-6 lg:gap-8 xl:gap-12 items-start ${
+        selectedDay ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'
+      }`}>
         {/* Calendário */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg border border-blue-100 p-4 xl:p-8">
+        <div className={`bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg border border-blue-100 p-4 xl:p-8 ${
+          !selectedDay ? 'lg:col-span-1' : 'lg:col-span-1'
+        }`}>
           <div className="flex items-center space-x-3 mb-4 xl:mb-6">
             <div className="p-2 xl:p-3 bg-blue-100 rounded-lg">
               <Calendar className="h-5 w-5 xl:h-6 xl:w-6 text-blue-600" />
@@ -172,79 +191,77 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
           `}</style>
         </div>
 
-        {/* Horários */}
-        <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-lg border border-gray-100 p-4 xl:p-8">
-          <div className="flex items-center space-x-3 mb-4 xl:mb-6">
-            <div className="p-2 xl:p-3 bg-gray-100 rounded-lg">
-              <Clock className="h-5 w-5 xl:h-6 xl:w-6 text-gray-600" />
+        {/* Horários - Só aparece após selecionar um dia */}
+        {selectedDay && (
+          <div 
+            id="horarios-section"
+            className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-lg border border-gray-100 p-4 xl:p-8"
+          >
+            <div className="flex items-center space-x-3 mb-4 xl:mb-6">
+              <div className="p-2 xl:p-3 bg-gray-100 rounded-lg">
+                <Clock className="h-5 w-5 xl:h-6 xl:w-6 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="text-lg xl:text-xl font-bold text-gray-900">Horários Disponíveis</h3>
+                <p className="text-xs xl:text-sm text-gray-600">
+                  {format(selectedDay, 'dd/MM/yyyy')}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg xl:text-xl font-bold text-gray-900">Horários Disponíveis</h3>
-              <p className="text-xs xl:text-sm text-gray-600">
-                {selectedDay ? format(selectedDay, 'dd/MM/yyyy') : 'Selecione um dia primeiro'}
-              </p>
-            </div>
-          </div>
 
-          {selectedDaySlots.length > 0 ? (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-2 xl:gap-3">
-                {selectedDaySlots.map((slot) => {
-                  const slotDate = parseISO(slot.startDateTime.toString());
-                  const isSlotPast = isPast(slotDate);
-                  const isDisabled = slot.isBooked || isSlotPast;
-                  const isSelected = slot.id !== undefined && selectedSlot === slot.id.toString();
-                  
-                  return (
-                    <button
-                      key={slot.id}
-                      type="button"
-                      onClick={() => onSelectSlot(slot)}
-                      disabled={isDisabled}
-                      className={`
-                        px-3 xl:px-4 py-2 xl:py-3 rounded-lg xl:rounded-xl border-2 transition-all duration-200 font-medium text-xs xl:text-sm
-                        ${isSelected
-                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg transform scale-105'
-                          : isDisabled
-                            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through'
-                            : 'bg-white text-gray-700 border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 hover:shadow-md'
-                        }
-                      `}
-                    >
-                      {format(slotDate, 'HH:mm')}
-                    </button>
-                  );
-                })}
-              </div>
-              
-              {selectedSlot && (
-                <div className="mt-3 xl:mt-4 p-3 xl:p-4 bg-blue-50 border border-blue-200 rounded-lg xl:rounded-xl">
-                  <p className="text-blue-800 font-medium text-sm xl:text-base">
-                    ✅ Horário selecionado: {selectedDay && format(selectedDay, 'dd/MM/yyyy')} às {
-                      selectedDaySlots.find(slot => slot.id?.toString() === selectedSlot) 
-                        ? format(parseISO(selectedDaySlots.find(slot => slot.id?.toString() === selectedSlot)!.startDateTime.toString()), 'HH:mm')
-                        : ''
-                    }
-                  </p>
+            {selectedDaySlots.length > 0 ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-2 xl:gap-3">
+                  {selectedDaySlots.map((slot) => {
+                    const slotDate = parseISO(slot.startDateTime.toString());
+                    const isSlotPast = isPast(slotDate);
+                    const isDisabled = slot.isBooked || isSlotPast;
+                    const isSelected = slot.id !== undefined && selectedSlot === slot.id.toString();
+                    
+                    return (
+                      <button
+                        key={slot.id}
+                        type="button"
+                        onClick={() => onSelectSlot(slot)}
+                        disabled={isDisabled}
+                        className={`
+                          px-3 xl:px-4 py-2 xl:py-3 rounded-lg xl:rounded-xl border-2 transition-all duration-200 font-medium text-xs xl:text-sm
+                          ${isSelected
+                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg transform scale-105'
+                            : isDisabled
+                              ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through'
+                              : 'bg-white text-gray-700 border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 hover:shadow-md'
+                          }
+                        `}
+                      >
+                        {format(slotDate, 'HH:mm')}
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
-          ) : selectedDay ? (
-            <div className="text-center py-6 xl:py-8">
-              <div className="p-3 xl:p-4 bg-yellow-50 border border-yellow-200 rounded-lg xl:rounded-xl">
-                <p className="text-yellow-800 font-medium text-sm xl:text-base">Nenhum horário disponível para este dia</p>
-                <p className="text-yellow-600 text-xs xl:text-sm mt-1">Tente selecionar outra data</p>
+                
+                {selectedSlot && (
+                  <div className="mt-3 xl:mt-4 p-3 xl:p-4 bg-blue-50 border border-blue-200 rounded-lg xl:rounded-xl">
+                    <p className="text-blue-800 font-medium text-sm xl:text-base">
+                      ✅ Horário selecionado: {format(selectedDay, 'dd/MM/yyyy')} às {
+                        selectedDaySlots.find(slot => slot.id?.toString() === selectedSlot) 
+                          ? format(parseISO(selectedDaySlots.find(slot => slot.id?.toString() === selectedSlot)!.startDateTime.toString()), 'HH:mm')
+                          : ''
+                      }
+                    </p>
+                  </div>
+                )}
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-6 xl:py-8">
-              <div className="p-3 xl:p-4 bg-gray-50 border border-gray-200 rounded-lg xl:rounded-xl">
-                <p className="text-gray-600 font-medium text-sm xl:text-base">Selecione uma data para ver os horários</p>
-                <p className="text-gray-500 text-xs xl:text-sm mt-1">Os horários disponíveis aparecerão aqui</p>
+            ) : (
+              <div className="text-center py-6 xl:py-8">
+                <div className="p-3 xl:p-4 bg-yellow-50 border border-yellow-200 rounded-lg xl:rounded-xl">
+                  <p className="text-yellow-800 font-medium text-sm xl:text-base">Nenhum horário disponível para este dia</p>
+                  <p className="text-yellow-600 text-xs xl:text-sm mt-1">Tente selecionar outra data</p>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
