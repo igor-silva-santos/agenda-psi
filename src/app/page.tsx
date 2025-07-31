@@ -177,15 +177,20 @@ export default function Home() {
       {/* Agendamento Modal */}
       {showAgendamento && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-[6px]">
-          <div className="agendamento-modal relative w-full h-full sm:h-auto sm:max-h-[98vh] sm:max-w-[900px] bg-white rounded-none sm:rounded-2xl shadow-2xl flex flex-col justify-center items-center overflow-hidden p-0">
-            <button
-              onClick={() => setShowAgendamento(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors z-10"
-              aria-label="Fechar modal de agendamento"
-            >
-              <X className="h-8 w-8" />
-            </button>
-            <div className="modal-content-scroll w-full h-full flex flex-col justify-center items-center p-4 sm:p-8">
+          <div className="agendamento-modal relative w-full h-full sm:h-auto sm:max-h-[98vh] sm:max-w-[900px] bg-white rounded-none sm:rounded-2xl shadow-2xl flex flex-col justify-center items-center p-0">
+            {/* Header fixo */}
+            <div className="w-full sticky top-0 z-10 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 py-4 sm:py-6">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-blue-900 text-center tracking-tight drop-shadow-sm w-full">Agendar Consulta</h2>
+              <button
+                onClick={() => setShowAgendamento(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors z-20"
+                aria-label="Fechar modal de agendamento"
+              >
+                <X className="h-8 w-8" />
+              </button>
+            </div>
+            {/* Conteúdo scrollável */}
+            <div className="modal-content-scroll w-full flex-1 flex flex-col justify-center items-center p-4 sm:p-8">
               <AgendamentoFormMelhorado />
             </div>
           </div>
