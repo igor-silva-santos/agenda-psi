@@ -1,7 +1,1 @@
-fix(agendamento): Corrige inconsistência de horários no modal
-
-Corrige a lógica de geração de horários disponíveis na API `/api/bookable-slots`, que estava exibindo horários incorretos e não respeitava o horário de almoço.
-
-A principal alteração foi a introdução da função `startOfDay` da biblioteca `date-fns` para evitar problemas de fuso horário na criação das datas. Além disso, a lógica de verificação de horários de almoço e bloqueios foi refatorada para maior clareza e precisão.
-
-Com esta correção, o modal de agendamento passa a refletir com precisão a disponibilidade configurada no painel administrativo.
+feat: Ajuste na exibição das horas no modal de agendamento de consulta
