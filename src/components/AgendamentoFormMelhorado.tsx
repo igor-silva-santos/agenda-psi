@@ -8,7 +8,7 @@ import { z } from 'zod';
 import BookableSlotPicker from './BookableSlotPicker';
 import { BookableSlot } from '@prisma/client';
 import { validateCPF } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import zxcvbn, { ZXCVBNResult } from 'zxcvbn';
 import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 import { format, parseISO } from 'date-fns';
@@ -50,7 +50,11 @@ function formatTelefone(value: string) {
   return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
 }
 
-export default function AgendamentoFormMelhorado() {
+interface AgendamentoFormMelhoradoProps {
+  onClose?: () => void;
+}
+
+export default function AgendamentoFormMelhorado({ onClose }: AgendamentoFormMelhoradoProps) {
   const [step, setStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -301,8 +305,15 @@ export default function AgendamentoFormMelhorado() {
 
   return (
     <div className="w-full max-w-3xl mx-auto bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-2xl border border-gray-100 animate-fade-in-scale overflow-hidden p-0">
-      <div className="px-6 py-6 border-b border-gray-200 bg-gradient-to-r from-blue-100/60 to-white flex items-center justify-center sticky top-0 z-10">
+      <div className="px-6 py-6 border-b border-gray-200 bg-gradient-to-r from-blue-100/60 to-white flex items-center justify-center sticky top-0 z-10 relative">
         <h2 className="text-2xl md:text-3xl font-extrabold text-blue-900 text-center tracking-tight drop-shadow-sm">Agendar Consulta</h2>
+        <button
+          onClick={onClose || (() => window.history.back())}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors z-10"
+          aria-label="Fechar modal de agendamento"
+        >
+          <X className="h-8 w-8" />
+        </button>
       </div>
       <div className="px-2 sm:px-8 py-6 flex flex-col items-center justify-center w-full">
         {error && <div className="mb-4 flex items-center gap-2 p-3 bg-red-100 border border-red-300 rounded-lg text-red-700 text-center text-sm font-semibold animate-fade-in"><svg className='w-5 h-5 text-red-500' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' d='M12 9v2m0 4h.01M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z'/></svg>{error}</div>}
