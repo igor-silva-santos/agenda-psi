@@ -49,17 +49,15 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (showLoginModal || showSignUpModal) {
-      document.body.style.overflow = 'hidden';
+    if (showAgendamento || showLoginModal || showSignUpModal) {
+      document.body.classList.add('modal-open');
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.classList.remove('modal-open');
     }
-
-    // Cleanup function to reset overflow when component unmounts
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.classList.remove('modal-open');
     };
-  }, [showLoginModal, showSignUpModal]);
+  }, [showAgendamento, showLoginModal, showSignUpModal]);
 
   return (
     <div className="min-h-screen bg-blue-50">
@@ -178,8 +176,8 @@ export default function Home() {
 
       {/* Agendamento Modal */}
       {showAgendamento && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-          <div className="agendamento-modal bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative p-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-[6px]">
+          <div className="agendamento-modal relative w-full h-full sm:h-auto sm:max-h-[98vh] sm:max-w-[900px] bg-white rounded-none sm:rounded-2xl shadow-2xl flex flex-col justify-center items-center overflow-y-auto p-0">
             <button
               onClick={() => setShowAgendamento(false)}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors z-10"
@@ -187,7 +185,7 @@ export default function Home() {
             >
               <X className="h-8 w-8" />
             </button>
-            <div className="p-6 sm:p-8">
+            <div className="w-full h-full flex flex-col justify-center items-center p-4 sm:p-8 overflow-y-auto">
               <AgendamentoFormMelhorado />
             </div>
           </div>
