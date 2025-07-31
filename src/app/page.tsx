@@ -178,12 +178,11 @@ export default function Home() {
       {showAgendamento && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-[6px]">
           <div className="agendamento-modal relative w-full h-full sm:h-auto sm:max-h-[98vh] sm:max-w-[900px] bg-white rounded-none sm:rounded-2xl shadow-2xl flex flex-col justify-center items-center p-0">
-            {/* Header fixo */}
-            <div className="w-full sticky top-0 z-10 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 py-4 sm:py-6">
-              <h2 className="text-2xl md:text-3xl font-extrabold text-blue-900 text-center tracking-tight drop-shadow-sm w-full">Agendar Consulta</h2>
+            {/* Header fixo - apenas botão de fechar */}
+            <div className="w-full sticky top-0 z-10 bg-white border-b border-gray-200 flex items-center justify-end px-4 sm:px-8 py-4 sm:py-6">
               <button
                 onClick={() => setShowAgendamento(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors z-20"
+                className="text-gray-500 hover:text-gray-800 transition-colors z-20"
                 aria-label="Fechar modal de agendamento"
               >
                 <X className="h-8 w-8" />
