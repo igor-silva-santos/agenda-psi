@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { addDays, setHours, setMinutes, isBefore, isAfter, isEqual, format, parse, startOfDay } from 'date-fns';
+import { addDays, setHours, setMinutes, isBefore, isAfter, isEqual, format, parse, startOfDay, addHours } from 'date-fns';
 import { getToken } from 'next-auth/jwt';
 
 export async function POST(request: Request) {
