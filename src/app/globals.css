@@ -127,33 +127,90 @@ body.modal-open {
   }
 }
 
-.bookable-slot-picker .horarios-lista {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+/* Estilos específicos para o calendário no modal de agendamento */
+.agendamento-modal .rdp {
+  --rdp-cell-size: clamp(1.5rem, 3vw, 2rem);
+  --rdp-accent-color: #3b82f6;
+  --rdp-background-color: #eff6ff;
+  --rdp-accent-color-dark: #1d4ed8;
+  --rdp-background-color-dark: #1e3a8a;
+  --rdp-outline: 2px solid var(--rdp-accent-color);
+  --rdp-outline-selected: 2px solid rgba(0, 0, 0, 0.75);
 }
+
+/* Responsividade do calendário quando uma data está selecionada */
+.agendamento-modal .rdp-day_selected {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+  transform: scale(1.05) !important;
+}
+
+.agendamento-modal .rdp-day_today {
+  border: 2px solid #3b82f6 !important;
+  color: #3b82f6 !important;
+  background: #eff6ff !important;
+  font-weight: 600 !important;
+}
+
+.agendamento-modal .rdp-day_disabled {
+  color: #d1d5db !important;
+  background: #f9fafb !important;
+  cursor: not-allowed !important;
+}
+
+.agendamento-modal .rdp-day:hover:not(.rdp-day_disabled):not(.rdp-day_selected) {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  transform: scale(1.05) !important;
+}
+
+/* Ajustes para telas menores */
+@media (max-width: 768px) {
+  .agendamento-modal .rdp {
+    --rdp-cell-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  }
+  
+  .agendamento-modal .rdp-caption {
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem) !important;
+  }
+  
+  .agendamento-modal .rdp-head_cell {
+    font-size: clamp(0.5rem, 1.2vw, 0.625rem) !important;
+  }
+}
+
 .bookable-slot-picker .horario-btn {
-  min-width: 80px;
-  padding: 0.5rem 1rem;
-  border-radius: 9999px;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
   font-weight: 500;
-  font-size: 1rem;
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
-  color: #1e293b;
-  transition: background 0.2s, color 0.2s, border 0.2s;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+.bookable-slot-picker .horario-btn:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
 }
 .bookable-slot-picker .horario-btn.selected {
-  background: #1e293b;
-  color: #fff;
-  border-color: #1e293b;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: scale(1.05);
 }
 .bookable-slot-picker .horario-btn:disabled {
-  background: #e5e7eb;
-  color: #9ca3af;
+  background: #f9fafb;
+  color: #d1d5db;
   border-color: #e5e7eb;
-  text-decoration: line-through;
   cursor: not-allowed;
+  text-decoration: line-through;
+  transform: none;
 }
 
 @keyframes fade-in-scale {
@@ -168,5 +225,5 @@ body.modal-open {
 }
 
 .animate-fade-in-scale {
-  animation: fade-in-scale 0.2s ease-out forwards;
+  animation: fade-in-scale 0.3s ease-out;
 }
