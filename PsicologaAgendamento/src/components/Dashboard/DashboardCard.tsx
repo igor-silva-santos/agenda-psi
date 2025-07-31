@@ -30,6 +30,9 @@ export default function DashboardCard({
         className
       )}
       onClick={onClick}
+      onKeyDown={(e) => onClick && (e.key === 'Enter' || e.key === ' ') && onClick()}
+      role={onClick ? 'button' : 'region'}
+      tabIndex={onClick ? 0 : -1}
     >
       <div className="flex items-center justify-between">
         <div className="flex-1">

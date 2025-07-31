@@ -34,7 +34,9 @@ export default function Badge({
     <span
       className={cn(
         baseClasses,
+        // eslint-disable-next-line security/detect-object-injection
         variantClasses[variant],
+        // eslint-disable-next-line security/detect-object-injection
         sizeClasses[size],
         className
       )}

@@ -170,7 +170,7 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
             />
           </div>
           
-          <style jsx global>{`
+                    <style jsx global>{`
             .my-selected-modern {
               background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
               color: #ffffff !important;

@@ -21,7 +21,9 @@ export default function LoadingSpinner({
 
   return (
     <div className={cn('flex flex-col items-center justify-center', className)}>
-      <Loader2 className={cn('animate-spin text-blue-600', sizeClasses[size])} />
+      <Loader2 className={cn('animate-spin text-blue-600', 
+      // eslint-disable-next-line security/detect-object-injection
+      sizeClasses[size])} />
       {text && (
         <p className="mt-2 text-sm text-gray-600">{text}</p>
       )}

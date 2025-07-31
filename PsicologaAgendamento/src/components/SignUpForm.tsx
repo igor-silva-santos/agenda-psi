@@ -239,27 +239,28 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
             <User className="h-4 w-4 inline mr-2 text-blue-600" />
             Nome completo
           </label>
-          <input {...register("name")} type="text" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder:text-gray-500" placeholder="Seu nome completo"/>
+          <input id="name" {...register("name")} type="text" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder:text-gray-500" placeholder="Seu nome completo"/>
           {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
             <Mail className="h-4 w-4 inline mr-2 text-blue-600" />
             Email
           </label>
-          <input {...register("email")} type="email" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder:text-gray-500" placeholder="seu@email.com"/>
+          <input id="email" {...register("email")} type="email" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder:text-gray-500" placeholder="seu@email.com"/>
           {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="cpf" className="block text-sm font-medium text-gray-700 mb-2">
             <User className="h-4 w-4 inline mr-2 text-blue-600" />
             CPF
           </label>
           <input
+            id="cpf"
             type="text"
             value={displayCpf}
             onChange={(e) => {
@@ -274,12 +275,12 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
           {errors.cpf && <p className="text-red-500 text-sm mt-1">{errors.cpf.message}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
             <Lock className="h-4 w-4 inline mr-2 text-blue-600" />
             Senha
           </label>
           <div className="relative">
-            <input {...register("password")} type={showPassword ? 'text' : 'password'} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 text-gray-900 placeholder:text-gray-500" placeholder="Mínimo 6 caracteres"/>
+            <input id="password" {...register("password")} type={showPassword ? 'text' : 'password'} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 text-gray-900 placeholder:text-gray-500" placeholder="Mínimo 6 caracteres"/>
             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
@@ -307,12 +308,13 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
           {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
             <Lock className="h-4 w-4 inline mr-2 text-blue-600" />
             Confirmar senha
           </label>
           <div className="relative">
             <input
+              id="confirmPassword"
               {...register("confirmPassword")}
               type={showConfirmPassword ? 'text' : 'password'}
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 text-gray-900 placeholder:text-gray-500 ${confirmPasswordValue && !senhaCoincide ? 'border-red-500' : 'border-gray-300'}`}
@@ -328,10 +330,11 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
           {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="dataNascimento" className="block text-sm font-medium text-gray-700 mb-2">
             Data de Nascimento
           </label>
           <input
+            id="dataNascimento"
             {...register("dataNascimento")}
             type="text"
             placeholder="dd/mm/aaaa"

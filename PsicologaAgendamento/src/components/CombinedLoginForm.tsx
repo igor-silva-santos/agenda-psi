@@ -32,7 +32,8 @@ const isValidCPF = (cpf: string) => {
 
 // Função simples para validar email
 const isValidEmail = (email: string) => {
-  return /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+  // Regex mais segura contra ReDoS
+  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
 };
 
 interface CombinedLoginFormProps {

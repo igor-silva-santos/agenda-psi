@@ -4,7 +4,7 @@ import AdminPacientesPage from '../page';
 import { describe, it, expect, vi } from 'vitest';
 import '@testing-library/jest-dom';
 
-vi.mock('next/link', () => ({ __esModule: true, default: ({ children }: any) => <a>{children}</a> }));
+vi.mock('next/link', () => ({ __esModule: true, default: ({ children, href }: any) => <a href={href || '#'}>{children}</a> }));
 
 describe('AdminPacientesPage', () => {
   it('renderiza a página e mensagem de loading', () => {

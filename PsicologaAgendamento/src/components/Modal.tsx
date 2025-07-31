@@ -25,14 +25,23 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
 
   return (
     <Fragment>
-      <div className="fixed inset-0 w-screen h-screen bg-black bg-opacity-60 flex justify-center items-center z-40 transition-opacity duration-300 overflow-hidden" onClick={onClose} />
+      <div
+        className="fixed inset-0 w-screen h-screen bg-black bg-opacity-60 flex justify-center items-center z-40 transition-opacity duration-300 overflow-hidden"
+        onClick={onClose}
+        onKeyDown={(e) => e.key === 'Enter' && onClose()}
+        role="button"
+        tabIndex={0}
+        aria-label="Fechar modal"
+      />
       <div className="fixed inset-0 w-screen h-screen flex justify-center items-center z-50 p-0 overflow-hidden">
         <div 
           className="bg-white rounded-2xl shadow-2xl w-full max-w-[95vw] sm:max-w-3xl flex flex-col animate-fade-in-scale"
-          onClick={(e) => e.stopPropagation()} // Impede que o clique dentro do modal o feche
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
         >
           <div className="flex justify-between items-center p-4 border-b border-gray-200 sticky top-0 bg-white z-10 rounded-t-2xl">
-            <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+            <h2 id="modal-title" className="text-lg font-semibold text-gray-800">{title}</h2>
             <button onClick={onClose} className="p-1.5 rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-800 transition-colors">
               <X size={20} />
             </button>

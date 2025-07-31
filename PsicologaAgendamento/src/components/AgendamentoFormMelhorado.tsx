@@ -54,6 +54,18 @@ interface AgendamentoFormMelhoradoProps {
   onClose?: () => void;
 }
 
+// Função de comparação segura contra timing attacks
+const safeCompare = (a: string, b: string) => {
+  let mismatch = a.length === b.length ? 0 : 1;
+  if (mismatch) {
+    b = a;
+  }
+  for (let i = 0; i < a.length; ++i) {
+    mismatch |= (a.charCodeAt(i) ^ b.charCodeAt(i));
+  }
+  return mismatch === 0;
+};
+
 export default function AgendamentoFormMelhorado({ onClose }: AgendamentoFormMelhoradoProps) {
   const [step, setStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
@@ -217,7 +229,7 @@ export default function AgendamentoFormMelhorado({ onClose }: AgendamentoFormMel
         setTimeout(() => router.push('/portal/paciente'), 2000);
       } else {
         // Validação extra da senha (apenas para novo paciente)
-        if (data.senha !== confirmarSenha) {
+        if (!safeCompare(data.senha, confirmarSenha)) {
           setSenhaErro('As senhas não coincidem.');
           setIsLoading(false);
           return;
@@ -325,12 +337,12 @@ export default function AgendamentoFormMelhorado({ onClose }: AgendamentoFormMel
             setStep(2);
           })}>
             <div className="flex flex-col gap-4 items-center justify-center animate-fade-in">
-              <label className="block text-lg md:text-xl font-bold text-blue-900 mb-3 text-center">Selecione a Data e Hora:</label>
+              <label htmlFor="slot-picker" className="block text-lg md:text-xl font-bold text-blue-900 mb-3 text-center">Selecione a Data e Hora:</label>
               <Controller
                 name="slotId"
                 control={controlStep1}
                 render={({ field }) => (
-                  <div className="w-full flex justify-center">
+                  <div id="slot-picker" className="w-full flex justify-center">
                     <BookableSlotPicker
                       onSelectSlot={(slot) => {
                         if (slot && slot.id !== undefined) {

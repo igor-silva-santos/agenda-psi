@@ -58,22 +58,22 @@ const AddTimeForm = ({ diaDaSemana, onSave, onCancel, initialHoraInicio, initial
     <form onSubmit={handleSubmit} className="bg-gray-50 p-4 rounded-lg mt-2 flex flex-col gap-3">
       <div className="flex flex-col md:flex-row gap-3">
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-900 mb-1">Início</label>
-          <input type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 placeholder:text-gray-900" required />
+          <label htmlFor={`horaInicio-${diaDaSemana}`} className="block text-sm font-medium text-gray-900 mb-1">Início</label>
+          <input id={`horaInicio-${diaDaSemana}`} type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 placeholder:text-gray-900" required />
         </div>
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-900 mb-1">Fim</label>
-          <input type="time" value={horaFim} onChange={e => setHoraFim(e.target.value)} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 placeholder:text-gray-900" required />
+          <label htmlFor={`horaFim-${diaDaSemana}`} className="block text-sm font-medium text-gray-900 mb-1">Fim</label>
+          <input id={`horaFim-${diaDaSemana}`} type="time" value={horaFim} onChange={e => setHoraFim(e.target.value)} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 placeholder:text-gray-900" required />
         </div>
       </div>
       <div className="flex flex-col md:flex-row gap-3">
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-900 mb-1">Início do Almoço (opcional)</label>
-          <input type="time" value={almocoInicio} onChange={e => setAlmocoInicio(e.target.value)} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 placeholder:text-gray-900" />
+          <label htmlFor={`almocoInicio-${diaDaSemana}`} className="block text-sm font-medium text-gray-900 mb-1">Início do Almoço (opcional)</label>
+          <input id={`almocoInicio-${diaDaSemana}`} type="time" value={almocoInicio} onChange={e => setAlmocoInicio(e.target.value)} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 placeholder:text-gray-900" />
         </div>
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-900 mb-1">Fim do Almoço (opcional)</label>
-          <input type="time" value={almocoFim} onChange={e => setAlmocoFim(e.target.value)} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 placeholder:text-gray-900" />
+          <label htmlFor={`almocoFim-${diaDaSemana}`} className="block text-sm font-medium text-gray-900 mb-1">Fim do Almoço (opcional)</label>
+          <input id={`almocoFim-${diaDaSemana}`} type="time" value={almocoFim} onChange={e => setAlmocoFim(e.target.value)} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 placeholder:text-gray-900" />
         </div>
       </div>
       {error && <p className="text-red-600 bg-red-50 p-2 rounded text-center text-sm">{error}</p>}

@@ -89,7 +89,14 @@ export default function AdminClientLayout({ session, children }: AdminClientLayo
     <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 md:hidden z-30" onClick={() => setSidebarOpen(false)}></div>
+        <div
+          className="fixed inset-0 bg-gray-600 bg-opacity-75 md:hidden z-30"
+          onClick={() => setSidebarOpen(false)}
+          onKeyDown={(e) => e.key === 'Enter' && setSidebarOpen(false)}
+          role="button"
+          tabIndex={0}
+          aria-label="Fechar sidebar"
+        ></div>
       )}
       {/* Mobile Sidebar */}
       <div className={`fixed inset-y-0 left-0 flex z-40 md:hidden transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>

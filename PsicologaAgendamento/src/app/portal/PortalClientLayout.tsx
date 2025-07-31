@@ -43,7 +43,10 @@ export default function PortalClientLayout({ session, children }: PortalClientLa
       {sidebarOpen && (
         <div 
           className="fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity duration-300 lg:hidden" 
-          onClick={() => setSidebarOpen(false)} 
+          onClick={() => setSidebarOpen(false)}
+          onKeyDown={(e) => e.key === 'Enter' && setSidebarOpen(false)}
+          role="button"
+          tabIndex={0}
           aria-label="Fechar menu" 
         />
       )}

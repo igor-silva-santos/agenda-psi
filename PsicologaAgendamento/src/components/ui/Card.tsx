@@ -32,7 +32,9 @@ export default function Card({
     <div 
       className={cn(
         'bg-white rounded-xl border border-gray-200',
+        // eslint-disable-next-line security/detect-object-injection
         paddingClasses[padding],
+        // eslint-disable-next-line security/detect-object-injection
         shadowClasses[shadow],
         hover && 'hover:shadow-lg transition-shadow duration-200',
         className

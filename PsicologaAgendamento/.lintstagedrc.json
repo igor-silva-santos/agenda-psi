@@ -1,7 +1,11 @@
-
 {
-  "*.{js,jsx,ts,tsx}": [
+  "*.{ts,tsx}": [
+    "prettier --write",
     "eslint --fix",
-    "vitest run --findRelatedTests --bail"
+    "tsc --noEmit",
+    "vitest related --run"
+  ],
+  "*.{js,jsx,json,css,md}": [
+    "prettier --write"
   ]
 }
