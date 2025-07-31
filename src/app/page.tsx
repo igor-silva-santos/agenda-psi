@@ -179,7 +179,7 @@ export default function Home() {
       {/* Agendamento Modal */}
       {showAgendamento && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-          <div className="agendamento-modal bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative p-0">
+          <div className="agendamento-modal bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative p-0">
             <button
               onClick={() => setShowAgendamento(false)}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors z-10"
