@@ -1,111 +1,87 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
+import { format, isPast, parseISO, startOfDay } from 'date-fns';
 
-interface TimeSlot {
-  start: string;
-  end: string;
-}
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const startDateParam = searchParams.get('start');
+  const endDateParam = searchParams.get('end');
 
-interface WorkingHours {
-  [key: string]: {
-    enabled: boolean;
-    slots: TimeSlot[];
-  };
-}
-
-const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-
-function generateTimeSlots(start: string, end: string): string[] {
-  const slots: string[] = [];
-  const startTime = new Date(`2000-01-01T${start}:00`);
-  const endTime = new Date(`2000-01-01T${end}:00`);
-  
-  const current = new Date(startTime);
-  
-  while (current < endTime) {
-    slots.push(current.toTimeString().slice(0, 5));
-    current.setHours(current.getHours() + 1);
-  }
-  
-  return slots;
-}
-
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get('start');
-    const endDate = searchParams.get('end');
-
-    if (!startDate || !endDate) {
-      return NextResponse.json(
-        { error: 'Parâmetros start e end são obrigatórios' },
-        { status: 400 }
-      );
-    }
-
-    // Carregar horários de trabalho configurados
-    const workingHoursDoc = await getDoc(doc(db, 'settings', 'working-hours'));
-    const workingHours: WorkingHours = workingHoursDoc.exists() 
-      ? workingHoursDoc.data().hours || {}
-      : {};
-
-    // Gerar slots disponíveis baseados na configuração
-    const availableSlots: { [key: string]: string[] } = {};
-    
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
-      const dateStr = date.toISOString().split('T')[0];
-      const dayOfWeek = daysOfWeek[date.getDay()];
-      
-      const dayConfig = workingHours[dayOfWeek];
-      
-      if (dayConfig && dayConfig.enabled && dayConfig.slots.length > 0) {
-        const daySlots: string[] = [];
-        
-        dayConfig.slots.forEach(slot => {
-          const slotTimes = generateTimeSlots(slot.start, slot.end);
-          daySlots.push(...slotTimes);
-        });
-        
-        if (daySlots.length > 0) {
-          availableSlots[dateStr] = daySlots;
-        }
+  if (!startDateParam || !endDateParam) {
+    return NextResponse.json({ 
+      error: 'Missing start or end date parameters',
+      details: {
+        missingParams: [
+          !startDateParam && 'start',
+          !endDateParam && 'end'
+        ].filter(Boolean)
       }
-    }
+    }, { status: 400 });
+  }
 
-    // TODO: Aqui seria integrado com Google Calendar para remover horários ocupados
-    // const occupiedSlots = await getOccupiedSlotsFromGoogleCalendar(startDate, endDate);
-    
-    // Simular alguns horários ocupados para demonstração
-    const occupiedSlots: { [key: string]: string[] } = {
-      '2024-06-10': ['09:00', '15:00'],
-      '2024-06-11': ['10:00', '16:00'],
-    };
+  const startDate = new Date(startDateParam);
+  const endDate = new Date(endDateParam);
 
-    // Remover horários ocupados dos disponíveis
-    Object.keys(occupiedSlots).forEach(dateStr => {
-      if (availableSlots[dateStr]) {
-        availableSlots[dateStr] = availableSlots[dateStr].filter(
-          time => !occupiedSlots[dateStr].includes(time)
-        );
-        
-        // Remover datas sem horários disponíveis
-        if (availableSlots[dateStr].length === 0) {
-          delete availableSlots[dateStr];
+  try {
+    const [{ data: bookableSlots, error: slotsError }, { data: blockedPeriods, error: blockedError }] = await Promise.all([
+      supabase
+        .from('BookableSlot')
+        .select('*')
+        .gte('startDateTime', startDate.toISOString())
+        .lte('startDateTime', endDate.toISOString())
+        .eq('isBooked', false)
+        .order('startDateTime', { ascending: true }),
+      supabase
+        .from('HorarioBloqueado')
+        .select('*')
+        .lte('dataHoraInicio', endDate.toISOString())
+        .gte('dataHoraFim', startDate.toISOString()),
+    ]);
+    if (slotsError) throw slotsError;
+    if (blockedError) throw blockedError;
+
+    const availableSlots: { [key: string]: string[] } = {};
+    const now = new Date();
+
+    (bookableSlots || []).forEach(slot => {
+      const slotStart = parseISO(new Date(slot.startDateTime).toISOString());
+      const slotEnd = parseISO(new Date(slot.endDateTime).toISOString());
+      const dateString = format(slotStart, 'yyyy-MM-dd');
+      const timeString = format(slotStart, 'HH:mm');
+
+      // Verifica se o slot já passou
+      if (isPast(slotStart) && !startOfDay(slotStart).toDateString().includes(startOfDay(now).toDateString())) {
+        return; // Ignora slots que já passaram, a menos que seja hoje
+      }
+
+      // Verifica se o slot está dentro de um período bloqueado
+      const isBlocked = (blockedPeriods || []).some(block => {
+        const blockStart = parseISO(new Date(block.dataHoraInicio).toISOString());
+        const blockEnd = parseISO(new Date(block.dataHoraFim).toISOString());
+        return (slotStart >= blockStart && slotStart < blockEnd) ||
+               (slotEnd > blockStart && slotEnd <= blockEnd) ||
+               (slotStart < blockStart && slotEnd > blockEnd);
+      });
+
+      if (!isBlocked) {
+        if (!availableSlots[dateString]) {
+          availableSlots[dateString] = [];
         }
+        availableSlots[dateString].push(timeString);
       }
     });
+
+    // Garante que os horários dentro de cada dia estejam ordenados
+    for (const date in availableSlots) {
+      availableSlots[date].sort();
+    }
 
     return NextResponse.json({ availableSlots });
   } catch (error) {
     console.error('Erro ao buscar disponibilidade:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ 
+      error: 'Internal Server Error',
+      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }, { status: 500 });
   }
 }
-

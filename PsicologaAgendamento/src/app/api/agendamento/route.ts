@@ -1,74 +1,159 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
+import { sendEmail } from '@/lib/email';
+import { format, addMinutes } from 'date-fns';
+import { createCalendarEvent } from '@/lib/googleCalendar';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
-export async function GET(request: NextRequest) {
+const APPOINTMENT_DURATION_MINUTES = 30;
+
+export async function POST(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get('start');
-    const endDate = searchParams.get('end');
-
-    if (!startDate || !endDate) {
-      return NextResponse.json(
-        { error: 'Parâmetros start e end são obrigatórios' },
-        { status: 400 }
-      );
-    }
-
-    // Simular horários ocupados (em produção, buscar do Firestore)
-    const occupiedSlots: { [key: string]: string[] } = {
-      '2024-06-15': ['09:00', '14:00'],
-      '2024-06-16': ['10:00', '15:00'],
-    };
-
-    return NextResponse.json({ occupiedSlots });
-  } catch (error) {
-    console.error('Erro ao buscar disponibilidade:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
+    const session = await getServerSession(authOptions);
     const body = await request.json();
-    const { nome, telefone, email, motivo, data, horario } = body;
-
-    if (!nome || !telefone || !data || !horario) {
-      return NextResponse.json(
-        { error: 'Dados obrigatórios não fornecidos' },
-        { status: 400 }
-      );
+    const { userId, dataHora, status, nome, email, cpf, telefone, bookableSlotId } = body;
+    let user;
+    if (userId) {
+      const { data: foundUser, error: userError } = await supabase
+        .from('User')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      if (userError || !foundUser) {
+        return NextResponse.json({ 
+          error: 'User not found',
+          details: { userId }
+        }, { status: 404 });
+      }
+      user = foundUser;
+    } else if (email) {
+      const { data: foundUser, error: userError } = await supabase
+        .from('User')
+        .select('*')
+        .eq('email', email)
+        .single();
+      if (userError || !foundUser) {
+        // Gerar senha aleatória e data de nascimento padrão
+        const senhaAleatoria = crypto.randomBytes(8).toString('hex');
+        const dataNascimentoPadrao = new Date('2000-01-01');
+        const { data: createdUser, error: createUserError } = await supabase
+          .from('User')
+          .insert([
+            {
+              name: nome,
+              email,
+              cpf,
+              telefone,
+              role: 'PACIENTE',
+              dataNascimento: dataNascimentoPadrao,
+              password: await bcrypt.hash(senhaAleatoria, 10),
+            },
+          ])
+          .select()
+          .single();
+        if (createUserError || !createdUser) {
+          return NextResponse.json({ 
+            error: 'Erro ao criar usuário',
+            details: { email, message: createUserError?.message }
+          }, { status: 500 });
+        }
+        user = createdUser;
+      } else {
+        user = foundUser;
+      }
+    } else {
+      return NextResponse.json({ 
+        error: 'Missing userId or email for appointment',
+        details: { missingFields: ['userId', 'email'] }
+      }, { status: 400 });
     }
 
-    // Simular criação do agendamento
-    // Em produção, salvar no Firestore e integrar com Google Calendar
-    const appointmentId = `apt_${Date.now()}`;
-    
-    console.log('Novo agendamento criado:', {
-      appointmentId,
-      nome,
-      telefone,
-      email,
-      motivo,
-      data,
-      horario
-    });
+    const appointmentDateTime = new Date(dataHora);
 
-    // WhatsApp desativado conforme solicitado
-    console.log('WhatsApp notification disabled - would send to:', telefone);
+    const { data: agendamento, error: agendamentoError } = await supabase
+      .from('Agendamento')
+      .insert([
+        {
+          userId: user.id,
+          dataHora: appointmentDateTime,
+          status: status || 'PENDENTE',
+          motivoConsulta: body.motivoConsulta || '',
+        },
+      ])
+      .select()
+      .single();
+    if (agendamentoError || !agendamento) {
+      return NextResponse.json({ 
+        error: 'Erro ao criar agendamento',
+        details: { userId: user.id, message: agendamentoError?.message }
+      }, { status: 500 });
+    }
 
-    return NextResponse.json({
-      success: true,
-      appointmentId,
-      message: 'Agendamento criado com sucesso',
-    });
+    if (bookableSlotId) {
+      const { error: slotError } = await supabase
+        .from('BookableSlot')
+        .update({ isBooked: true })
+        .eq('id', bookableSlotId);
+      if (slotError) {
+        return NextResponse.json({ 
+          error: 'Erro ao atualizar slot',
+          details: { bookableSlotId, message: slotError.message }
+        }, { status: 500 });
+      }
+    }
+
+    if (agendamento.status === 'PENDENTE') {
+      const endDateTime = addMinutes(appointmentDateTime, APPOINTMENT_DURATION_MINUTES);
+      let googleCalendarEventId = null;
+      try {
+        const event = {
+          summary: `Consulta com ${user.name}`,
+          description: `Paciente: ${user.name}\nEmail: ${user.email}`,
+          start: {
+            dateTime: appointmentDateTime.toISOString(),
+            timeZone: 'America/Sao_Paulo',
+          },
+          end: {
+            dateTime: endDateTime.toISOString(),
+            timeZone: 'America/Sao_Paulo',
+          },
+          attendees: user.email ? [{ email: user.email }] : [],
+        };
+        const calendarEvent = await createCalendarEvent(event);
+        googleCalendarEventId = calendarEvent?.id || null;
+        await supabase
+          .from('Agendamento')
+          .update({ googleCalendarEventId })
+          .eq('id', agendamento.id);
+      } catch (calendarError) {
+        console.error('Failed to create Google Calendar event:', calendarError);
+      }
+
+      const formattedDate = format(appointmentDateTime, 'dd/MM/yyyy HH:mm');
+      if (user.email) {
+        await sendEmail({
+          to: user.email,
+          subject: 'Confirmação de Agendamento - Dra. Jandira Frederick',
+          html: `
+            <p>Olá ${user.name},</p>
+            <p>Seu agendamento com a Dra. Jandira Frederick foi confirmado para o dia <strong>${formattedDate}</strong>.</p>
+            <p>Aguardamos você!</p>
+            <p>Atenciosamente,</p>
+            <p>Dra. Jandira Frederick</p>
+          `,
+        });
+      }
+    }
+
+    return NextResponse.json(agendamento);
   } catch (error) {
-    console.error('Erro ao criar agendamento:', error);
-    return NextResponse.json(
-      { error: 'Erro ao criar agendamento' },
-      { status: 500 }
-    );
+    console.error('Error in /api/agendamento POST:', error);
+    return NextResponse.json({ 
+      error: 'Internal Server Error',
+      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }, { status: 500 });
   }
 }
-

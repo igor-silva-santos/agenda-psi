@@ -1,183 +1,155 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Calendar, Clock, User, Phone, Mail, Edit, Trash2, Settings } from 'lucide-react';
-import GestaoCalendario from '@/components/GestaoCalendario'; // ALTERAÇÃO: Importando o novo componente
+import { useEffect, useState } from 'react';
+import { Agendamento, User } from '@prisma/client';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import Link from 'next/link';
+import { Calendar, Users, Clock, BarChart2, AlertCircle, CheckCircle2, Hourglass, Loader2 } from 'lucide-react';
 
-interface Agendamento {
-  id: string;
-  nome: string;
-  telefone: string;
-  email?: string;
-  data: string;
-  horario: string;
-  motivo?: string;
-  status: 'agendado' | 'confirmado' | 'cancelado';
-  createdAt: string;
+// Tipagem para o agendamento com dados do paciente
+interface AgendamentoComPaciente extends Agendamento {
+  user: User;
 }
 
-export default function AdminPage() {
-  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
-  const [filtroData, setFiltroData] = useState('');
-  const [filtroStatus, setFiltroStatus] = useState('todos');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState('agendamentos');
+// Componente para os cartões de estatísticas
+const StatCard = ({ title, value, icon: Icon, color = 'text-blue-600' }: { title: string, value: string | number, icon: React.ElementType, color?: string }) => (
+  <div className="bg-white p-6 rounded-xl shadow-md flex items-center space-x-4 transition-transform hover:scale-105">
+    <div className={`bg-blue-100 p-3 rounded-full`}>
+      <Icon className={`h-7 w-7 ${color}`} />
+    </div>
+    <div>
+      <p className="text-sm font-medium text-gray-500">{title}</p>
+      <p className="text-2xl font-bold text-gray-800">{value}</p>
+    </div>
+  </div>
+);
 
-  const handleLogin = () => {
-    if (password === 'admin123') {
-      setIsAuthenticated(true);
-      loadAgendamentos();
-    } else {
-      alert('Senha incorreta');
-    }
-  };
+// Componente para os cartões de navegação
+const ActionCard = ({ title, href, icon: Icon }: { title: string, href: string, icon: React.ElementType }) => (
+  <Link href={href}>
+    <div className="bg-white p-6 rounded-xl shadow-md flex flex-col items-center justify-center text-center space-y-3 transition-transform hover:scale-105 hover:shadow-lg">
+      <Icon className="h-10 w-10 text-blue-600" />
+      <h3 className="font-semibold text-gray-700">{title}</h3>
+    </div>
+  </Link>
+);
 
-  const loadAgendamentos = () => {
-    const mockAgendamentos: Agendamento[] = [
-      { id: '1', nome: 'Maria Silva', telefone: '(11) 99999-1111', email: 'maria@email.com', data: '2024-06-10', horario: '09:00', motivo: 'Ansiedade', status: 'agendado', createdAt: '2024-06-09T10:00:00Z' },
-      { id: '2', nome: 'João Santos', telefone: '(11) 99999-2222', data: '2024-06-10', horario: '15:00', motivo: 'Depressão', status: 'confirmado', createdAt: '2024-06-09T11:00:00Z' },
-      { id: '3', nome: 'Ana Costa', telefone: '(11) 99999-3333', email: 'ana@email.com', data: '2024-06-11', horario: '10:00', status: 'agendado', createdAt: '2024-06-09T12:00:00Z' },
-    ];
-    setAgendamentos(mockAgendamentos);
-  };
-
-  const filteredAgendamentos = agendamentos.filter(agendamento => {
-    const matchData = !filtroData || agendamento.data === filtroData;
-    const matchStatus = filtroStatus === 'todos' || agendamento.status === filtroStatus;
-    return matchData && matchStatus;
-  });
-
-  const getStatusColor = (status: string) => {
+// Componente para o item da lista de agendamentos
+const AgendamentoItem = ({ agendamento }: { agendamento: AgendamentoComPaciente }) => {
+  const getStatusChip = (status: string) => {
     switch (status) {
-      case 'agendado': return 'bg-yellow-100 text-yellow-800';
-      case 'confirmado': return 'bg-green-100 text-green-800';
-      case 'cancelado': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'CONFIRMADO':
+        return <span className="flex items-center text-xs font-medium px-2.5 py-0.5 rounded-full bg-green-100 text-green-800"><CheckCircle2 className="h-3 w-3 mr-1" /> {status}</span>;
+      case 'PENDENTE':
+        return <span className="flex items-center text-xs font-medium px-2.5 py-0.5 rounded-full bg-yellow-100 text-yellow-800"><Hourglass className="h-3 w-3 mr-1" /> {status}</span>;
+      case 'CANCELADO':
+        return <span className="flex items-center text-xs font-medium px-2.5 py-0.5 rounded-full bg-red-100 text-red-800"><AlertCircle className="h-3 w-3 mr-1" /> {status}</span>;
+      default:
+        return <span className="flex items-center text-xs font-medium px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-800">{status}</span>;
     }
   };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'agendado': return 'Agendado';
-      case 'confirmado': return 'Confirmado';
-      case 'cancelado': return 'Cancelado';
-      default: return status;
-    }
-  };
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-          <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">Área Administrativa</h1>
-          <div className="space-y-6">
-            <input 
-              type="password" 
-              placeholder="Senha de acesso" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-gray-500" 
-              onKeyPress={(e) => e.key === 'Enter' && handleLogin()} 
-            />
-            <button 
-              onClick={handleLogin} 
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold shadow-md"
-            >
-              Entrar
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Painel Administrativo</h1>
-            <button onClick={() => setIsAuthenticated(false)} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">Sair</button>
-          </div>
-        </div>
-      </header>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-              <button onClick={() => setActiveTab('agendamentos')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'agendamentos' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
-                <Calendar className="h-5 w-5 inline mr-2" />Agendamentos
-              </button>
-              <button onClick={() => setActiveTab('horarios')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'horarios' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
-                <Settings className="h-5 w-5 inline mr-2" />Meus Horários
-              </button>
-            </nav>
-          </div>
-        </div>
-        {activeTab === 'agendamentos' && (
-          <div className="space-y-8">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-lg font-semibold mb-4 text-gray-800">Filtros</h2>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Filtrar por data</label>
-                  <input type="date" value={filtroData} onChange={(e) => setFiltroData(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Filtrar por status</label>
-                  <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white">
-                    <option value="todos">Todos</option>
-                    <option value="agendado">Agendado</option>
-                    <option value="confirmado">Confirmado</option>
-                    <option value="cancelado">Cancelado</option>
-                  </select>
-                </div>
-                <div className="flex items-end">
-                  <button onClick={() => { setFiltroData(''); setFiltroStatus('todos'); }} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium">Limpar Filtros</button>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white p-6 rounded-lg shadow-sm"><h3 className="text-sm font-medium text-gray-500">Total de Agendamentos</h3><p className="text-3xl font-bold text-gray-800 mt-1">{agendamentos.length}</p></div>
-              <div className="bg-white p-6 rounded-lg shadow-sm"><h3 className="text-sm font-medium text-gray-500">Agendados</h3><p className="text-3xl font-bold text-yellow-500 mt-1">{agendamentos.filter(a => a.status === 'agendado').length}</p></div>
-              <div className="bg-white p-6 rounded-lg shadow-sm"><h3 className="text-sm font-medium text-gray-500">Confirmados</h3><p className="text-3xl font-bold text-green-500 mt-1">{agendamentos.filter(a => a.status === 'confirmado').length}</p></div>
-              <div className="bg-white p-6 rounded-lg shadow-sm"><h3 className="text-sm font-medium text-gray-500">Cancelados</h3><p className="text-3xl font-bold text-red-500 mt-1">{agendamentos.filter(a => a.status === 'cancelado').length}</p></div>
-            </div>
+    <li className="border-b last:border-b-0 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex-1 mb-2 sm:mb-0">
+        <p className="font-semibold text-gray-800">{agendamento.user.name}</p>
+        <p className="text-sm text-gray-500">
+          {format(new Date(agendamento.dataHora), "HH:mm", { locale: ptBR })} - {format(new Date(agendamento.dataHora), "eeee, d 'de' MMMM", { locale: ptBR })}
+        </p>
+      </div>
+      <div className="flex items-center">
+        {getStatusChip(agendamento.status)}
+      </div>
+    </li>
+  );
+};
 
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <div className="p-6 border-b"><h2 className="text-xl font-semibold text-gray-800">Lista de Agendamentos</h2></div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contato</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data/Hora</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredAgendamentos.map((agendamento) => (
-                      <tr key={agendamento.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap"><div className="flex items-center"><User className="h-4 w-4 text-gray-400 mr-3" /><div className="text-sm"><div className="font-medium text-gray-900">{agendamento.nome}</div>{agendamento.motivo && (<div className="text-gray-500 mt-1">{agendamento.motivo}</div>)}</div></div></td>
-                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm"><div className="flex items-center text-gray-900"><Phone className="h-4 w-4 text-gray-400 mr-2" />{agendamento.telefone}</div>{agendamento.email && (<div className="flex items-center text-gray-500 mt-1"><Mail className="h-4 w-4 text-gray-400 mr-2" />{agendamento.email}</div>)}</div></td>
-                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm"><div className="flex items-center text-gray-900"><Calendar className="h-4 w-4 text-gray-400 mr-2" />{new Date(agendamento.data + 'T00:00:00').toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</div><div className="flex items-center text-gray-500 mt-1"><Clock className="h-4 w-4 text-gray-400 mr-2" />{agendamento.horario}</div></div></td>
-                        <td className="px-6 py-4 whitespace-nowrap"><span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(agendamento.status)}`}>{getStatusText(agendamento.status)}</span></td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium"><div className="flex space-x-3"><button className="text-blue-600 hover:text-blue-800 transition-colors"><Edit className="h-5 w-5" /></button><button className="text-red-600 hover:text-red-800 transition-colors"><Trash2 className="h-5 w-5" /></button></div></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* ALTERAÇÃO: Renderizando o novo componente GestaoCalendario */}
-        {activeTab === 'horarios' && <GestaoCalendario />}
-      </main>
+
+export default function AdminDashboard() {
+  const [agendamentos, setAgendamentos] = useState<AgendamentoComPaciente[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState({ totalHoje: 0, confirmados: 0, pendentes: 0 });
+
+  useEffect(() => {
+    const fetchAgendamentos = async () => {
+      try {
+        // Busca agendamentos do dia
+        const response = await fetch('/api/admin/agendamentos?range=day');
+        if (response.status === 401) {
+          window.location.href = '/conta/login';
+          return;
+        }
+        if (!response.ok) {
+          throw new Error('Falha ao buscar agendamentos do dia');
+        }
+        const data: AgendamentoComPaciente[] = await response.json();
+        
+        // Renomeia 'paciente' para 'user' para consistência
+        const formattedData = data.map(item => ({
+          ...item,
+          user: (item as any).paciente || item.user
+        }));
+
+        setAgendamentos(formattedData);
+
+        // Calcula estatísticas
+        const totalHoje = formattedData.length;
+        const confirmados = formattedData.filter(a => a.status === 'CONFIRMADO').length;
+        const pendentes = formattedData.filter(a => a.status === 'PENDENTE').length;
+        setStats({ totalHoje, confirmados, pendentes });
+
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAgendamentos();
+  }, []);
+
+  return (
+    <div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Painel Administrativo</h1>
+          <p className="text-md text-gray-600 mt-1">Bem-vinda de volta! Gerencie seus agendamentos e pacientes.</p>
+        </header>
+
+        {/* Seção de Estatísticas */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <StatCard title="Agendamentos Hoje" value={loading ? '...' : stats.totalHoje} icon={Calendar} />
+          <StatCard title="Confirmados Hoje" value={loading ? '...' : stats.confirmados} icon={CheckCircle2} color="text-green-600" />
+          <StatCard title="Pendentes Hoje" value={loading ? '...' : stats.pendentes} icon={Hourglass} color="text-yellow-600" />
+        </section>
+
+        {/* Seção de Ações Rápidas */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            <ActionCard title="Gerenciar Agendamentos" href="/admin/agendamentos" icon={Calendar} />
+            <ActionCard title="Gerenciar Pacientes" href="/admin/pacientes" icon={Users} />
+            <ActionCard title="Definir Disponibilidade" href="/admin/disponibilidade" icon={Clock} />
+            <ActionCard title="Ver Relatórios" href="#" icon={BarChart2} />
+        </section>
+
+        {/* Seção de Próximos Agendamentos */}
+        <section className="bg-white p-6 rounded-xl shadow-md">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Próximos Agendamentos do Dia</h2>
+          {loading ? (
+            <div className="flex justify-center items-center min-h-[120px]"><Loader2 className="h-8 w-8 animate-spin text-blue-600" /></div>
+          ) : error ? (
+            <p className="text-red-500 flex items-center"><AlertCircle className="mr-2"/> {error}</p>
+          ) : agendamentos.length > 0 ? (
+            <ul className="space-y-2">
+              {agendamentos.map(agendamento => (
+                <AgendamentoItem key={agendamento.id} agendamento={agendamento} />
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">Nenhum agendamento para hoje.</p>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

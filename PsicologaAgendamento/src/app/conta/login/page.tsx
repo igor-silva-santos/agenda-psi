@@ -1,0 +1,67 @@
+"use client";
+import CombinedLoginForm from '@/components/CombinedLoginForm';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+
+function LoginContent() {
+  const [sessaoExpirada, setSessaoExpirada] = useState(false);
+  const [inactivityError, setInactivityError] = useState(false);
+  const searchParams = useSearchParams();
+  const msg = searchParams.get('msg');
+  const error = searchParams.get('error');
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('sessaoExpirada')) {
+      setSessaoExpirada(true);
+      localStorage.removeItem('sessaoExpirada');
+    }
+    
+    // Verificar erro de inatividade
+    if (error === 'inactivity') {
+      setInactivityError(true);
+    }
+  }, [error]);
+  
+  return (
+    <div className="p-8 bg-white rounded-xl shadow-md w-full max-w-md m-4">
+      {msg === 'faça-login-primeiro' && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-blue-800 text-center text-sm font-medium">
+          Faça login primeiro.
+        </div>
+      )}
+      {sessaoExpirada && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-center text-sm font-medium">
+          Sua sessão expirou. Faça login novamente.
+        </div>
+      )}
+      {inactivityError && (
+        <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded text-orange-800 text-center text-sm font-medium">
+          Sua sessão foi encerrada por inatividade. Faça login novamente.
+        </div>
+      )}
+      <CombinedLoginForm onOpenSignUp={() => {}} />
+    </div>
+  );
+}
+
+export default function ContaLoginPage() {
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <header className="bg-white shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <h1 className="text-2xl font-bold text-gray-800">Acesse sua Conta</h1>
+        </div>
+      </header>
+      <main className="flex-grow flex items-center justify-center">
+        <Suspense>
+          <LoginContent />
+        </Suspense>
+      </main>
+      <footer className="bg-white mt-8 py-4">
+        <div className="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500">
+          <p>© {new Date().getFullYear()} Dra. Jandira Frederick. Todos os direitos reservados.</p>
+        </div>
+      </footer>
+    </div>
+  );
+} 

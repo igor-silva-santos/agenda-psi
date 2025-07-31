@@ -2,7 +2,6 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-// CORREÇÃO: Removido 'LayoutDashboard' que não era usado.
 import { LogOut, Loader2 } from 'lucide-react';
 
 export default function PortalPage() {

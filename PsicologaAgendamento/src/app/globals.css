@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "tailwindcss";
+@import 'react-day-picker/dist/style.css';
 
 :root {
   --background: #ffffff;
@@ -26,4 +26,263 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Travar scroll do body quando modal está aberto */
+body.modal-open {
+  overflow: hidden !important;
+  position: fixed;
+  width: 100vw;
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+/* Melhorias de responsividade e UI para o modal e formulário de agendamento */
+.agendamento-modal {
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(30,41,59,0.18);
+  border-radius: 0;
+  padding: 0;
+}
+@media (min-width: 640px) {
+  .agendamento-modal {
+    max-width: 900px;
+    max-height: 98vh;
+    border-radius: 1.25rem;
+    padding: 0;
+  }
+}
+@media (min-width: 1024px) {
+  .agendamento-modal {
+    max-width: 600px;
+    padding: 0;
+  }
+}
+
+.agendamento-form {
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+@media (min-width: 640px) {
+  .agendamento-form {
+    padding: 2.5rem 2rem;
+    gap: 2rem;
+  }
+}
+
+.agendamento-form label {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+.agendamento-form input,
+.agendamento-form select {
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background: #f8fafc;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+.agendamento-form input:focus,
+.agendamento-form select:focus {
+  outline: 2px solid #2563eb;
+  border-color: #2563eb;
+  background: #fff;
+}
+.agendamento-form button {
+  font-weight: 700;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  transition: background 0.2s, color 0.2s;
+}
+.agendamento-form .btn-primary {
+  background: #1e293b;
+  color: #fff;
+}
+.agendamento-form .btn-primary:hover {
+  background: #2563eb;
+}
+.agendamento-form .btn-secondary {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+.agendamento-form .btn-secondary:hover {
+  background: #e0e7ef;
+}
+
+/* Melhorar responsividade do BookableSlotPicker */
+.bookable-slot-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+@media (min-width: 768px) {
+  .bookable-slot-picker {
+    flex-direction: row;
+    gap: 2.5rem;
+  }
+}
+
+/* Estilos específicos para o calendário no modal de agendamento */
+.agendamento-modal .rdp {
+  --rdp-cell-size: clamp(1.5rem, 3vw, 2rem);
+  --rdp-accent-color: #3b82f6;
+  --rdp-background-color: #eff6ff;
+  --rdp-accent-color-dark: #1d4ed8;
+  --rdp-background-color-dark: #1e3a8a;
+  --rdp-outline: 2px solid var(--rdp-accent-color);
+  --rdp-outline-selected: 2px solid rgba(0, 0, 0, 0.75);
+}
+
+/* Responsividade do calendário quando uma data está selecionada */
+.agendamento-modal .rdp-day_selected {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+  transform: scale(1.05) !important;
+}
+
+.agendamento-modal .rdp-day_today {
+  border: 2px solid #3b82f6 !important;
+  color: #3b82f6 !important;
+  background: #eff6ff !important;
+  font-weight: 600 !important;
+}
+
+.agendamento-modal .rdp-day_disabled {
+  color: #d1d5db !important;
+  background: #f9fafb !important;
+  cursor: not-allowed !important;
+}
+
+.agendamento-modal .rdp-day:hover:not(.rdp-day_disabled):not(.rdp-day_selected) {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  transform: scale(1.05) !important;
+}
+
+/* Ajustes para telas menores */
+@media (max-width: 768px) {
+  .agendamento-modal .rdp {
+    --rdp-cell-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  }
+  
+  .agendamento-modal .rdp-caption {
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem) !important;
+  }
+  
+  .agendamento-modal .rdp-head_cell {
+    font-size: clamp(0.5rem, 1.2vw, 0.625rem) !important;
+  }
+}
+
+/* Ajuste para a box do calendário e conteúdo ficarem sempre proporcionais */
+.calendar-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  transition: max-width 0.2s;
+}
+@media (max-width: 600px) {
+  .calendar-box {
+    max-width: 98vw;
+    min-width: 0;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+}
+
+.agendamento-modal .rdp {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.agendamento-modal .rdp-table {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.agendamento-modal .modal-content-scroll {
+  width: 100%;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 1rem;
+}
+@media (min-width: 640px) {
+  .agendamento-modal .modal-content-scroll {
+    padding: 2rem;
+  }
+}
+
+.bookable-slot-picker .horario-btn {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+.bookable-slot-picker .horario-btn:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+.bookable-slot-picker .horario-btn.selected {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: scale(1.05);
+}
+.bookable-slot-picker .horario-btn:disabled {
+  background: #f9fafb;
+  color: #d1d5db;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  transform: none;
+}
+
+@keyframes fade-in-scale {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-scale {
+  animation: fade-in-scale 0.3s ease-out;
 }
