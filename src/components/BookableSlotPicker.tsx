@@ -100,7 +100,7 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
             </div>
           </div>
           
-          <div className={`bg-white rounded-xl shadow-sm border border-gray-100 ${
+          <div className={`calendar-box bg-white rounded-xl shadow-sm border border-gray-100 ${
             selectedDay ? 'p-2 lg:p-4' : 'p-3 xl:p-6'
           }`}>
             <DayPicker
@@ -119,45 +119,53 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
                 caption: { 
                   color: '#1e40af', 
                   fontWeight: 700, 
-                  fontSize: selectedDay ? 'clamp(0.75rem, 1.5vw, 0.875rem)' : 'clamp(0.875rem, 2vw, 1rem)',
-                  marginBottom: selectedDay ? '0.5rem' : '0.75rem'
+                  fontSize: selectedDay ? 'clamp(0.75rem, 1vw, 0.85rem)' : 'clamp(0.9rem, 1.5vw, 1.1rem)',
+                  marginBottom: selectedDay ? '0.5rem' : '0.75rem',
+                  textAlign: 'center',
                 },
                 day: {
                   borderRadius: '0.5rem',
                   transition: 'all 0.2s ease-in-out',
                   color: '#374151',
                   fontWeight: 500,
-                  fontSize: selectedDay ? 'clamp(0.625rem, 1.2vw, 0.75rem)' : 'clamp(0.75rem, 1.5vw, 0.875rem)',
+                  fontSize: selectedDay ? 'clamp(0.6rem, 1vw, 0.75rem)' : 'clamp(0.75rem, 1.5vw, 0.9rem)',
                   background: 'transparent',
-                  width: selectedDay ? 'clamp(1.5rem, 3vw, 1.75rem)' : 'clamp(1.75rem, 4vw, 2rem)',
-                  height: selectedDay ? 'clamp(1.5rem, 3vw, 1.75rem)' : 'clamp(1.75rem, 4vw, 2rem)',
-                  margin: selectedDay ? '0.1rem' : '0.125rem',
+                  width: selectedDay ? 'clamp(1.25rem, 2vw, 1.5rem)' : 'clamp(1.75rem, 4vw, 2rem)',
+                  height: selectedDay ? 'clamp(1.25rem, 2vw, 1.5rem)' : 'clamp(1.75rem, 4vw, 2rem)',
+                  margin: selectedDay ? '0.08rem' : '0.125rem',
                 },
                 head_cell: { 
                   color: '#6b7280', 
                   fontWeight: 600, 
-                  fontSize: selectedDay ? 'clamp(0.5rem, 1.2vw, 0.625rem)' : 'clamp(0.625rem, 1.5vw, 0.75rem)', 
+                  fontSize: selectedDay ? 'clamp(0.45rem, 0.8vw, 0.6rem)' : 'clamp(0.625rem, 1.5vw, 0.75rem)', 
                   background: 'transparent',
-                  padding: selectedDay ? '0.2rem 0' : '0.25rem 0'
+                  padding: selectedDay ? '0.15rem 0' : '0.25rem 0',
+                  textAlign: 'center',
                 },
                 cell: { 
                   background: 'transparent',
-                  padding: selectedDay ? '0.1rem' : '0.125rem'
+                  padding: selectedDay ? '0.08rem' : '0.125rem',
                 },
                 nav: {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  marginBottom: selectedDay ? '0.5rem' : '0.75rem'
+                  marginBottom: selectedDay ? '0.5rem' : '0.75rem',
                 },
                 nav_button: {
                   backgroundColor: '#f3f4f6',
                   border: '1px solid #e5e7eb',
                   borderRadius: '0.375rem',
-                  padding: selectedDay ? '0.25rem' : '0.375rem',
+                  padding: selectedDay ? '0.18rem' : '0.375rem',
                   color: '#374151',
-                  transition: 'all 0.2s ease-in-out'
-                }
+                  transition: 'all 0.2s ease-in-out',
+                },
+                table: {
+                  width: '100%',
+                  minWidth: 0,
+                  maxWidth: selectedDay ? '260px' : '340px',
+                  margin: '0 auto',
+                },
               }}
             />
           </div>

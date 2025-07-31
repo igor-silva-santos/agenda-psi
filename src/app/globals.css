@@ -181,6 +181,42 @@ body.modal-open {
   }
 }
 
+/* Ajuste para a box do calendário e conteúdo ficarem sempre proporcionais */
+.calendar-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  transition: max-width 0.2s;
+}
+@media (max-width: 600px) {
+  .calendar-box {
+    max-width: 98vw;
+    min-width: 0;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+}
+
+.agendamento-modal .rdp {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.agendamento-modal .rdp-table {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
 .bookable-slot-picker .horario-btn {
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
