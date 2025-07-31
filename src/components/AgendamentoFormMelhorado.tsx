@@ -131,7 +131,9 @@ export default function AgendamentoFormMelhorado({ onClose }: AgendamentoFormMel
         }
         setUserData(data);
         setCamposBloqueados(true);
-        setValueStep2('nomeCompleto', data.nomeCompleto || data.nome || data.name || '');
+        // Corrigir mapeamento dos dados - garantir que o nome seja mapeado corretamente
+        const nomeCorreto = data.name || data.nomeCompleto || data.nome || '';
+        setValueStep2('nomeCompleto', nomeCorreto);
         setValueStep2('dataNascimento', data.dataNascimento ? data.dataNascimento.substring(0, 10) : '');
         setValueStep2('email', data.email);
         setValueStep2('telefone', data.telefone || data.phone || '');

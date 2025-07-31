@@ -200,29 +200,42 @@ export async function POST(request: Request) {
       <p>Dra. Jandira Frederick</p>
     `;
 
-    await sendEmail({
-      to: user.email!,
-      subject: isNewUser ? 'Bem-vindo(a) e Confirmação de Pré-Agendamento' : 'Confirmação de Pré-Agendamento - Dra. Jandira Frederick',
-      html: patientEmailHtml,
-      attachments: icsAttachment,
-    });
+    // Tentar enviar email para o paciente, mas não falhar se der erro
+    try {
+      await sendEmail({
+        to: user.email!,
+        subject: isNewUser ? 'Bem-vindo(a) e Confirmação de Pré-Agendamento' : 'Confirmação de Pré-Agendamento - Dra. Jandira Frederick',
+        html: patientEmailHtml,
+        attachments: icsAttachment,
+      });
+      console.log('[AGENDAMENTOS][POST] Email enviado para o paciente:', user.email);
+    } catch (emailError) {
+      console.error('[AGENDAMENTOS][POST] Erro ao enviar email para o paciente:', emailError);
+      // Não falhar o agendamento por causa do email
+    }
 
-    // E-mail para o Administrador
-    await sendEmail({
-      to: process.env.ADMIN_EMAIL!,
-      subject: 'Novo Pré-Agendamento Recebido',
-      html: `
-        <p>Olá Administrador,</p>
-        <p>Um novo pré-agendamento foi realizado:</p>
-        <ul>
-          <li><strong>Paciente:</strong> ${user.name} (${user.email})</li>
-          <li><strong>Data e Hora:</strong> ${formattedDate}</li>
-          <li><strong>Status:</strong> ${agendamento.status}</li>
-          <li><strong>Motivo da Consulta:</strong> ${motivoConsulta || 'Não informado'}</li>
-        </ul>
-        <p>Acesse o painel administrativo para mais detalhes e para confirmar o agendamento.</p>
-      `,
-    });
+    // Tentar enviar email para o administrador, mas não falhar se der erro
+    try {
+      await sendEmail({
+        to: process.env.ADMIN_EMAIL!,
+        subject: 'Novo Pré-Agendamento Recebido',
+        html: `
+          <p>Olá Administrador,</p>
+          <p>Um novo pré-agendamento foi realizado:</p>
+          <ul>
+            <li><strong>Paciente:</strong> ${user.name} (${user.email})</li>
+            <li><strong>Data e Hora:</strong> ${formattedDate}</li>
+            <li><strong>Status:</strong> ${agendamento.status}</li>
+            <li><strong>Motivo da Consulta:</strong> ${motivoConsulta || 'Não informado'}</li>
+          </ul>
+          <p>Acesse o painel administrativo para mais detalhes e para confirmar o agendamento.</p>
+        `,
+      });
+      console.log('[AGENDAMENTOS][POST] Email enviado para o administrador');
+    } catch (emailError) {
+      console.error('[AGENDAMENTOS][POST] Erro ao enviar email para o administrador:', emailError);
+      // Não falhar o agendamento por causa do email
+    }
     // --- Fim do Envio de E-mails ---
 
     console.log('[AGENDAMENTOS][POST] Agendamento finalizado com sucesso');
