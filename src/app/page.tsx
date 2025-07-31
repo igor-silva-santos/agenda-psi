@@ -177,19 +177,19 @@ export default function Home() {
       {/* Agendamento Modal */}
       {showAgendamento && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-[6px]">
-          <div className="agendamento-modal relative w-full h-full sm:h-auto sm:max-h-[98vh] sm:max-w-[900px] bg-white rounded-none sm:rounded-2xl shadow-2xl flex flex-col justify-center items-center p-0">
-            {/* Header fixo - apenas botão de fechar */}
-            <div className="w-full sticky top-0 z-10 bg-white border-b border-gray-200 flex items-center justify-end px-4 sm:px-8 py-4 sm:py-6">
+          <div className="agendamento-modal relative w-full h-full sm:h-auto sm:max-h-[98vh] sm:max-w-[900px] bg-white rounded-none sm:rounded-2xl shadow-2xl overflow-y-auto p-0">
+            {/* Header */}
+            <div className="w-full bg-white border-b border-gray-200 flex items-center justify-end px-4 sm:px-8 py-4 sm:py-6">
               <button
                 onClick={() => setShowAgendamento(false)}
-                className="text-gray-500 hover:text-gray-800 transition-colors z-20"
+                className="text-gray-500 hover:text-gray-800 transition-colors"
                 aria-label="Fechar modal de agendamento"
               >
                 <X className="h-8 w-8" />
               </button>
             </div>
-            {/* Conteúdo scrollável */}
-            <div className="modal-content-scroll w-full flex-1 flex flex-col justify-center items-center p-4 sm:p-8">
+            {/* Conteúdo */}
+            <div className="w-full flex flex-col justify-center items-center p-4 sm:p-8">
               <AgendamentoFormMelhorado />
             </div>
           </div>
