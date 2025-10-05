@@ -1,7 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { User } from '@prisma/client';
+type User = {
+  id: number;
+  name: string | null;
+  email: string | null;
+  role: string;
+  cpf: string | null;
+  dataNascimento: Date | null;
+  telefone: string | null;
+  image: string | null;
+  emailVerified: Date | null;
+  currentSessionId: string | null;
+};
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,6 +20,7 @@ import { UserPlus, Edit, Trash2, Search, Shield, Loader2 } from 'lucide-react';
 
 // Zod Schema para validação do formulário de admin
 const adminSchema = z.object({
+  
   id: z.number().optional(),
   name: z.string().min(3, 'Nome é obrigatório'),
   email: z.string().email('E-mail inválido'),
@@ -109,9 +121,10 @@ export default function AdminAdministradoresPage() {
   };
 
   const handleEdit = (user: User) => {
-    setEditingUser(user);
+    setEditingUser({ ...user, id: Number(user.id) });
     reset({
       ...user,
+      id: Number(user.id),
       password: '',
       email: user.email ?? '',
       name: user.name ?? '',
