@@ -15,7 +15,7 @@ const config = {
   crp: "06/224798",
   contact: {
     phone: "(11) 99999-9999",
-    email: "contato@drajandira.com.br",
+    email: "janraf.gio@hotmail.com",
     address: "Rua das Flores, 123<br />São Paulo - SP",
   },
   faq: [

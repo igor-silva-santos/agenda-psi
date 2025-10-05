@@ -126,7 +126,7 @@
   siteName: "Dra. Jandira Frederick",
   siteDescription: "Psicóloga especializada em TCC",
   contactPhone: "+5511999999999",
-  contactEmail: "contato@drajandira.com.br",
+  contactEmail: "janraf.gio@hotmail.com",
   address: "Rua das Flores, 123 - São Paulo/SP",
   googleCalendarId: "calendario@group.calendar.google.com",
   whatsappNumber: "+5511999999999",
