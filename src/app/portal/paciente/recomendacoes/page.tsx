@@ -175,7 +175,7 @@ export default function MinhasRecomendacoesPage() {
           </h1>
         </div>
         <p className="text-gray-600 text-lg">
-          Acompanhe as recomendações da Dra. Jandira Frederick
+          Acompanhe as recomendações de Jandira C. Frederick
         </p>
       </div>
 
@@ -228,7 +228,7 @@ export default function MinhasRecomendacoesPage() {
             Nenhuma recomendação disponível
           </h3>
           <p className="text-gray-500">
-            Você ainda não possui recomendações da Dra. Jandira Frederick.
+            Você ainda não possui recomendações de Jandira C. Frederick.
             As recomendações aparecerão aqui após suas consultas.
           </p>
         </div>

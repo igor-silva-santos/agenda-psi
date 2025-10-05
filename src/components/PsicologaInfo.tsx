@@ -13,7 +13,7 @@ export default function PsicologaInfo() {
             <div className="relative w-64 h-64 rounded-full mx-auto lg:mx-0 mb-6 overflow-hidden shadow-lg">
               <Image
                 src="/psicologa.jpg"
-                alt="Foto da Dra. Jandira Frederick"
+                alt="Foto da Jandira C. Frederick"
                 fill
                 sizes="(max-width: 1024px) 100vw, 256px"
                 className="object-cover transition-transform duration-500 hover:scale-110"
@@ -25,13 +25,13 @@ export default function PsicologaInfo() {
               />
             </div>
             <h3 className="text-3xl font-bold text-gray-800 mb-4">
-              Dra. Jandira Frederick
-            </h3>
+              Jandira C. Frederick            </h3>
             <p className="text-xl text-blue-600 mb-4">
-              Psicóloga Clínica CRP 06/123456
+              Psicóloga | Psicopedagoga Clínica
             </p>
+            <p className="text-md text-gray-500 mb-4">CRP - 06/224798</p>
             <p className="text-gray-600 text-lg">
-              Especialista em Terapia Cognitivo-Comportamental com mais de 10 anos de experiência 
+              Especialista em Terapia Cognitivo-Comportamental 
               no atendimento de adultos, adolescentes e casais.
             </p>
           </div>
@@ -69,9 +69,7 @@ export default function PsicologaInfo() {
                   <div>
                     <h5 className="font-semibold text-gray-800">Experiência</h5>
                     <p className="text-gray-600">
-                      Mais de 10 anos de experiência clínica<br />
-                      Atendimento a mais de 500 pacientes<br />
-                      Supervisora clínica e professora
+                      Mais de 20 anos de experiência, atuando como professora e supervisora
                     </p>
                   </div>
                 </div>
@@ -90,17 +88,14 @@ export default function PsicologaInfo() {
             </div>
 
             <div className="bg-blue-50 p-6 rounded-lg">
-              <h5 className="font-semibold text-gray-800 mb-3">Áreas de Atuação</h5>
-              <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                <div>• Ansiedade e Pânico</div>
-                <div>• Depressão</div>
-                <div>• Relacionamentos</div>
-                <div>• Autoestima</div>
-                <div>• Estresse</div>
-                <div>• Luto</div>
-                <div>• Fobias</div>
-                <div>• Terapia de Casal</div>
-              </div>
+              <h5 className="font-semibold text-gray-800 mb-3">Serviços Oferecidos</h5>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li>• Abordagem Cognitivo-Comportamental</li>
+                <li>• Atendimento Adulto e Infantil</li>
+                <li>• Avaliação Neuropsicológica</li>
+                <li>• Alfabetização e Letramento</li>
+                <li>• Educação Especial com Ênfase em Deficiência Intelectual</li>
+              </ul>
             </div>
           </div>
         </div>

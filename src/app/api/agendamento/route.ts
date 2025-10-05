@@ -23,7 +23,7 @@ export async function POST(request: Request) {
         .eq('id', userId)
         .single();
       if (userError || !foundUser) {
-        return NextResponse.json({ 
+        return NextResponse.json({
           error: 'User not found',
           details: { userId }
         }, { status: 404 });
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
           .select()
           .single();
         if (createUserError || !createdUser) {
-          return NextResponse.json({ 
+          return NextResponse.json({
             error: 'Erro ao criar usuário',
             details: { email, message: createUserError?.message }
           }, { status: 500 });
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
         user = foundUser;
       }
     } else {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'Missing userId or email for appointment',
         details: { missingFields: ['userId', 'email'] }
       }, { status: 400 });
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       .select()
       .single();
     if (agendamentoError || !agendamento) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'Erro ao criar agendamento',
         details: { userId: user.id, message: agendamentoError?.message }
       }, { status: 500 });
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
         .update({ isBooked: true })
         .eq('id', bookableSlotId);
       if (slotError) {
-        return NextResponse.json({ 
+        return NextResponse.json({
           error: 'Erro ao atualizar slot',
           details: { bookableSlotId, message: slotError.message }
         }, { status: 500 });
@@ -136,13 +136,13 @@ export async function POST(request: Request) {
       if (user.email) {
         await sendEmail({
           to: user.email,
-          subject: 'Confirmação de Agendamento - Dra. Jandira Frederick',
+          subject: 'Confirmação de Agendamento - Jandira C. Frederick',
           html: `
             <p>Olá ${user.name},</p>
-            <p>Seu agendamento com a Dra. Jandira Frederick foi confirmado para o dia <strong>${formattedDate}</strong>.</p>
+            <p>Seu agendamento com a Jandira C. Frederick foi confirmado para o dia <strong>${formattedDate}</strong>.</p>
             <p>Aguardamos você!</p>
             <p>Atenciosamente,</p>
-            <p>Dra. Jandira Frederick</p>
+            <p>Jandira C. Frederick</p>
           `,
         });
       }
@@ -151,7 +151,7 @@ export async function POST(request: Request) {
     return NextResponse.json(agendamento);
   } catch (error) {
     console.error('Error in /api/agendamento POST:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Internal Server Error',
       details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
     }, { status: 500 });

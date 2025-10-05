@@ -61,11 +61,11 @@ describe('Home Page Navigation', () => {
       expect(agendamentoFormTitle).toBeInTheDocument();
       expect(heroSectionText).not.toBeInTheDocument();
 
-      // 3. Clicar no nome "Dra. Jandira Frederick" no cabeçalho
-      const draJandiraHeader = screen.getByRole('heading', { name: /Dra. Jandira Frederick/i, level: 1 });
+      // 3. Clicar no nome "Jandira C. Frederick" no cabeçalho
+      const jandiraHeader = screen.getByRole('heading', { name: /Jandira C. Frederick/i, level: 1 });
       
       await act(async () => {
-        fireEvent.click(draJandiraHeader);
+        fireEvent.click(jandiraHeader);
         // Simular o efeito do Link click: o estado showAgendamento deve voltar a ser false
         showAgendamentoState = false; // Atualiza o estado mockado
         rerender(<Home />); // Força a re-renderização

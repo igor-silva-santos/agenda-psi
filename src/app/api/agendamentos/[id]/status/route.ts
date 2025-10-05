@@ -12,7 +12,7 @@ const APPOINTMENT_DURATION_MINUTES = 30;
 export async function PUT(request: Request, { params }: { params: { id: number } }) {
   const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
   if (!token) {
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Unauthorized',
       details: { reason: 'Token ausente' }
     }, { status: 401 });
@@ -23,14 +23,14 @@ export async function PUT(request: Request, { params }: { params: { id: number }
     .eq('id', token.id)
     .single();
   if (userError || !user || user.currentSessionId !== token.sessionId) {
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Sessão concorrente detectada',
       details: { userId: token.id, sessionId: token.sessionId }
     }, { status: 401 });
   }
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Unauthorized',
       details: { reason: 'Sessão inválida' }
     }, { status: 401 });
@@ -45,7 +45,7 @@ export async function PUT(request: Request, { params }: { params: { id: number }
     .single();
 
   if (agendamentoError || !agendamento || agendamento.userId !== session.user.id) {
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: "Forbidden",
       details: { reason: 'Agendamento não pertence ao usuário', agendamentoId: params.id }
     }, { status: 403 });
@@ -58,7 +58,7 @@ export async function PUT(request: Request, { params }: { params: { id: number }
     .select()
     .single();
   if (updateError || !updatedAgendamento) {
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Erro ao atualizar status do agendamento',
       details: { agendamentoId: params.id, message: updateError?.message }
     }, { status: 500 });
@@ -123,13 +123,13 @@ export async function PUT(request: Request, { params }: { params: { id: number }
       const formattedDate = format(appointmentDateTime, 'dd/MM/yyyy HH:mm');
       await sendEmail({
         to: agendamento.user.email!,
-        subject: 'Confirmação de Agendamento - Dra. Jandira Frederick',
+        subject: 'Confirmação de Agendamento - Jandira C. Frederick',
         html: `
           <p>Olá ${agendamento.user.name},</p>
-          <p>Seu agendamento com a Dra. Jandira Frederick foi confirmado para o dia <strong>${formattedDate}</strong>.</p>
+          <p>Seu agendamento com a Jandira C. Frederick foi confirmado para o dia <strong>${formattedDate}</strong>.</p>
           <p>Aguardamos você!</p>
           <p>Atenciosamente,</p>
-          <p>Dra. Jandira Frederick</p>
+          <p>Jandira C. Frederick</p>
         `,
       });
       console.log('✅ Email de confirmação enviado');
@@ -138,7 +138,7 @@ export async function PUT(request: Request, { params }: { params: { id: number }
     }
   }
 
-  return NextResponse.json({ 
+  return NextResponse.json({
     message: "Status atualizado com sucesso",
     details: {
       agendamentoId: params.id,

@@ -21,7 +21,7 @@ export default function SignInPage({ searchParams }: { searchParams: { error?: s
         <div className="max-w-6xl mx-auto px-4 py-6">
           <Link href="/" className="flex items-center space-x-3 cursor-pointer w-fit">
             <Heart className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-800">Dra. Jandira Frederick</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Jandira C. Frederick</h1>
           </Link>
         </div>
       </header>
@@ -41,7 +41,7 @@ export default function SignInPage({ searchParams }: { searchParams: { error?: s
 
       <footer className="bg-white mt-8 py-4">
         <div className="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} Dra. Jandira Frederick. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} Jandira C. Frederick. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>

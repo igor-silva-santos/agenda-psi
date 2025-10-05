@@ -12,7 +12,7 @@ import SignUpModal from '@/components/SignUpModal';
 // Added a comment to force recompile
 const config = {
   professionalName: "Dra. Jandira Frederick",
-  crp: "06/123456",
+  crp: "06/224798",
   contact: {
     phone: "(11) 99999-9999",
     email: "contato@drajandira.com.br",

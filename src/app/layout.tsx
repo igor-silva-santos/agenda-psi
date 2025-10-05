@@ -8,12 +8,12 @@ import { InactivityProvider } from '../components/InactivityProvider';
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Dra. Jandira Frederick - Psicóloga | Agendamento Online',
-  description: 'Agende sua consulta com a Dra. Jandira Frederick, psicóloga especialista em Terapia Cognitivo-Comportamental. Atendimento presencial e online em São Paulo.',
+  title: 'Jandira C. Frederick - Psicóloga | Agendamento Online',
+  description: 'Agende sua consulta com a Jandira C. Frederick, psicóloga especialista em Terapia Cognitivo-Comportamental. Atendimento presencial e online em São Paulo.',
   keywords: 'psicóloga, terapia, agendamento, consulta, São Paulo, ansiedade, depressão, TCC',
-  authors: [{ name: 'Dra. Jandira Frederick' }],
-  creator: 'Dra. Jandira Frederick',
-  publisher: 'Dra. Jandira Frederick',
+  authors: [{ name: 'Jandira C. Frederick' }],
+  creator: 'Jandira C. Frederick',
+  publisher: 'Jandira C. Frederick',
   formatDetection: {
     email: false,
     address: false,
@@ -24,17 +24,17 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'Dra. Jandira Frederick - Psicóloga | Agendamento Online',
-    description: 'Agende sua consulta com a Dra. Jandira Frederick, psicóloga especialista em Terapia Cognitivo-Comportamental.',
+    title: 'Jandira C. Frederick - Psicóloga | Agendamento Online',
+    description: 'Agende sua consulta com a Jandira C. Frederick, psicóloga especialista em Terapia Cognitivo-Comportamental.',
     url: 'https://drajandira.com.br',
-    siteName: 'Dra. Jandira Frederick - Psicóloga',
+    siteName: 'Jandira C. Frederick - Psicóloga',
     locale: 'pt_BR',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Dra. Jandira Frederick - Psicóloga | Agendamento Online',
-    description: 'Agende sua consulta com a Dra. Jandira Frederick, psicóloga especialista em Terapia Cognitivo-Comportamental.',
+    title: 'Jandira C. Frederick - Psicóloga | Agendamento Online',
+    description: 'Agende sua consulta com a Jandira C. Frederick, psicóloga especialista em Terapia Cognitivo-Comportamental.',
   },
   robots: {
     index: true,
@@ -71,4 +71,3 @@ export default function RootLayout({
     </html>
   )
 }
-

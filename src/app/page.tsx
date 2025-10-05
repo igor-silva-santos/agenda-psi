@@ -7,31 +7,19 @@ import AgendamentoFormMelhorado from '@/components/AgendamentoFormMelhorado';
 import PsicologaInfo from '@/components/PsicologaInfo';
 import LoginModal from '@/components/LoginModal';
 import SignUpModal from '@/components/SignUpModal';
+import Faq from '@/components/Faq';
 
 // Centralized configuration for easier updates
 // Added a comment to force recompile
 const config = {
-  professionalName: "Dra. Jandira Frederick",
-  crp: "06/123456",
+  professionalName: "Jandira C. Frederick",
+  crp: "06/224798",
   contact: {
-    phone: "(11) 99999-9999",
+    phone: "(11) 99471-6143 | (11) 2748-8973",
     email: "contato@drajandira.com.br",
     address: "Rua das Flores, 123<br />São Paulo - SP",
   },
-  faq: [
-    {
-      question: "Como funciona o agendamento?",
-      answer: "Você pode agendar sua consulta através do nosso sistema online. Selecione a data e horário disponível, preencha seus dados e receberá uma confirmação por WhatsApp."
-    },
-    {
-      question: "Posso cancelar ou remarcar minha consulta?",
-      answer: "Sim, você pode cancelar ou remarcar com até 24 horas de antecedência. Entre em contato conosco pelo WhatsApp ou telefone."
-    },
-    {
-      question: "Qual o valor da consulta?",
-      answer: "O valor da consulta é R$ 150,00."
-    }
-  ]
+  
 };
 
 export default function Home() {
@@ -142,24 +130,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* FAQ */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-4xl mx-auto px-4">
-            <h3 className="text-3xl font-bold text-center text-gray-800 mb-12">
-              Perguntas Frequentes
-            </h3>
-            <div className="space-y-6">
-              {config.faq.map((item, index) => (
-                <div key={index} className="bg-white p-6 rounded-lg shadow-sm">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-2">
-                    {item.question}
-                  </h4>
-                  <p className="text-gray-600">{item.answer}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <Faq />
       </main>
 
       {/* Footer */}

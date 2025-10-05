@@ -54,7 +54,7 @@ export async function POST(request: Request) {
 
     await sendEmail({
       to: user.email,
-      subject: 'Redefinição de Senha - Dra. Jandira Frederick',
+      subject: 'Redefinição de Senha - Jandira C. Frederick',
       html: `
         <p>Olá ${user.name || ''},</p>
         <p>Você solicitou a redefinição de sua senha. Clique no link abaixo para redefinir:</p>
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
         <p>Este link é válido por 1 hora.</p>
         <p>Se você não solicitou isso, por favor, ignore este e-mail.</p>
         <p>Atenciosamente,</p>
-        <p>Dra. Jandira Frederick</p>
+        <p>Jandira C. Frederick</p>
       `,
     });
 

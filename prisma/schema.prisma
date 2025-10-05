@@ -1,0 +1,97 @@
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                 String    @id @default(uuid())
+  name               String?
+  email              String?   @unique
+  emailVerified      DateTime?
+  image              String?
+  password           String?
+  role               String    @default("PACIENTE")
+  cpf                String?   @unique
+  telefone           String?
+  dataNascimento     DateTime?
+  currentSessionId   String?
+
+  accounts Account[]
+  sessions Session[]
+  agendamentos Agendamento[]
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Agendamento {
+  id                    String    @id @default(uuid())
+  dataHora              DateTime
+  status                String
+  motivoConsulta        String?
+  googleCalendarEventId String?
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  bookableSlotId        String?
+  bookableSlot          BookableSlot? @relation(fields: [bookableSlotId], references: [id])
+}
+
+model BookableSlot {
+  id            String    @id @default(uuid())
+  startDateTime DateTime
+  endDateTime   DateTime
+  isBooked      Boolean   @default(false)
+  agendamentos  Agendamento[]
+}
+
+model HorarioAtuacao {
+  id           Int      @id @default(autoincrement())
+  diaDaSemana  Int
+  horaInicio   String
+  horaFim      String
+  almocoInicio String?
+  almocoFim    String?
+}
+
+model HorarioBloqueado {
+  id             Int      @id @default(autoincrement())
+  dataHoraInicio DateTime
+  dataHoraFim    DateTime
+}

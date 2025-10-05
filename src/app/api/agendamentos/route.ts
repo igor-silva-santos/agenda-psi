@@ -160,10 +160,10 @@ export async function POST(request: Request) {
       const event = {
         start: startTuple,
         end: endTuple,
-        title: 'Consulta com Dra. Jandira Frederick',
+        title: 'Consulta com Jandira C. Frederick',
         description: `Motivo da consulta: ${motivoConsulta || ''}`,
         location: 'Consulta Online ou Presencial',
-        organizer: { name: 'Dra. Jandira Frederick', email: process.env.EMAIL_FROM || '' },
+        organizer: { name: 'Jandira C. Frederick', email: process.env.EMAIL_FROM || '' },
         attendees: [{ name: user.name || '', email: user.email || '' }],
       };
       const { error, value } = createEvent(event);
@@ -177,7 +177,7 @@ export async function POST(request: Request) {
     // E-mail para o Paciente
     let patientEmailHtml = `
       <p>Olá ${user.name},</p>
-      <p>Seu pré-agendamento com a Dra. Jandira Frederick foi recebido com sucesso!</p>
+      <p>Seu pré-agendamento com a Jandira C. Frederick foi recebido com sucesso!</p>
       <p><strong>Detalhes do Agendamento:</strong></p>
       <ul>
         <li><strong>Data e Hora:</strong> ${formattedDate}</li>
@@ -195,16 +195,16 @@ export async function POST(request: Request) {
     }
 
     patientEmailHtml += `
-      <p>Aguarde a confirmação final da Dra. Jandira Frederick.</p>
+      <p>Aguarde a confirmação final da Jandira C. Frederick.</p>
       <p>Atenciosamente,</p>
-      <p>Dra. Jandira Frederick</p>
+      <p>Jandira C. Frederick</p>
     `;
 
     // Tentar enviar email para o paciente, mas não falhar se der erro
     try {
       await sendEmail({
         to: user.email!,
-        subject: isNewUser ? 'Bem-vindo(a) e Confirmação de Pré-Agendamento' : 'Confirmação de Pré-Agendamento - Dra. Jandira Frederick',
+        subject: isNewUser ? 'Bem-vindo(a) e Confirmação de Pré-Agendamento' : 'Confirmação de Pré-Agendamento - Jandira C. Frederick',
         html: patientEmailHtml,
         attachments: icsAttachment,
       });

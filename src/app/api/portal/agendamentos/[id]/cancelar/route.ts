@@ -85,13 +85,13 @@ export async function PUT(
     // E-mail para o Usuário
     await sendEmail({
       to: agendamento.user.email!,
-      subject: 'Agendamento Cancelado - Dra. Jandira Frederick',
+      subject: 'Agendamento Cancelado - Jandira C. Frederick',
       html: `
         <p>Olá ${agendamento.user.name},</p>
         <p>Seu agendamento para <strong>${formattedDate}</strong> foi cancelado com sucesso.</p>
         <p>Se desejar, você pode agendar uma nova consulta através do nosso site.</p>
         <p>Atenciosamente,</p>
-        <p>Dra. Jandira Frederick</p>
+        <p>Jandira C. Frederick</p>
       `,
     });
 

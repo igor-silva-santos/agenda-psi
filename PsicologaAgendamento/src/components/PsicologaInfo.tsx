@@ -28,7 +28,7 @@ export default function PsicologaInfo() {
               Dra. Jandira Frederick
             </h3>
             <p className="text-xl text-blue-600 mb-4">
-              Psicóloga Clínica CRP 06/123456
+              Psicóloga Clínica CRP 06/224798
             </p>
             <p className="text-gray-600 text-lg">
               Especialista em Terapia Cognitivo-Comportamental com mais de 10 anos de experiência 
