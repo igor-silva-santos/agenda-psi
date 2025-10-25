@@ -134,7 +134,7 @@ export default function CombinedLoginForm({ onOpenSignUp, error: initialError }:
           <div className="flex items-center justify-between">
             <label htmlFor="password" className="block text-sm font-medium text-gray-900">Senha</label>
             <div className="text-sm">
-              <Link href="/auth/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link href="/auth/esqueceu-sua-senha" className="font-medium text-blue-600 hover:text-blue-500">
                 Esqueceu sua senha?
               </Link>
             </div>

@@ -5,14 +5,24 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 
 const resetPasswordSchema = z.object({
-  password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
-  confirmPassword: z.string().min(6, 'Confirme sua senha'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "As senhas não coincidem",
-  path: ["confirmPassword"],
+  password: z.string()
+    .min(6, "A senha deve ter pelo menos 6 caracteres.")
+    .regex(/[A-Z]/, "A senha deve conter pelo menos uma letra maiúscula.")
+    .regex(/[a-z]/, "A senha deve conter pelo menos uma letra minúscula.")
+    .regex(/[0-9]/, "A senha deve conter pelo menos um número.")
+    .regex(/[^a-zA-Z0-9]/, "A senha deve conter pelo menos um caractere especial."),
+  confirmPassword: z.string()
+}).superRefine((data, ctx) => {
+  if (data.password !== data.confirmPassword) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["confirmPassword"],
+      message: "As senhas não coincidem.",
+    });
+  }
 });
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
@@ -23,6 +33,8 @@ export default function ResetPasswordForm() {
   const [token, setToken] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -46,6 +58,8 @@ export default function ResetPasswordForm() {
       setError('Token de redefinição de senha ausente.');
       return;
     }
+
+    console.log('DEBUG: Token from URL:', token);
 
     setMessage('');
     setError('');
@@ -88,22 +102,32 @@ export default function ResetPasswordForm() {
         <>
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">Nova Senha</label>
-            <input
-              type="password"
-              id="password"
-              {...register('password')}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                {...register('password')}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900"
+              />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
             {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
           </div>
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirmar Nova Senha</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              {...register('confirmPassword')}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                {...register('confirmPassword')}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900"
+              />
+              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">
+                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
             {errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>}
           </div>
           <button

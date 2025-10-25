@@ -1,67 +1,61 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import bcrypt from 'bcryptjs';
-import { z } from 'zod';
 
-const resetPasswordSchema = z.object({
-  token: z.string().min(1, 'Token é obrigatório'),
-  password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
-});
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const validation = resetPasswordSchema.safeParse(body);
+    const { token, password } = await request.json();
 
-    if (!validation.success) {
-      return NextResponse.json({ 
-        error: 'Dados inválidos', 
-        details: validation.error.format() 
-      }, { status: 400 });
+    console.log('DEBUG API: Received token:', token);
+    console.log('DEBUG API: Received password (length):', password ? password.length : 'undefined');
+
+    if (!token || !password) {
+      console.log('DEBUG API: Missing token or password');
+      return NextResponse.json({ error: 'Token e nova senha são obrigatórios.' }, { status: 400 });
     }
 
-    const { token, password } = validation.data;
-
-    // Buscar usuário pelo token no Supabase
-    const { data: user, error: findError } = await supabase
-      .from('User')
+    // 1. Encontrar e validar o token
+    const { data: resetToken, error: tokenError } = await supabase
+      .from('PasswordResetTokens')
       .select('*')
-      .eq('passwordResetToken', token)
+      .eq('token', token)
       .single();
 
-    if (findError || !user) {
-      return NextResponse.json({ 
-        error: 'Token inválido ou expirado.',
-        details: { token: token.substring(0, 8) + '...' }
-      }, { status: 400 });
+    console.log('DEBUG API: Supabase resetToken:', resetToken);
+    console.log('DEBUG API: Supabase tokenError:', tokenError);
+
+    if (tokenError || !resetToken) {
+      console.log('DEBUG API: Token not found or Supabase error');
+      return NextResponse.json({ error: 'Token inválido ou expirado.' }, { status: 400 });
     }
 
+    if (new Date(resetToken.expires_at) < new Date()) {
+      console.log('DEBUG API: Token expired');
+      // Token expirado, remover e informar
+      await supabase.from('PasswordResetTokens').delete().eq('token', token);
+      return NextResponse.json({ error: 'Token expirado. Solicite uma nova recuperação de senha.' }, { status: 400 });
+    }
+
+    // 2. Hash da nova senha
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Atualizar senha e limpar token
+    // 3. Atualizar a senha do usuário
     const { error: updateError } = await supabase
       .from('User')
-      .update({
-        password: hashedPassword,
-        passwordResetToken: null,
-      })
-      .eq('id', user.id);
+      .update({ password: hashedPassword })
+      .eq('id', resetToken.user_id);
 
     if (updateError) {
-      console.error('Erro ao atualizar senha:', updateError);
-      return NextResponse.json({ 
-        error: 'Ocorreu um erro ao atualizar a senha.',
-        details: { userId: user.id, message: updateError.message }
-      }, { status: 500 });
+      console.error('Erro ao atualizar senha do usuário:', updateError);
+      return NextResponse.json({ error: 'Erro interno ao redefinir a senha.' }, { status: 500 });
     }
 
-    return NextResponse.json({ message: 'Senha redefinida com sucesso!' }, { status: 200 });
+    // 4. Invalidar (deletar) o token usado
+    await supabase.from('PasswordResetTokens').delete().eq('token', token);
 
+    return NextResponse.json({ message: 'Senha redefinida com sucesso!' }, { status: 200 });
   } catch (error) {
-    console.error('Erro ao redefinir senha:', error);
-    return NextResponse.json({ 
-      error: 'Ocorreu um erro no servidor. Tente novamente mais tarde.',
-      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
-    }, { status: 500 });
+    console.error('Erro na rota /api/auth/reset-password:', error);
+    return NextResponse.json({ error: 'Erro interno do servidor.' }, { status: 500 });
   }
 }

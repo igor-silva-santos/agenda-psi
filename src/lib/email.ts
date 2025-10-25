@@ -1,8 +1,14 @@
 import nodemailer from 'nodemailer';
 
+interface EmailOptions {
+  to: string;
+  subject: string;
+  html: string;
+}
+
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_SERVER_HOST,
-  port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
+  port: Number(process.env.EMAIL_SERVER_PORT),
   secure: process.env.EMAIL_SERVER_PORT === '465', // true for 465, false for other ports
   auth: {
     user: process.env.EMAIL_SERVER_USER,
@@ -10,27 +16,17 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-interface SendEmailOptions {
-  to: string;
-  subject: string;
-  html: string;
-  text?: string;
-  attachments?: Array<{ filename: string; content: string | Buffer; contentType?: string }>;
-}
-
-export async function sendEmail({ to, subject, html, text, attachments }: SendEmailOptions) {
+export async function sendEmail({ to, subject, html }: EmailOptions) {
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,
       to,
       subject,
       html,
-      text: text || html.replace(/<[^>]*>?/gm, ''),
-      attachments,
     });
-    console.log(`Email enviado para ${to}: ${subject}`);
+    console.log(`E-mail enviado para ${to}: ${subject}`);
   } catch (error) {
-    console.error(`Erro ao enviar email para ${to}:`, error);
-    throw new Error(`Falha ao enviar email: ${error}`);
+    console.error(`Erro ao enviar e-mail para ${to}:`, error);
+    throw new Error(`Falha ao enviar e-mail: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
   }
 }
