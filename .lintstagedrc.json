@@ -1,7 +1,9 @@
-
 {
-  "*.{js,jsx,ts,tsx}": [
+  "*.{ts,tsx}": [
     "eslint --fix",
-    "vitest run --findRelatedTests --bail"
+    "npm run type-check"
+  ],
+  "*.{test,spec}.{js,jsx,ts,tsx}": [
+    "vitest run --bail"
   ]
 }

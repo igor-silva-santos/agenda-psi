@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, Phone, Mail, MapPin, Heart, CheckCircle, X } from 'lucide-react';
+import { Calendar, Phone, Mail, MapPin, CheckCircle, X, Heart } from 'lucide-react';
 import Link from 'next/link';
 import AgendamentoFormMelhorado from '@/components/AgendamentoFormMelhorado';
 import PsicologaInfo from '@/components/PsicologaInfo';
@@ -148,7 +148,7 @@ export default function Home() {
       {/* Agendamento Modal */}
       {showAgendamento && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-[6px]">
-          <div className="agendamento-modal relative w-full h-full sm:h-auto sm:max-h-[98vh] sm:max-w-[900px] bg-white rounded-none sm:rounded-2xl shadow-2xl overflow-y-auto p-0">
+          <div data-cy="agendamento-modal" className="agendamento-modal relative w-full h-full sm:h-auto sm:max-h-[98vh] sm:max-w-[900px] bg-white rounded-none sm:rounded-2xl shadow-2xl overflow-y-auto p-0">
             {/* Conteúdo */}
             <div className="w-full flex flex-col justify-center items-center p-4 sm:p-8">
               <AgendamentoFormMelhorado onClose={() => setShowAgendamento(false)} />

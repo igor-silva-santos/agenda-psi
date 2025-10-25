@@ -7,9 +7,10 @@
     "build": "npx prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest",
+    "cypress:open": "cypress open",
     "test:coverage": "vitest run --coverage",
     "type-check": "tsc --noEmit",
+    "type-check-staged": "tsc --noEmit",
     "prepare": "husky install"
   },
   "dependencies": {
@@ -42,8 +43,6 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
     "@types/node": "^20",
     "@types/nodemailer": "^6.4.17",
     "@types/react": "^18",
@@ -54,6 +53,8 @@
     "@vitejs/plugin-react": "^4.6.0",
     "@vitest/coverage-v8": "^3.2.4",
     "autoprefixer": "^10.4.19",
+    "cypress": "^15.3.0",
+    "dotenv-cli": "^10.0.0",
     "eslint": "^8",
     "eslint-config-next": "^14.2.3",
     "eslint-config-prettier": "^9.1.0",
@@ -61,13 +62,11 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-security": "^3.0.1",
     "husky": "^9.1.1",
-    "jsdom": "^26.1.0",
     "lint-staged": "^15.2.7",
     "postcss": "^8.4.39",
     "prettier": "^3.3.3",
     "tailwindcss": "^3.4.4",
-    "typescript": "^5",
-    "vitest": "^3.2.4"
+    "typescript": "^5"
   },
   "prettier": {
     "singleQuote": true,

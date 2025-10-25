@@ -69,7 +69,10 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
     </div>
   );
 
-  const availableDates = allSlots.map(slot => startOfDay(parseISO(slot.startDateTime.toString())));
+  const availableDates = allSlots
+    .filter(slot => slot.startDateTime) // Filter out slots with undefined startDateTime
+    .map(slot => startOfDay(parseISO(slot.startDateTime!.toString()))); // Use ! to assert non-null after filter
+
   const uniqueAvailableDates = Array.from(new Set(availableDates.map(date => date.toISOString()))).map(isoDate => new Date(isoDate));
 
   const disabledDays = [
@@ -78,7 +81,9 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
   ];
 
   const selectedDaySlots = selectedDay
-    ? allSlots.filter(slot => startOfDay(parseISO(slot.startDateTime.toString())).getTime() === startOfDay(selectedDay).getTime())
+    ? allSlots
+        .filter(slot => slot.startDateTime) // Filter out slots with undefined startDateTime
+        .filter(slot => startOfDay(parseISO(slot.startDateTime!.toString())).getTime() === startOfDay(selectedDay).getTime())
     : [];
 
   return (
