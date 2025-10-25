@@ -5,10 +5,7 @@ import { Agendamento, User } from '@prisma/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useParams } from 'next/navigation';
-import ProntuarioForm from '@/components/ProntuarioForm';
-import RecomendacoesForm from '@/components/RecomendacoesForm';
-import ProntuarioFormAgendamento from '@/components/ProntuarioFormAgendamento';
-import RecomendacoesFormAgendamento from '@/components/RecomendacoesFormAgendamento';
+import ApiFormWrapper from '@/components/ApiFormWrapper';
 
 interface PacienteDetalhes extends User {
   agendamentos: Agendamento[];
@@ -34,45 +31,6 @@ export default function AdminPacienteDetalhesPage() {
       fetchPaciente();
     }
   }, [id]);
-
-  const handleSaveProntuario = async (prontuario: string) => {
-    try {
-      await fetch(`/api/admin/pacientes/${id}/prontuario`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prontuario }),
-      });
-      // Optionally, refresh paciente data after saving prontuario
-      if (id) {
-        const response = await fetch(`/api/admin/pacientes/${id}`);
-        const data = await response.json();
-        setPaciente(data);
-      }
-    } catch (error) {
-      console.error('Erro ao salvar prontuário:', error);
-    }
-  };
-
-  const handleSaveRecomendacoes = async (recomendacoes: string) => {
-    try {
-      await fetch(`/api/admin/pacientes/${id}/recomendacoes`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ recomendacoes }),
-      });
-      if (id) {
-        const response = await fetch(`/api/admin/pacientes/${id}`);
-        const data = await response.json();
-        setPaciente(data); // Atualiza os dados do paciente para mostrar a recomendação
-      }
-    } catch (error) {
-      console.error('Erro ao salvar recomendações:', error);
-    }
-  };
 
   if (!paciente) return <p>Paciente não encontrado.</p>;
 
@@ -100,10 +58,21 @@ export default function AdminPacienteDetalhesPage() {
                   <strong>{format(new Date(agendamento.dataHora), 'dd/MM/yyyy HH:mm')}</strong> - {agendamento.status}
                 </div>
                 <div className="mb-2">
-                  <ProntuarioFormAgendamento agendamentoId={agendamento.id} />
+                  <ApiFormWrapper 
+                    agendamentoId={agendamento.id} 
+                    apiEndpoint="prontuario" 
+                    placeholder="Digite o prontuário deste agendamento..." 
+                    buttonText="Salvar Prontuário" 
+                  />
                 </div>
                 <div>
-                  <RecomendacoesFormAgendamento agendamentoId={agendamento.id} />
+                  <ApiFormWrapper 
+                    agendamentoId={agendamento.id} 
+                    apiEndpoint="recomendacoes" 
+                    placeholder="Adicionar recomendações..." 
+                    buttonText="Salvar Recomendações" 
+                    rows={3} 
+                  />
                 </div>
               </li>
             ))}
