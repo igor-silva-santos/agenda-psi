@@ -118,7 +118,7 @@ export default function AdministradoresPage() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">ADMINISTRADOR</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                   <button onClick={() => handleEdit(user)} className="p-2 text-blue-600 hover:text-blue-800 rounded-full hover:bg-blue-100" title="Editar"><Edit size={16}/></button>
-                  <button onClick={() => handleDelete(user.id)} className="p-2 text-red-600 hover:text-red-800 rounded-full hover:bg-red-100" title="Deletar"><Trash2 size={16}/></button>
+                  <button onClick={() => handleDelete(String(user.id))} className="p-2 text-red-600 hover:text-red-800 rounded-full hover:bg-red-100" title="Deletar"><Trash2 size={16}/></button>
                 </td>
               </tr>
             ))}

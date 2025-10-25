@@ -4,6 +4,7 @@ interface EmailOptions {
   to: string;
   subject: string;
   html: string;
+  attachments?: any[];
 }
 
 const transporter = nodemailer.createTransport({
@@ -16,13 +17,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendEmail({ to, subject, html }: EmailOptions) {
+export async function sendEmail({ to, subject, html, attachments }: EmailOptions) {
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,
       to,
       subject,
       html,
+      attachments,
     });
     console.log(`E-mail enviado para ${to}: ${subject}`);
   } catch (error) {

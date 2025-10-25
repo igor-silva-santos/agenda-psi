@@ -38,7 +38,7 @@ export default function PatientForm({ isOpen, onClose, onSubmit, editingUser }: 
   useEffect(() => {
     if (editingUser) {
       reset({
-        id: editingUser.id,
+        id: String(editingUser.id),
         name: editingUser.name ?? '',
         email: editingUser.email ?? '',
         password: '',

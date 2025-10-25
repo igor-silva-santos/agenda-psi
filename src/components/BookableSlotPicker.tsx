@@ -70,8 +70,8 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
   );
 
   const availableDates = allSlots
-    .filter(slot => slot.startDateTime) // Filter out slots with undefined startDateTime
-    .map(slot => startOfDay(parseISO(slot.startDateTime!.toString()))); // Use ! to assert non-null after filter
+    .filter(slot => slot.dataHora) // Filter out slots with undefined dataHora
+    .map(slot => startOfDay(parseISO(slot.dataHora!.toString()))); // Use ! to assert non-null after filter
 
   const uniqueAvailableDates = Array.from(new Set(availableDates.map(date => date.toISOString()))).map(isoDate => new Date(isoDate));
 
@@ -82,8 +82,8 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
 
   const selectedDaySlots = selectedDay
     ? allSlots
-        .filter(slot => slot.startDateTime) // Filter out slots with undefined startDateTime
-        .filter(slot => startOfDay(parseISO(slot.startDateTime!.toString())).getTime() === startOfDay(selectedDay).getTime())
+        .filter(slot => slot.dataHora) // Filter out slots with undefined dataHora
+        .filter(slot => startOfDay(parseISO(slot.dataHora!.toString())).getTime() === startOfDay(selectedDay).getTime())
     : [];
 
   return (
@@ -228,9 +228,9 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
               <div className="space-y-3">
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-2 xl:gap-3">
                   {selectedDaySlots.map((slot) => {
-                    const slotDate = parseISO(slot.startDateTime.toString());
+                    const slotDate = parseISO(slot.dataHora.toString());
                     const isSlotPast = isPast(slotDate);
-                    const isDisabled = slot.isBooked || isSlotPast;
+                    const isDisabled = !slot.disponivel || isSlotPast;
                     const isSelected = slot.id !== undefined && selectedSlot === slot.id.toString();
                     
                     return (
@@ -260,7 +260,7 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
                     <p className="text-blue-800 font-medium text-sm xl:text-base">
                       ✅ Horário selecionado: {format(selectedDay, 'dd/MM/yyyy')} às {
                         selectedDaySlots.find(slot => slot.id?.toString() === selectedSlot) 
-                          ? format(parseISO(selectedDaySlots.find(slot => slot.id?.toString() === selectedSlot)!.startDateTime.toString()), 'HH:mm')
+                          ? format(parseISO(selectedDaySlots.find(slot => slot.id?.toString() === selectedSlot)!.dataHora.toString()), 'HH:mm')
                           : ''
                       }
                     </p>

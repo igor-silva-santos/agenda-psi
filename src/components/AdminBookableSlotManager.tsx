@@ -71,7 +71,7 @@ export default function AdminBookableSlotManager() {
     }
   };
 
-  const handleDeleteSlot = async (id: string) => {
+  const handleDeleteSlot = async (id: number) => {
     if (!confirm("Tem certeza que deseja remover este horário?")) return;
     setError(null);
     try {
@@ -87,7 +87,7 @@ export default function AdminBookableSlotManager() {
     }
   };
 
-  const availableDates = allSlots.map(slot => startOfDay(parseISO(slot.startDateTime.toString())));
+  const availableDates = allSlots.map(slot => startOfDay(parseISO(slot.dataHora.toString())));
   const uniqueAvailableDates = Array.from(new Set(availableDates.map(date => date.toISOString()))).map(isoDate => new Date(isoDate));
 
   const disabledDays = [
@@ -95,7 +95,7 @@ export default function AdminBookableSlotManager() {
   ];
 
   const selectedDaySlots = selectedDay
-    ? allSlots.filter(slot => startOfDay(parseISO(slot.startDateTime.toString())).getTime() === startOfDay(selectedDay).getTime())
+    ? allSlots.filter(slot => startOfDay(parseISO(slot.dataHora.toString())).getTime() === startOfDay(selectedDay).getTime())
     : [];
 
   return (
@@ -176,11 +176,11 @@ export default function AdminBookableSlotManager() {
                 {selectedDaySlots.map((slot) => (
                   <li key={slot.id} className="flex justify-between items-center p-3 border rounded-md shadow-sm bg-white">
                     <span className="text-gray-800">
-                      {format(parseISO(slot.startDateTime.toString()), 'HH:mm')} - {format(parseISO(slot.endDateTime.toString()), 'HH:mm')}
-                      {slot.isBooked && <span className="ml-2 text-red-500 font-medium">(Agendado)</span>}
+                      {format(parseISO(slot.dataHora.toString()), 'HH:mm')} - {format(addMinutes(parseISO(slot.dataHora.toString()), 30), 'HH:mm')}
+                      {!slot.disponivel && <span className="ml-2 text-red-500 font-medium">(Agendado)</span>}
                     </span>
                     <button
-                      onClick={() => handleDeleteSlot(String(slot.id))}
+                      onClick={() => handleDeleteSlot(slot.id)}
                       className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600 flex items-center justify-center"
                     >
                       <Trash2 size={18} />

@@ -37,6 +37,7 @@ export default function AdminForm({ isOpen, onClose, onSubmit, editingUser }: Ad
     if (editingUser) {
       reset({
         ...editingUser,
+        id: String(editingUser.id),
         password: '',
         email: editingUser.email ?? '',
         name: editingUser.name ?? '',
