@@ -11,6 +11,7 @@ import AppointmentFilters from '@/components/Agendamentos/AppointmentFilters';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import AgendamentoFormMelhorado from '@/components/AgendamentoFormMelhorado';
 
 export default function MeusAgendamentosPage() {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
@@ -21,6 +22,7 @@ export default function MeusAgendamentosPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchAgendamentos = async () => {
     setLoading(true);
@@ -45,6 +47,17 @@ export default function MeusAgendamentosPage() {
   useEffect(() => {
     fetchAgendamentos();
   }, []);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isModalOpen]);
 
   const handleConfirmar = async (id: string) => {
     if (!confirm('Tem certeza que deseja confirmar esta consulta?')) return;
@@ -177,10 +190,10 @@ export default function MeusAgendamentosPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Meus Agendamentos</h1>
-          <p className="text-gray-600 mt-1">Gerencie suas consultas e compromissos</p>
+          <p className="text-gray-600 mt-1">Gerencie suas consultas</p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <Button variant="primary" className="flex items-center gap-2">
+          <Button variant="primary" className="flex items-center gap-2" onClick={() => setIsModalOpen(true)}>
             <Plus className="h-4 w-4" />
             Novo Agendamento
           </Button>
@@ -211,7 +224,7 @@ export default function MeusAgendamentosPage() {
         {/* Appointments List */}
         <div className="lg:col-span-2 space-y-6">
           {/* Próximas Consultas */}
-          <div>
+          <Card>
             <div className="flex items-center gap-2 mb-4">
               <Calendar className="h-5 w-5 text-blue-600" />
               <h2 className="text-lg font-semibold text-gray-900">Próximas Consultas</h2>
@@ -234,20 +247,20 @@ export default function MeusAgendamentosPage() {
                 ))}
               </div>
             ) : (
-              <Card className="text-center py-8">
+              <div className="text-center py-8">
                 <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma consulta futura</h3>
                 <p className="text-gray-600 mb-4">Você não possui consultas agendadas para o futuro.</p>
-                <Button variant="primary">
+                <Button variant="primary" onClick={() => setIsModalOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Agendar Consulta
                 </Button>
-              </Card>
+              </div>
             )}
-          </div>
+          </Card>
 
           {/* Histórico de Consultas */}
-          <div>
+          <Card>
             <div className="flex items-center gap-2 mb-4">
               <Clock className="h-5 w-5 text-gray-600" />
               <h2 className="text-lg font-semibold text-gray-900">Histórico de Consultas</h2>
@@ -267,13 +280,13 @@ export default function MeusAgendamentosPage() {
                 ))}
               </div>
             ) : (
-              <Card className="text-center py-8">
+              <div className="text-center py-8">
                 <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum histórico</h3>
                 <p className="text-gray-600">Você ainda não possui consultas realizadas.</p>
-              </Card>
+              </div>
             )}
-          </div>
+          </Card>
         </div>
       </div>
 
@@ -289,6 +302,20 @@ export default function MeusAgendamentosPage() {
             Limpar filtros
           </Button>
         </Card>
+      )}
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-[6px]" onClick={() => setIsModalOpen(false)}>
+          <div 
+            className="relative w-full h-full sm:h-auto sm:max-h-[95vh] bg-transparent rounded-none sm:rounded-2xl overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <AgendamentoFormMelhorado onClose={() => {
+              setIsModalOpen(false);
+              fetchAgendamentos();
+            }} />
+          </div>
+        </div>
       )}
     </div>
   );

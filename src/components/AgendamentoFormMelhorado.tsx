@@ -306,7 +306,7 @@ export default function AgendamentoFormMelhorado({ onClose }: AgendamentoFormMel
   };
 
   return (
-    <div data-cy="agendamento-modal" className="w-full max-w-3xl mx-auto bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-2xl border border-gray-100 animate-fade-in-scale overflow-hidden p-0">
+    <div data-cy="agendamento-modal" className="w-full max-w-3xl mx-auto bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-2xl border border-gray-100 animate-fade-in-scale p-0">
       <div className="px-6 py-6 border-b border-gray-200 bg-gradient-to-r from-blue-100/60 to-white flex items-center justify-center sticky top-0 z-10 relative">
         <h2 className="text-2xl md:text-3xl font-extrabold text-blue-900 text-center tracking-tight drop-shadow-sm">Agendar Consulta</h2>
         <button
@@ -325,7 +325,7 @@ export default function AgendamentoFormMelhorado({ onClose }: AgendamentoFormMel
             setStep(2);
           })}>
             <div className="flex flex-col gap-4 items-center justify-center animate-fade-in">
-              <label className="block text-lg md:text-xl font-bold text-blue-900 mb-3 text-center">Selecione a Data e Hora:</label>
+
               <Controller
                 name="slotId"
                 control={controlStep1}

@@ -78,8 +78,8 @@ export default function PacienteDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Bem-vindo ao seu portal de saúde</p>
+          <h1 className="text-2xl font-bold text-gray-900">Início</h1>
+          <p className="text-gray-600 mt-1">Bem-vindo a Clinica Flowers</p>
         </div>
         <div className="mt-4 sm:mt-0">
           <Link 

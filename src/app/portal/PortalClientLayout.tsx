@@ -5,7 +5,7 @@ import { Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, LayoutDashboard, Calendar, Stethoscope, User, LogOut, Bell, Settings } from 'lucide-react';
+import { Menu, X, Home, Calendar, Star, User, DollarSign, LogOut, Bell } from 'lucide-react';
 
 interface PortalClientLayoutProps {
   session: Session;
@@ -29,10 +29,11 @@ export default function PortalClientLayout({ session, children }: PortalClientLa
   }, [sidebarOpen]);
 
   const navItems = [
-    { name: 'Dashboard', href: '/portal/paciente', icon: LayoutDashboard },
+    { name: 'Início', href: '/portal/paciente', icon: Home },
     { name: 'Meus Agendamentos', href: '/portal/paciente/agendamentos', icon: Calendar },
-    { name: 'Minhas Recomendações', href: '/portal/paciente/recomendacoes', icon: Stethoscope },
+    { name: 'Minhas Recomendações', href: '/portal/paciente/recomendacoes', icon: Star },
     { name: 'Meu Perfil', href: '/portal/paciente/perfil', icon: User },
+    { name: 'Financeiro', href: '/portal/paciente/financeiro', icon: DollarSign },
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -60,15 +61,17 @@ export default function PortalClientLayout({ session, children }: PortalClientLa
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <User className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl text-gray-900">Portal</span>
+            <span className="font-bold text-xl text-gray-900 truncate">{session.user.name}</span>
           </Link>
-          <button 
-            onClick={() => setSidebarOpen(false)} 
-            className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Fechar menu"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          {sidebarOpen && (
+            <button 
+              onClick={() => setSidebarOpen(false)} 
+              className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Fechar menu"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
 
         {/* Navigation */}
@@ -92,25 +95,7 @@ export default function PortalClientLayout({ session, children }: PortalClientLa
           ))}
         </nav>
 
-        {/* User Profile Section */}
-        <div className="border-t border-gray-100 p-4">
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-blue-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{session.user.name}</p>
-              <p className="text-xs text-gray-500">Paciente</p>
-            </div>
-            <button 
-              onClick={() => signOut({ callbackUrl: '/' })}
-              className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
-              title="Sair"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
+
       </aside>
 
       {/* Main Content */}
@@ -133,17 +118,29 @@ export default function PortalClientLayout({ session, children }: PortalClientLa
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <button className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <Bell className="h-5 w-5" />
-              </button>
-              <button className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <Settings className="h-5 w-5" />
-              </button>
-              <div className="hidden sm:flex items-center gap-2">
-                <span className="text-sm text-gray-700">{session.user.name}</span>
-              </div>
-            </div>
+                        <div className="flex items-center gap-3">
+
+                          <button className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                            <Bell className="h-5 w-5" />
+
+                          </button>
+
+                          <button 
+
+                            onClick={() => signOut({ callbackUrl: '/' })}
+
+                            className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+
+                            title="Sair"
+
+                          >
+
+                            <LogOut className="h-5 w-5" />
+
+                          </button>
+
+                        </div>
           </div>
         </header>
 

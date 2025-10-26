@@ -137,15 +137,14 @@ export async function GET(request: Request) {
 
           slots.push({
             id: slotStart.getTime(),
-            startDateTime: slotStart,
-            endDateTime: slotEnd,
-            isBooked: false,
+            dataHora: slotStart,
+            disponivel: true,
           });
           slotStart = slotEnd;
         }
       }
     }
-    slots.sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime());
+    slots.sort((a, b) => new Date(a.dataHora).getTime() - new Date(b.dataHora).getTime());
     return NextResponse.json(slots);
   } catch (error) {
     console.error("Error fetching/generating bookable slots:", error);
