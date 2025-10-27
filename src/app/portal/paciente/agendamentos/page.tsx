@@ -110,6 +110,12 @@ export default function MeusAgendamentosPage() {
     };
   }, [isModalOpen]);
 
+  useEffect(() => {
+    if (searchParams.get('agendar') === 'true') {
+      setIsModalOpen(true);
+    }
+  }, [searchParams]);
+
   const handleCancelar = (id: string) => {
     setAppointmentToCancel(id);
     setIsCancelConfirmationModalOpen(true);
@@ -399,9 +405,9 @@ export default function MeusAgendamentosPage() {
         </div>
       </div>
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-[6px]" onClick={() => setIsModalOpen(false)}>
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-[6px]" style={{ transform: 'translateZ(0)' }} onClick={() => setIsModalOpen(false)}>
           <div 
-            className="relative w-full h-full sm:h-auto sm:max-h-[95vh] bg-transparent rounded-none sm:rounded-2xl overflow-y-auto"
+            className="relative w-full h-full sm:h-auto sm:max-h-[95vh] bg-transparent rounded-2xl overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <AgendamentoFormMelhorado onClose={() => {

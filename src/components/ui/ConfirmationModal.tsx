@@ -1,5 +1,5 @@
 import React from 'react';
-import Modal from 'C:/Users/igord/OneDrive/Documentos/pscicologa/psicologa-agendamento/src/components/Modal';
+import Modal from '@/components/Modal';
 import Button from '@/components/ui/Button';
 
 interface ConfirmationModalProps {

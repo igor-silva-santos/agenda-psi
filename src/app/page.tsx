@@ -55,7 +55,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-3 cursor-pointer">
-              <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-8 h-8" />
+              <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-19 h-20" />
               <h1 className="text-2xl font-bold text-gray-800">{config.localName}</h1>
             </Link>
             <div className="flex items-center space-x-4">
