@@ -24,6 +24,10 @@ model User {
   agendamentos        Agendamento[]
   BookableSlot        BookableSlot[]
   passwordResetTokens PasswordResetToken[]
+  lastLogin           DateTime?            @db.Timestamp(6)
+  emailNotifications  Boolean              @default(true)
+  smsNotifications    Boolean              @default(false)
+  whatsappNotifications Boolean            @default(false)
 }
 
 model Agendamento {

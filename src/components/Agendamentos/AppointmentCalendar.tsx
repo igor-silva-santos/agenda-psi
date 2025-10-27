@@ -37,8 +37,6 @@ export default function AppointmentCalendar({ appointments, onDateSelect, select
         return 'bg-yellow-500';
       case 'CANCELADO':
         return 'bg-red-500';
-      case 'PRE_AGENDADO':
-        return 'bg-blue-500';
       default:
         return 'bg-gray-500';
     }
@@ -140,10 +138,6 @@ export default function AppointmentCalendar({ appointments, onDateSelect, select
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
             <span>Pendente</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            <span>Pré-agendado</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>

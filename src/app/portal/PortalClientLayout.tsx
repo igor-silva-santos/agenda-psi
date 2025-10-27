@@ -18,20 +18,15 @@ export default function PortalClientLayout({ session, children }: PortalClientLa
 
   // Fechar sidebar ao navegar (mobile)
   useEffect(() => {
-    if (!sidebarOpen) return;
-    const handleRoute = () => setSidebarOpen(false);
-    window.addEventListener('hashchange', handleRoute);
-    window.addEventListener('popstate', handleRoute);
-    return () => {
-      window.removeEventListener('hashchange', handleRoute);
-      window.removeEventListener('popstate', handleRoute);
-    };
-  }, [sidebarOpen]);
+    if (sidebarOpen) {
+      setSidebarOpen(false);
+    }
+  }, [pathname]);
 
   const navItems = [
     { name: 'Início', href: '/portal/paciente', icon: Home },
     { name: 'Meus Agendamentos', href: '/portal/paciente/agendamentos', icon: Calendar },
-    { name: 'Minhas Recomendações', href: '/portal/paciente/recomendacoes', icon: Star },
+    { name: 'Recomendações', href: '/portal/paciente/recomendacoes', icon: Star },
     { name: 'Meu Perfil', href: '/portal/paciente/perfil', icon: User },
     { name: 'Financeiro', href: '/portal/paciente/financeiro', icon: DollarSign },
   ];
@@ -43,7 +38,7 @@ export default function PortalClientLayout({ session, children }: PortalClientLa
       {/* Sidebar Mobile Overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity duration-300 lg:hidden" 
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity duration-300" 
           onClick={() => setSidebarOpen(false)} 
           aria-label="Fechar menu" 
         />
@@ -53,15 +48,12 @@ export default function PortalClientLayout({ session, children }: PortalClientLa
       <aside className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out flex flex-col
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-        lg:relative lg:translate-x-0 lg:static
       `}>
         {/* Sidebar Header */}
         <div className="flex items-center justify-between px-6 py-6 border-b border-gray-100">
           <Link href="/portal/paciente" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <User className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-xl text-gray-900 truncate">{session.user.name}</span>
+            <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-8 h-8" />
+            <span className="font-bold text-xl text-gray-900 truncate">Clinica Flowers</span>
           </Link>
           {sidebarOpen && (
             <button 
@@ -105,20 +97,31 @@ export default function PortalClientLayout({ session, children }: PortalClientLa
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-4">
               <button
-                className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 onClick={() => setSidebarOpen(true)}
                 aria-label="Abrir menu"
               >
                 <Menu className="h-6 w-6" />
               </button>
               <div className="hidden sm:block">
-                <h1 className="text-lg font-semibold text-gray-900">
-                  {navItems.find(item => isActive(item.href))?.name || 'Portal do Paciente'}
-                </h1>
+                <div className="flex items-center gap-2">
+                  <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-8 h-8" />
+                  <Link href="/portal/paciente">
+                    <h1 className="text-lg font-semibold text-gray-900">
+                      Clinica Flowers
+                    </h1>
+                  </Link>
+                </div>
               </div>
             </div>
 
                         <div className="flex items-center gap-3">
+                          <Link href="/portal/paciente/perfil" className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                              <User className="w-5 h-5 text-white" />
+                            </div>
+                            <span className="font-semibold text-gray-900 truncate">{session.user.name}</span>
+                          </Link>
 
                           <button className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
 

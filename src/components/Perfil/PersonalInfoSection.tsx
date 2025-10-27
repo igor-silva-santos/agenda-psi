@@ -108,20 +108,18 @@ export default function PersonalInfoSection({
           <label htmlFor="cpf" className="block text-sm font-medium text-gray-700 mb-2">
             CPF
           </label>
-          <input
-            {...register('cpf')}
-            id="cpf"
-            type="text"
-            className={cn(
-              'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
-              errors.cpf ? 'border-red-300 bg-red-50' : 'border-gray-300',
-              watchedValues.cpf && !errors.cpf && 'border-green-300 bg-green-50'
-            )}
-            placeholder="000.000.000-00"
-          />
-          {errors.cpf && (
-            <p className="text-red-600 text-sm mt-1">{errors.cpf.message}</p>
-          )}
+          <div className="relative">
+            <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              {...register('cpf')}
+              id="cpf"
+              type="text"
+              disabled
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+              placeholder="000.000.000-00"
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-1">CPF não pode ser alterado</p>
         </div>
 
         {/* Data de Nascimento */}

@@ -11,7 +11,6 @@ import PreferencesSection from '@/components/Perfil/PreferencesSection';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
 
 const perfilSchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
@@ -21,15 +20,10 @@ const perfilSchema = z.object({
   dataNascimento: z.string().optional(),
   address: z.string().optional(),
   image: z.string().url('URL da imagem inválida').optional().or(z.literal('')),
-  notifications: z.object({
-    email: z.boolean().default(true),
-    sms: z.boolean().default(false),
-    whatsapp: z.boolean().default(false),
-  }).default({}),
-  privacy: z.object({
-    profileVisible: z.boolean().default(true),
-    showOnlineStatus: z.boolean().default(false),
-  }).default({}),
+  emailNotifications: z.boolean().default(true),
+  smsNotifications: z.boolean().default(false),
+  whatsappNotifications: z.boolean().default(false),
+
   account: z.object({
     twoFactorAuth: z.boolean().default(false),
     sessionTimeout: z.boolean().default(true),
@@ -65,61 +59,49 @@ export default function MeuPerfilPage() {
   } = useForm<PerfilFormData>({
     resolver: zodResolver(perfilSchema),
     defaultValues: {
-      notifications: { email: true, sms: false, whatsapp: false },
-      privacy: { profileVisible: true, showOnlineStatus: false },
+      emailNotifications: true, smsNotifications: false, whatsappNotifications: false,
       account: { twoFactorAuth: false, sessionTimeout: true },
       language: 'pt-BR',
       timezone: 'America/Sao_Paulo',
     },
   });
 
+  const fetchActivity = async () => {
+    try {
+      const activityResponse = await fetch('/api/portal/activity');
+      if (!activityResponse.ok) throw new Error('Falha ao buscar atividades');
+      const activityData = await activityResponse.json();
+      setRecentActivity(activityData);
+    } catch (err: any) {
+      console.error("Failed to fetch recent activity:", err.message);
+    }
+  };
+
   useEffect(() => {
     const fetchPerfil = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/portal/perfil');
-        if (response.status === 401) {
-          setError('Sessão expirada ou não autenticado. Faça login novamente.');
-          setLoading(false);
-          return;
-        }
-        if (!response.ok) throw new Error('Falha ao buscar dados');
-        const data = await response.json();
-        setUserData(data);
+        const perfilResponse = await fetch('/api/portal/perfil');
+        if (!perfilResponse.ok) throw new Error('Falha ao buscar dados do perfil');
+        const perfilData = await perfilResponse.json();
+        setUserData(perfilData);
         
-        // Preencher formulário com dados do usuário
-        setValue('name', data.name || '');
-        setValue('email', data.email || '');
-        setValue('telefone', data.telefone || '');
-        setValue('cpf', data.cpf || '');
-        setValue('dataNascimento', data.dataNascimento ? data.dataNascimento.split('T')[0] : '');
-        setValue('address', data.address || '');
-        setValue('image', data.image || '');
+        setValue('name', perfilData.name || '');
+        setValue('email', perfilData.email || '');
+        setValue('telefone', perfilData.telefone || '');
+        setValue('cpf', perfilData.cpf || '');
+        setValue('dataNascimento', perfilData.dataNascimento ? perfilData.dataNascimento.split('T')[0] : '');
+        setValue('address', perfilData.address || '');
+        setValue('image', perfilData.image || '');
+        setValue('emailNotifications', perfilData.emailNotifications ?? true);
+        setValue('smsNotifications', perfilData.smsNotifications ?? false);
+        setValue('whatsappNotifications', perfilData.whatsappNotifications ?? false);
 
-        // Simular atividade recente
-        setRecentActivity([
-          {
-            id: '1',
-            action: 'Login realizado',
-            timestamp: new Date().toISOString(),
-            details: 'Acesso ao sistema via email'
-          },
-          {
-            id: '2',
-            action: 'Perfil atualizado',
-            timestamp: new Date(Date.now() - 86400000).toISOString(),
-            details: 'Informações pessoais modificadas'
-          },
-          {
-            id: '3',
-            action: 'Agendamento criado',
-            timestamp: new Date(Date.now() - 172800000).toISOString(),
-            details: 'Nova consulta agendada'
-          }
-        ]);
+        await fetchActivity();
+
       } catch (err: any) {
-        setError('Erro ao buscar dados do perfil');
+        setError('Erro ao buscar dados: ' + err.message);
       } finally {
         setLoading(false);
       }
@@ -149,13 +131,7 @@ export default function MeuPerfilPage() {
       setSuccess('Perfil atualizado com sucesso!');
       setUserData({ ...userData, ...data });
       
-      // Simular nova atividade
-      setRecentActivity(prev => [{
-        id: Date.now().toString(),
-        action: 'Perfil atualizado',
-        timestamp: new Date().toISOString(),
-        details: 'Informações pessoais modificadas'
-      }, ...prev.slice(0, 2)]);
+      await fetchActivity();
       
     } catch (err: any) {
       setError('Erro ao atualizar perfil');
@@ -207,12 +183,7 @@ export default function MeuPerfilPage() {
           <h1 className="text-2xl font-bold text-gray-900">Meu Perfil</h1>
           <p className="text-gray-600 mt-1">Gerencie suas informações pessoais e preferências</p>
         </div>
-        <div className="mt-4 sm:mt-0">
-          <Badge variant="info" className="flex items-center gap-1">
-            <User className="h-3 w-3" />
-            {userData?.role || 'Usuário'}
-          </Badge>
-        </div>
+
       </div>
 
       {/* Mensagens de Status */}
@@ -241,6 +212,7 @@ export default function MeuPerfilPage() {
             {/* Foto de Perfil */}
             <Card>
               <ProfilePhotoUpload
+                userId={userData?.id}
                 currentImage={userData?.image}
                 onImageChange={(imageUrl) => setValue('image', imageUrl)}
               />
@@ -260,6 +232,7 @@ export default function MeuPerfilPage() {
               <PreferencesSection
                 register={register}
                 errors={errors}
+                watch={watch}
               />
             </Card>
           </div>
@@ -339,8 +312,10 @@ export default function MeuPerfilPage() {
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Status da conta</span>
-                    <Badge variant="success" size="sm">Ativa</Badge>
+                    <span className="text-sm text-gray-600">Qtd. sessões</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {userData?.sessionsCount !== undefined ? userData.sessionsCount : 'N/A'}
+                    </span>
                   </div>
                 </div>
               </div>

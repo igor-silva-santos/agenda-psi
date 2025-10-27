@@ -7,7 +7,7 @@ import { authOptions } from '@/lib/auth';
 import { getToken } from 'next-auth/jwt';
 
 const APPOINTMENT_DURATION_MINUTES = 30;
-const ALLOWED_STATUSES = ['PENDENTE', 'CONFIRMADO', 'CANCELADO', 'PRE_AGENDADO', 'REALIZADO'];
+const ALLOWED_STATUSES = ['PENDENTE', 'CONFIRMADO', 'CANCELADO', 'REALIZADO'];
 
 export async function PUT(request: Request, { params }: { params: { id: number } }) {
   const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });

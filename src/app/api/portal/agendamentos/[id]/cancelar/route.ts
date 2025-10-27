@@ -12,29 +12,10 @@ export async function PUT(
   { params }: { params: { id: number } }
 ) {
   const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
-  if (!token) {
+  if (!token || (token.role !== 'PACIENTE' && token.role !== 'ADMIN')) {
     return NextResponse.json({ 
       error: 'Unauthorized',
-      details: { reason: 'Token ausente' }
-    }, { status: 401 });
-  }
-  const { data: user, error: userError } = await supabase
-    .from('User')
-    .select('*')
-    .eq('id', token.id)
-    .single();
-  if (userError || !user || user.currentSessionId !== token.sessionId) {
-    return NextResponse.json({ 
-      error: 'Sessão concorrente detectada',
-      details: { userId: token.id, sessionId: token.sessionId }
-    }, { status: 401 });
-  }
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user || (session.user.role !== 'PACIENTE' && session.user.role !== 'ADMIN')) {
-    return NextResponse.json({ 
-      error: 'Unauthorized',
-      details: { reason: 'Usuário não tem permissão', userRole: session?.user?.role }
+      details: { reason: 'Usuário não tem permissão' }
     }, { status: 401 });
   }
 
@@ -45,14 +26,23 @@ export async function PUT(
       .from('Agendamento')
       .select('*, user:User(*)')
       .eq('id', id)
-      .eq('userId', session.user.id)
       .single();
+
     if (agendamentoError || !agendamento) {
       return NextResponse.json({ 
-        error: 'Agendamento não encontrado ou não autorizado',
-        details: { agendamentoId: id, userId: session.user.id }
+        error: 'Agendamento não encontrado',
+        details: { agendamentoId: id }
       }, { status: 404 });
     }
+
+    if (token.role === 'PACIENTE' && agendamento.userId !== parseInt(token.id)) {
+      return NextResponse.json({ 
+        error: 'Unauthorized',
+        details: { reason: 'Usuário não pode cancelar agendamento de outra pessoa' }
+      }, { status: 401 });
+    }
+
+
 
     // Regra de negócio: Não permitir cancelamento com menos de 24h de antecedência
     const agora = new Date();
@@ -79,6 +69,7 @@ export async function PUT(
       }, { status: 500 });
     }
 
+    /*
     // --- Envio de E-mails de Notificação de Cancelamento ---
     const formattedDate = format(new Date(agendamento.dataHora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
 
@@ -105,6 +96,7 @@ export async function PUT(
       `,
     });
     // --- Fim do Envio de E-mails ---
+    */
 
     return NextResponse.json(updatedAgendamento);
   } catch (error) {

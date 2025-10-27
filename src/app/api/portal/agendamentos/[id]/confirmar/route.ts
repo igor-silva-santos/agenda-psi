@@ -3,35 +3,19 @@ import { supabase } from '@/lib/supabase';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { getToken } from 'next-auth/jwt';
+import { sendEmail } from '@/lib/email';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export async function PUT(
   request: Request,
   { params }: { params: { id: number } }
 ) {
   const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
-  if (!token) {
+  if (!token || (token.role !== 'PACIENTE' && token.role !== 'ADMIN')) {
     return NextResponse.json({ 
       error: 'Unauthorized',
-      details: { reason: 'Token ausente' }
-    }, { status: 401 });
-  }
-  const { data: user, error: userError } = await supabase
-    .from('User')
-    .select('*')
-    .eq('id', token.id)
-    .single();
-  if (userError || !user || user.currentSessionId !== token.sessionId) {
-    return NextResponse.json({ 
-      error: 'Sessão concorrente detectada',
-      details: { userId: token.id, sessionId: token.sessionId }
-    }, { status: 401 });
-  }
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user || (session.user.role !== 'PACIENTE' && session.user.role !== 'ADMIN')) {
-    return NextResponse.json({ 
-      error: 'Unauthorized',
-      details: { reason: 'Usuário não tem permissão', userRole: session?.user?.role }
+      details: { reason: 'Usuário não tem permissão' }
     }, { status: 401 });
   }
 
@@ -40,15 +24,19 @@ export async function PUT(
   try {
     const { data: agendamento, error: agendamentoError } = await supabase
       .from('Agendamento')
-      .select('*')
+      .select('*, user:User(*)') // Fetch related user data
       .eq('id', id)
-      .eq('userId', session.user.id)
       .single();
-    if (agendamentoError || !agendamento) {
+
+    if (agendamentoError || !agendamento || !agendamento.user) {
+      return NextResponse.json({ error: 'Agendamento não encontrado ou não autorizado' }, { status: 404 });
+    }
+
+    if (token.role === 'PACIENTE' && agendamento.userId !== parseInt(token.id)) {
       return NextResponse.json({ 
-        error: 'Agendamento não encontrado ou não autorizado',
-        details: { agendamentoId: id, userId: session.user.id }
-      }, { status: 404 });
+        error: 'Unauthorized',
+        details: { reason: 'Usuário não pode confirmar agendamento de outra pessoa' }
+      }, { status: 401 });
     }
 
     const { data: updatedAgendamento, error: updateError } = await supabase
@@ -57,19 +45,42 @@ export async function PUT(
       .eq('id', id)
       .select()
       .single();
-    if (updateError || !updatedAgendamento) {
-      return NextResponse.json({ 
-        error: 'Erro ao confirmar agendamento',
-        details: { agendamentoId: id, message: updateError?.message }
-      }, { status: 500 });
+
+    if (updateError) {
+      return NextResponse.json({ error: 'Erro ao confirmar agendamento' }, { status: 500 });
     }
 
+    /*
+    // --- Envio de E-mails de Notificação de Confirmação ---
+    const formattedDate = format(new Date(agendamento.dataHora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+
+    // E-mail para o Usuário
+    await sendEmail({
+      to: agendamento.user.email!,
+      subject: 'Sua Consulta foi Confirmada - Jandira C. Frederick',
+      html: `
+        <p>Olá ${agendamento.user.name},</p>
+        <p>Sua consulta para o dia <strong>${formattedDate}</strong> foi confirmada com sucesso.</p>
+        <p>Atenciosamente,</p>
+        <p>Jandira C. Frederick</p>
+      `,
+    });
+
+    // E-mail para o Administrador
+    await sendEmail({
+      to: process.env.ADMIN_EMAIL!,
+      subject: 'Agendamento Confirmado - Notificação Admin',
+      html: `
+        <p>Olá Administrador,</p>
+        <p>O agendamento do usuário <strong>${agendamento.user.name} (${agendamento.user.email})</strong> para <strong>${formattedDate}</strong> foi confirmado pelo paciente.</p>
+      `,
+    });
+    */
+
     return NextResponse.json(updatedAgendamento);
+
   } catch (error) {
     console.error(`Erro ao confirmar o agendamento ${id}:`, error);
-    return NextResponse.json({ 
-      error: 'Internal Server Error',
-      details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
-    }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

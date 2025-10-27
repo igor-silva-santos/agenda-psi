@@ -107,8 +107,7 @@ export async function POST(request: Request) {
     console.log('[AGENDAMENTOS][POST] Criando agendamento para usuário:', user.id);
     console.log('[AGENDAMENTOS][POST] Dados do agendamento:', {
       dataHora: slotDateTime.toISOString(),
-      status: 'PRE_AGENDADO',
-      userId: user.id,
+                status: 'PENDENTE',      userId: user.id,
       motivoConsulta: motivoConsulta || 'Consulta agendada via sistema',
     });
 
@@ -118,7 +117,7 @@ export async function POST(request: Request) {
       .insert([
         {
           dataHora: slotDateTime.toISOString(),
-          status: 'PRE_AGENDADO',
+          status: 'PENDENTE',
           userId: user.id,
           motivoConsulta: motivoConsulta || 'Consulta agendada via sistema',
         }

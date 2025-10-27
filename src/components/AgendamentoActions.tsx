@@ -17,7 +17,7 @@ export default function AgendamentoActions({ agendamento }: { agendamento: Agend
     router.refresh();
   };
 
-  if (agendamento.status === "PRE_AGENDADO") {
+  if (agendamento.status === "PENDENTE") {
     return (
       <div className="flex gap-2 mt-2">
         <button onClick={() => handleUpdateStatus("CONFIRMADO")} className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">

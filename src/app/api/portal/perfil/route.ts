@@ -6,9 +6,15 @@ import { z } from 'zod';
 import { getToken } from 'next-auth/jwt';
 
 const perfilSchema = z.object({
-  name: z.string().min(3, 'Nome é obrigatório'),
+  name: z.string().min(3, 'Nome é obrigatório').optional(),
   cpf: z.string().optional(),
-  image: z.string().url('URL da imagem inválida').optional(),
+  image: z.string().url('URL da imagem inválida').optional().or(z.literal('')),
+  telefone: z.string().optional(),
+  dataNascimento: z.string().optional(),
+  address: z.string().optional(),
+  emailNotifications: z.boolean().optional(),
+  smsNotifications: z.boolean().optional(),
+  whatsappNotifications: z.boolean().optional(),
 });
 
 export async function GET(request: Request) {
@@ -21,12 +27,12 @@ export async function GET(request: Request) {
       details: { reason: 'Token ausente' }
     }, { status: 401 });
   }
-  const { data: user, error } = await supabase
+  const { data: user, error: userError } = await supabase
     .from('User')
     .select('*')
     .eq('id', token.id)
     .single();
-  if (error || !user || user.currentSessionId !== token.sessionId) {
+  if (userError || !user || user.currentSessionId !== token.sessionId) {
     console.warn('[PORTAL-PERFIL][GET] Sessão concorrente detectada ou usuário não encontrado', { user, token });
     return NextResponse.json({ 
       error: 'Sessão concorrente detectada',
@@ -34,7 +40,27 @@ export async function GET(request: Request) {
     }, { status: 401 });
   }
   try {
-    return NextResponse.json(user);
+    // Count completed sessions
+    const { count: sessionsCount, error: countError } = await supabase
+      .from('Agendamento')
+      .select('id', { count: 'exact' })
+      .eq('userId', user.id)
+      .eq('status', 'REALIZADO');
+
+    if (countError) {
+      console.error('[PORTAL-PERFIL][GET] Erro ao contar sessões:', countError);
+      // Continue even if count fails, just return 0
+    }
+
+    return NextResponse.json({
+      ...user,
+      sessionsCount: sessionsCount || 0,
+      // Ensure these fields are explicitly returned if they exist on the user object
+      lastLogin: user.lastLogin || null,
+      emailNotifications: user.emailNotifications ?? true, // Default to true if null
+      smsNotifications: user.smsNotifications ?? false,
+      whatsappNotifications: user.whatsappNotifications ?? false,
+    });
   } catch (error) {
     console.error('[PORTAL-PERFIL][GET] ERRO:', error);
     return NextResponse.json({ 
@@ -68,9 +94,11 @@ export async function PUT(request: Request) {
   }
   try {
     const data = await request.json();
+    const validatedData = perfilSchema.parse(data); // Validate incoming data
+
     const { data: updated, error: updateError } = await supabase
       .from('User')
-      .update(data)
+      .update(validatedData)
       .eq('id', token.id)
       .select('*')
       .single();

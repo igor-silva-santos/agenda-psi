@@ -11,6 +11,7 @@ interface AppointmentFiltersProps {
   dateFilter: string;
   onDateFilterChange: (value: string) => void;
   onClearFilters: () => void;
+  onFilterChangeAndScroll: (newStatus: string, newDate: string) => void; // Nova prop
 }
 
 export default function AppointmentFilters({
@@ -20,14 +21,14 @@ export default function AppointmentFilters({
   onStatusFilterChange,
   dateFilter,
   onDateFilterChange,
-  onClearFilters
+  onClearFilters,
+  onFilterChangeAndScroll // Nova prop
 }: AppointmentFiltersProps) {
   const statusOptions = [
     { value: '', label: 'Todos os status' },
     { value: 'CONFIRMADO', label: 'Confirmado' },
     { value: 'PENDENTE', label: 'Pendente' },
     { value: 'CANCELADO', label: 'Cancelado' },
-    { value: 'PRE_AGENDADO', label: 'Pré-agendado' }
   ];
 
   const dateOptions = [
@@ -49,23 +50,16 @@ export default function AppointmentFilters({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Buscar agendamentos..."
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
+
 
         {/* Status Filter */}
         <div className="relative">
           <select
             value={statusFilter}
-            onChange={(e) => onStatusFilterChange(e.target.value)}
+            onChange={(e) => {
+              onStatusFilterChange(e.target.value);
+              onFilterChangeAndScroll(e.target.value, dateFilter); // Passa o novo status e a data atual
+            }}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
           >
             {statusOptions.map(option => (
@@ -86,7 +80,10 @@ export default function AppointmentFilters({
           <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <select
             value={dateFilter}
-            onChange={(e) => onDateFilterChange(e.target.value)}
+            onChange={(e) => {
+              onDateFilterChange(e.target.value);
+              onFilterChangeAndScroll(statusFilter, e.target.value); // Passa o status atual e a nova data
+            }}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
           >
             {dateOptions.map(option => (

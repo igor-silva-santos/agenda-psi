@@ -41,7 +41,7 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
 
   // Scroll automático para horários em mobile quando um dia é selecionado
   useEffect(() => {
-    if (selectedDay && window.innerWidth < 1024) {
+    if (selectedDay) {
       const horariosSection = document.getElementById('horarios-section');
       if (horariosSection) {
         setTimeout(() => {
@@ -88,9 +88,7 @@ export default function BookableSlotPicker({ onSelectSlot, selectedSlot, darkMod
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4">
-      <div className={`grid gap-6 lg:gap-8 xl:gap-12 items-start ${
-        selectedDay ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'
-      }`}>
+      <div className={`grid gap-6 lg:gap-8 xl:gap-12 items-start grid-cols-1`}>
         {/* Calendário */}
         <div className={`bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg border border-blue-100 p-4 xl:p-8 ${
           selectedDay ? 'lg:col-span-1' : 'lg:col-span-1'

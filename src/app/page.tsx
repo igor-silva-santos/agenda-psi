@@ -13,6 +13,7 @@ import Faq from '@/components/Faq';
 // Added a comment to force recompile
 const config = {
   professionalName: "Jandira C. Frederick",
+  localName: "Clinica Flowers",
   crp: "06/224798",
   contact: {
     phone: "(11) 99471-6143 | (11) 2748-8973",
@@ -54,8 +55,8 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-3 cursor-pointer">
-              <Heart className="h-8 w-8 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-800">{config.professionalName}</h1>
+              <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-8 h-8" />
+              <h1 className="text-2xl font-bold text-gray-800">{config.localName}</h1>
             </Link>
             <div className="flex items-center space-x-4">
               <button

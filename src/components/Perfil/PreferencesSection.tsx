@@ -5,14 +5,21 @@ import { cn } from '@/lib/utils';
 interface PreferencesSectionProps {
   register: any;
   errors: any;
+  watch: any; // Adicionado
   className?: string;
 }
 
-export default function PreferencesSection({ 
-  register, 
+export default function PreferencesSection({
+  register,
   errors,
+  watch, // Adicionado
   className 
 }: PreferencesSectionProps) {
+
+  const emailNotifications = watch('emailNotifications');
+  const smsNotifications = watch('smsNotifications');
+  const whatsappNotifications = watch('whatsappNotifications');
+
   return (
     <div className={cn('space-y-6', className)}>
       <div className="flex items-center gap-2">
@@ -27,7 +34,7 @@ export default function PreferencesSection({
           <div className="space-y-4">
             <label className="flex items-center gap-3 cursor-pointer">
               <input
-                {...register('notifications.email')}
+                {...register('emailNotifications')}
                 type="checkbox"
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
@@ -36,7 +43,7 @@ export default function PreferencesSection({
             
             <label className="flex items-center gap-3 cursor-pointer">
               <input
-                {...register('notifications.sms')}
+                {...register('smsNotifications')}
                 type="checkbox"
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
@@ -45,7 +52,7 @@ export default function PreferencesSection({
             
             <label className="flex items-center gap-3 cursor-pointer">
               <input
-                {...register('notifications.whatsapp')}
+                {...register('whatsappNotifications')}
                 type="checkbox"
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
@@ -54,32 +61,6 @@ export default function PreferencesSection({
           </div>
         </div>
 
-        {/* Privacidade */}
-        <div className="bg-gray-50 rounded-lg p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Shield className="h-4 w-4 text-gray-600" />
-            <h4 className="text-md font-medium text-gray-900">Privacidade</h4>
-          </div>
-          <div className="space-y-4">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                {...register('privacy.profileVisible')}
-                type="checkbox"
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Perfil visível para outros usuários</span>
-            </label>
-            
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                {...register('privacy.showOnlineStatus')}
-                type="checkbox"
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Mostrar status online</span>
-            </label>
-          </div>
-        </div>
 
         {/* Configurações de Conta */}
         <div className="bg-gray-50 rounded-lg p-6">
