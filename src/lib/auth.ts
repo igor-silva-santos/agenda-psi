@@ -187,7 +187,7 @@ export const authOptions: AuthOptions = {
 
             .eq('id', user.id);
 
-          const token = jwt.sign({ id: user.id, role: user.role, sessionId }, process.env.NEXTAUTH_SECRET, { expiresIn: '1h' });
+          const token = jwt.sign({ id: user.id, role: user.role, sessionId }, process.env.NEXTAUTH_SECRET!, { expiresIn: '1h' });
 
           return { ...user, id: String(user.id), sessionId, accessToken: token };
 
@@ -312,25 +312,26 @@ export const authOptions: AuthOptions = {
 
 
     async session({ session, token }) {
-
       if (token && session.user) {
+        const { data: user, error } = await supabase
+          .from('User')
+          .select('*')
+          .eq('id', token.id)
+          .single();
 
-        session.user.id = token.id;
-
-        session.user.role = token.role;
-
-        session.user.cpf = token.cpf;
-
-        session.user.telefone = token.telefone;
-
-        (session.user as any).sessionId = token.sessionId;
-
-        session.accessToken = token.accessToken as string;
-
+        if (user && !error) {
+          session.user.id = user.id;
+          session.user.name = user.name;
+          session.user.email = user.email;
+          session.user.image = user.image;
+          session.user.role = user.role;
+          session.user.cpf = user.cpf;
+          session.user.telefone = user.telefone;
+          (session.user as any).sessionId = token.sessionId;
+          session.accessToken = token.accessToken as string;
+        }
       }
-
       return session;
-
     },
 
   },
