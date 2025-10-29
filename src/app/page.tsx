@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; // Added comment to force rebuild
 import { Calendar, Phone, Mail, MapPin, CheckCircle, X, Heart } from 'lucide-react';
 import Link from 'next/link';
 import AgendamentoFormMelhorado from '@/components/AgendamentoFormMelhorado';
@@ -8,6 +8,7 @@ import PsicologaInfo from '@/components/PsicologaInfo';
 import LoginModal from '@/components/LoginModal';
 import SignUpModal from '@/components/SignUpModal';
 import Faq from '@/components/Faq';
+import { useToast } from '@/context/ToastContext';
 
 // Centralized configuration for easier updates
 // Added a comment to force recompile
@@ -24,6 +25,7 @@ const config = {
 };
 
 export default function Home() {
+  const { addToast } = useToast();
   const [showAgendamento, setShowAgendamento] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
@@ -35,6 +37,11 @@ export default function Home() {
 
   const handleCloseSignUp = () => {
     setShowSignUpModal(false);
+  };
+
+  const handleAgendamentoSuccess = (message: string) => {
+    addToast(message, 'info');
+    setShowAgendamento(false);
   };
 
   useEffect(() => {
@@ -152,7 +159,10 @@ export default function Home() {
           <div data-cy="agendamento-modal" className="agendamento-modal relative w-full h-full sm:h-auto sm:max-h-[98vh] sm:max-w-[900px] bg-white rounded-none sm:rounded-2xl shadow-2xl overflow-y-auto p-0">
             {/* Conteúdo */}
             <div className="w-full flex flex-col justify-center items-center p-4 sm:p-8">
-              <AgendamentoFormMelhorado onClose={() => setShowAgendamento(false)} />
+              <AgendamentoFormMelhorado 
+                onClose={() => setShowAgendamento(false)} 
+                onSuccess={handleAgendamentoSuccess} 
+              />
             </div>
           </div>
         </div>
