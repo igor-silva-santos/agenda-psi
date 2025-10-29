@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react'; // Added comment to force rebuild
 import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react';
 import { Loader2, X } from 'lucide-react';
 import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 import { format, parseISO } from 'date-fns';
+import { useToast } from '@/context/ToastContext';
 import { useErrorScrollToTop } from './useErrorScrollToTop';
 
 const cleanCpf = (cpf: string) => cpf.replace(/\D/g, '');
@@ -44,14 +45,14 @@ function formatTelefone(value: string) {
 }
 
 interface AgendamentoFormMelhoradoProps {
-  onClose?: () => void;
+  onClose: () => void; // Para o botão 'X' do modal
+  onSuccess: (message: string) => void;
 }
 
-export default function AgendamentoFormMelhorado({ onClose }: AgendamentoFormMelhoradoProps) {
+export default function AgendamentoFormMelhorado({ onClose, onSuccess }: AgendamentoFormMelhoradoProps) {
   const { data: session, status } = useSession();
   const [step, setStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
@@ -101,10 +102,7 @@ export default function AgendamentoFormMelhorado({ onClose }: AgendamentoFormMel
       });
       const result = await agendamentoRes.json();
       if (!agendamentoRes.ok) throw new Error(result?.error || 'Erro ao agendar.');
-      setSuccess('Agendamento realizado com sucesso!');
-      setTimeout(() => {
-        onClose?.();
-      }, 2000);
+      onSuccess('Agendamento pré-realizado! Por favor, confirme a consulta na sua lista de agendamentos.');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -180,12 +178,7 @@ export default function AgendamentoFormMelhorado({ onClose }: AgendamentoFormMel
         throw new Error(result?.error || 'Erro ao processar agendamento.');
       }
 
-      setSuccess('Agendamento realizado com sucesso! Você será redirecionado em breve.');
-      setTimeout(() => {
-        // O ideal é redirecionar para o portal, mas o login automático precisa ser tratado.
-        // Por enquanto, podemos fechar o modal ou redirecionar para a home.
-        onClose?.();
-      }, 3000);
+      onSuccess('Agendamento pré-realizado! Por favor, confirme a consulta na sua lista de agendamentos.');
 
     } catch (err: any) {
       setError(err.message);
@@ -201,7 +194,7 @@ export default function AgendamentoFormMelhorado({ onClose }: AgendamentoFormMel
   };
 
   return (
-    <div data-cy="agendamento-modal" className="w-full max-w-3xl mx-auto bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-2xl border border-gray-100 animate-fade-in-scale p-0">
+    <div data-cy="agendamento-modal" className="w-full max-w-3xl mx-auto bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-2xl border border-gray-100 animate-fade-in-scale p-0 h-full flex flex-col">
       <div className="px-6 py-6 border-b border-gray-200 bg-gradient-to-r from-blue-100/60 to-white flex items-center justify-center sticky top-0 z-10 relative rounded-t-2xl">
         <h2 className="text-2xl md:text-3xl font-extrabold text-blue-900 text-center tracking-tight drop-shadow-sm">Agendar Consulta</h2>
         <button
@@ -212,18 +205,17 @@ export default function AgendamentoFormMelhorado({ onClose }: AgendamentoFormMel
           <X className="h-8 w-8" />
         </button>
       </div>
-      <div className="px-2 sm:px-8 py-6 flex flex-col items-center justify-center w-full">
+      <div className="px-2 sm:px-8 py-6 flex flex-col items-center justify-center w-full flex-1 overflow-y-auto max-h-[calc(95vh-120px)]">
         {error && <div className="mb-4 flex items-center gap-2 p-3 bg-red-100 border border-red-300 rounded-lg text-red-700 text-center text-sm font-semibold animate-fade-in"><svg className='w-5 h-5 text-red-500' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' d='M12 9v2m0 4h.01M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z'/></svg>{error}</div>}
-        {success && <div className="mb-4 flex items-center gap-2 p-3 bg-green-100 border border-green-300 rounded-lg text-green-700 text-center text-sm font-semibold animate-fade-in"><svg className='w-5 h-5 text-green-500' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' d='M5 13l4 4L19 7'/></svg>{success}</div>}
         
         {step === 1 && (
-          <form className="space-y-8 w-full max-w-2xl mx-auto" onSubmit={handleSubmitStep1(handleStep1Submit)}>
+          <form className="space-y-8 w-full max-w-2xl mx-auto flex flex-col flex-1 max-h-full" onSubmit={handleSubmitStep1(handleStep1Submit)}>
             <div className="flex flex-col gap-4 items-center justify-center animate-fade-in">
               <Controller
                 name="slotId"
                 control={controlStep1}
                 render={({ field }) => (
-                  <div className="w-full flex flex-col justify-center gap-8">
+                  <div className="w-full flex flex-col justify-center gap-8 overflow-y-auto">
                     <BookableSlotPicker
                       ref={timeSlotsRef}
                       onSelectSlot={(slot) => {
@@ -273,7 +265,6 @@ export default function AgendamentoFormMelhorado({ onClose }: AgendamentoFormMel
                     className="mt-1 block w-full rounded-md border-gray-400 shadow-sm text-gray-900 bg-gray-50 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-500"
                     placeholder="Seu CPF"
                     maxLength={14}
-                    ref={cpfInputRef}
                   />
                 )} />
                 {typeof errorsStep2.cpf?.message === 'string' && <p className="text-red-500 text-xs font-semibold mt-1">{errorsStep2.cpf.message}</p>}
