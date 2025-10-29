@@ -49,6 +49,9 @@ export const metadata: Metadata = {
   },
 }
 
+import { ModalProvider } from '../context/ModalContext';
+import { ToastProvider } from '../context/ToastContext';
+
 export default function RootLayout({
   children,
 }: {
@@ -63,10 +66,15 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <Providers>
-          <InactivityProvider>
-            {children}
-          </InactivityProvider>
+          <ModalProvider>
+            <InactivityProvider>
+              <ToastProvider>
+                {children}
+              </ToastProvider>
+            </InactivityProvider>
+          </ModalProvider>
         </Providers>
+        <div id="modal-root" style={{ backgroundColor: 'transparent' }}></div>
       </body>
     </html>
   )
