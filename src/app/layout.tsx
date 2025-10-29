@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from 'next' // Unique comment to force Vercel rebuild and type re-evaluation
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
