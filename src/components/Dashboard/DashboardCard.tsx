@@ -1,6 +1,7 @@
-import React from 'react';
+import React from 'react'; // Added comment to force rebuild
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { LucideIcon } from 'lucide-react';
 
 interface DashboardCardProps {
   title: string;
