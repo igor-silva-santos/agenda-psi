@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   },
 }
 
-import { ModalProvider } from '../context/ModalContext';
+import { ModalProvider } from '@/context/ModalContext';
 import { ToastProvider } from '../context/ToastContext';
 
 export default function RootLayout({
