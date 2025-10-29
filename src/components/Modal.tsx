@@ -1,6 +1,6 @@
 'use client';
 
-import { X } from 'lucide-react'; // Added comment to force rebuild
+import { X } from 'lucide-react'; // Unique comment to force Vercel rebuild and type re-evaluation // Added comment to force rebuild
 import { Fragment, useEffect } from 'react';
 
 interface ModalProps {
