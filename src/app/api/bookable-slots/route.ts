@@ -61,7 +61,6 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const all = searchParams.get('all');
 
-  // NOVA LÓGICA: gerar slots dinâmicos de 1h para os próximos 30 dias
   try {
     // 1. Buscar horários de atuação padrão
     const { data: horariosAtuacao, error: atuacaoError } = await supabase
@@ -75,9 +74,14 @@ export async function GET(request: Request) {
     const { data: agendamentos, error: agendamentoError } = await supabase
       .from('Agendamento')
       .select('dataHora, status')
-      .gte('dataHora', new Date().toISOString());
+      .neq('status', 'CANCELADO');
     if (agendamentoError) throw agendamentoError;
-    const agendadosSet = new Set((agendamentos || []).filter(a => a.status !== 'CANCELADO').map(a => new Date(a.dataHora).toISOString()));
+
+    const agendadosTimestamps = new Set((agendamentos || []).map(a => {
+      const date = new Date(a.dataHora);
+      date.setMilliseconds(0);
+      return date.getTime();
+    }));
 
     // 3. Buscar períodos bloqueados
     const { data: bloqueios, error: bloqueioError } = await supabase
@@ -90,7 +94,7 @@ export async function GET(request: Request) {
     const slots: any[] = [];
     const now = new Date();
     for (let i = 0; i < 180; i++) {
-      const dia = addDays(now, i);
+      const dia = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
       const diaSemana = dia.getDay();
       const atuacoesDoDia = horariosAtuacao.filter(h => h.diaDaSemana === diaSemana);
       for (const atuacao of atuacoesDoDia) {
@@ -101,45 +105,44 @@ export async function GET(request: Request) {
         let slotStart = setMinutes(setHours(new Date(dia), hIni), mIni);
         const slotEndLimit = setMinutes(setHours(new Date(dia), hFim), mFim);
         while (isBefore(slotStart, slotEndLimit)) {
-          let slotEnd = addDays(slotStart, 0);
-          slotEnd.setHours(slotStart.getHours() + 1, slotStart.getMinutes(), 0, 0);
+          const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
           if (isAfter(slotEnd, slotEndLimit)) break;
 
-          // Pular se estiver no horário de almoço
+          let isAvailable = true;
+
+          // Checar horário de almoço
           if (almocoIni && almocoFim) {
             const almocoStart = setMinutes(setHours(new Date(dia), almocoIni[0]), almocoIni[1]);
             const almocoEnd = setMinutes(setHours(new Date(dia), almocoFim[0]), almocoFim[1]);
-            if (
-              (slotStart >= almocoStart && slotStart < almocoEnd) ||
-              (slotEnd > almocoStart && slotEnd <= almocoEnd) ||
-              (slotStart <= almocoStart && slotEnd >= almocoEnd)
-            ) {
-              slotStart = slotEnd;
-              continue;
+            if (slotStart < almocoEnd && almocoStart < slotEnd) {
+              isAvailable = false;
             }
           }
 
-          // Pular se estiver em período bloqueado
-          const isBlocked = (bloqueios || []).some(b =>
-            (slotStart >= new Date(b.dataHoraInicio) && slotStart < new Date(b.dataHoraFim)) ||
-            (slotEnd > new Date(b.dataHoraInicio) && slotEnd <= new Date(b.dataHoraFim))
-          );
-          if (isBlocked) {
-            slotStart = slotEnd;
-            continue;
+          // Checar período bloqueado
+          if (isAvailable) {
+            const isBlocked = (bloqueios || []).some(b => {
+              const blockedStart = new Date(b.dataHoraInicio);
+              const blockedEnd = new Date(b.dataHoraFim);
+              return slotStart < blockedEnd && blockedStart < slotEnd;
+            });
+            if (isBlocked) {
+              isAvailable = false;
+            }
           }
 
-          // Pular se já agendado
-          if (agendadosSet.has(slotStart.toISOString())) {
-            slotStart = slotEnd;
-            continue;
+          // Checar se já agendado
+          const isAlreadyBooked = agendadosTimestamps.has(slotStart.getTime());
+          if (isAvailable && isAlreadyBooked) {
+            isAvailable = false;
           }
 
           slots.push({
             id: slotStart.getTime(),
             dataHora: slotStart,
-            disponivel: true,
+            disponivel: isAvailable,
           });
+
           slotStart = slotEnd;
         }
       }

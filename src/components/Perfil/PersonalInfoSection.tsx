@@ -6,6 +6,7 @@ interface PersonalInfoSectionProps {
   register: any;
   errors: any;
   watch: any;
+  setValue: any;
   className?: string;
 }
 
@@ -13,9 +14,28 @@ export default function PersonalInfoSection({
   register, 
   errors, 
   watch,
+  setValue,
   className 
 }: PersonalInfoSectionProps) {
   const watchedValues = watch();
+
+  const handlePhoneChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    const onlyNumbers = value.replace(/\D/g, '');
+    let formattedPhone = '';
+
+    if (onlyNumbers.length > 0) {
+      formattedPhone = `(${onlyNumbers.slice(0, 2)}`;
+    }
+    if (onlyNumbers.length > 2) {
+      formattedPhone += `) ${onlyNumbers.slice(2, 7)}`;
+    }
+    if (onlyNumbers.length > 7) {
+      formattedPhone += `-${onlyNumbers.slice(7, 11)}`;
+    }
+
+    setValue('telefone', formattedPhone, { shouldDirty: true });
+  };
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -27,8 +47,8 @@ export default function PersonalInfoSection({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Nome Completo */}
         <div className="md:col-span-2">
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-            Nome Completo *
+          <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-2">
+            Nome Completo !
           </label>
           <div className="relative">
             <input
@@ -38,7 +58,8 @@ export default function PersonalInfoSection({
               className={cn(
                 'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                 errors.name ? 'border-red-300 bg-red-50' : 'border-gray-300',
-                watchedValues.name && !errors.name && 'border-green-300 bg-green-50'
+                watchedValues.name && !errors.name && 'border-green-300 bg-green-50',
+                'text-gray-900'
               )}
               placeholder="Digite seu nome completo"
             />
@@ -52,18 +73,12 @@ export default function PersonalInfoSection({
               </div>
             )}
           </div>
-          {errors.name && (
-            <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
-              <Shield className="h-4 w-4" />
-              {errors.name.message}
-            </p>
-          )}
         </div>
 
         {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-            Email *
+          <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-2">
+            Email
           </label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -81,8 +96,8 @@ export default function PersonalInfoSection({
 
         {/* Telefone */}
         <div>
-          <label htmlFor="telefone" className="block text-sm font-medium text-gray-700 mb-2">
-            Telefone
+          <label htmlFor="telefone" className="block text-sm font-medium text-gray-900 mb-2">
+            Telefone !
           </label>
           <div className="relative">
             <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -90,10 +105,12 @@ export default function PersonalInfoSection({
               {...register('telefone')}
               id="telefone"
               type="tel"
+              onChange={handlePhoneChange}
               className={cn(
                 'w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                 errors.telefone ? 'border-red-300 bg-red-50' : 'border-gray-300',
-                watchedValues.telefone && !errors.telefone && 'border-green-300 bg-green-50'
+                watchedValues.telefone && !errors.telefone && 'border-green-300 bg-green-50',
+                'text-gray-900'
               )}
               placeholder="(11) 99999-9999"
             />
@@ -105,7 +122,7 @@ export default function PersonalInfoSection({
 
         {/* CPF */}
         <div>
-          <label htmlFor="cpf" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="cpf" className="block text-sm font-medium text-gray-900 mb-2">
             CPF
           </label>
           <div className="relative">
@@ -124,8 +141,8 @@ export default function PersonalInfoSection({
 
         {/* Data de Nascimento */}
         <div>
-          <label htmlFor="dataNascimento" className="block text-sm font-medium text-gray-700 mb-2">
-            Data de Nascimento
+          <label htmlFor="dataNascimento" className="block text-sm font-medium text-gray-900 mb-2">
+            Data de Nascimento !
           </label>
           <div className="relative">
             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -136,7 +153,8 @@ export default function PersonalInfoSection({
               className={cn(
                 'w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                 errors.dataNascimento ? 'border-red-300 bg-red-50' : 'border-gray-300',
-                watchedValues.dataNascimento && !errors.dataNascimento && 'border-green-300 bg-green-50'
+                watchedValues.dataNascimento && !errors.dataNascimento && 'border-green-300 bg-green-50',
+                'text-gray-900'
               )}
             />
           </div>
@@ -147,8 +165,8 @@ export default function PersonalInfoSection({
 
         {/* Endereço */}
         <div className="md:col-span-2">
-          <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
-            Endereço
+          <label htmlFor="address" className="block text-sm font-medium text-gray-900 mb-2">
+            Endereço !
           </label>
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -159,7 +177,8 @@ export default function PersonalInfoSection({
               className={cn(
                 'w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors',
                 errors.address ? 'border-red-300 bg-red-50' : 'border-gray-300',
-                watchedValues.address && !errors.address && 'border-green-300 bg-green-50'
+                watchedValues.address && !errors.address && 'border-green-300 bg-green-50',
+                'text-gray-900'
               )}
               placeholder="Rua, número, bairro, cidade - UF"
             />

@@ -46,27 +46,27 @@ export default function ProfilePhotoUpload({
     setIsUploading(true);
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${userId}-${Date.now()}.${fileExt}`;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('userId', String(userId)); // Ensure userId is sent as string
 
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
+      const response = await fetch('/api/upload-profile-photo', {
+        method: 'POST',
+        body: formData,
+      });
 
-      if (uploadError) {
-        throw uploadError;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || 'Falha no upload da imagem.');
       }
 
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      const newImageUrl = data.publicUrl;
+      const result = await response.json();
+      const newImageUrl = result.publicUrl;
       setPreviewUrl(newImageUrl);
       onImageChange(newImageUrl);
 
     } catch (e: any) {
-      setError('Falha no upload da imagem. Tente novamente.');
+      setError(e.message || 'Falha no upload da imagem. Tente novamente.');
       console.error(e);
     } finally {
       setIsUploading(false);

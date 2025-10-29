@@ -8,11 +8,13 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, Home, Calendar, Star, User, DollarSign, LogOut, Bell } from 'lucide-react';
 
 interface PortalClientLayoutProps {
-  session: Session;
   children: React.ReactNode;
 }
 
-export default function PortalClientLayout({ session, children }: PortalClientLayoutProps) {
+import { useSession } from 'next-auth/react';
+
+export default function PortalClientLayout({ children }: PortalClientLayoutProps) {
+  const { data: session, status } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
@@ -22,6 +24,14 @@ export default function PortalClientLayout({ session, children }: PortalClientLa
       setSidebarOpen(false);
     }
   }, [pathname]);
+
+  if (status === "loading") {
+    return <div>Carregando...</div>; // Ou um componente de loading mais elaborado
+  }
+
+  if (!session) {
+    return <div>Não autenticado</div>; // Ou redirecionar para o login
+  }
 
   const navItems = [
     { name: 'Início', href: '/portal/paciente', icon: Home },
@@ -52,7 +62,7 @@ export default function PortalClientLayout({ session, children }: PortalClientLa
         {/* Sidebar Header */}
         <div className="flex items-center justify-between px-6 py-6 border-b border-gray-100">
           <Link href="/portal/paciente" className="flex items-center gap-2">
-            <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-8 h-8" />
+            <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-19 h-20" />
             <span className="font-bold text-xl text-gray-900 truncate">Clinica Flowers</span>
           </Link>
           {sidebarOpen && (
@@ -105,7 +115,7 @@ export default function PortalClientLayout({ session, children }: PortalClientLa
               </button>
               <div className="hidden sm:block">
                 <div className="flex items-center gap-2">
-                  <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-8 h-8" />
+                  <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-19 h-20" />
                   <Link href="/portal/paciente">
                     <h1 className="text-lg font-semibold text-gray-900">
                       Clinica Flowers
@@ -118,7 +128,11 @@ export default function PortalClientLayout({ session, children }: PortalClientLa
                         <div className="flex items-center gap-3">
                           <Link href="/portal/paciente/perfil" className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                              <User className="w-5 h-5 text-white" />
+                              {session.user.image ? (
+                                <img src={session.user.image} alt="Foto do usuário" className="w-8 h-8 rounded-full" />
+                              ) : (
+                                <User className="w-5 h-5 text-white" />
+                              )}
                             </div>
                             <span className="font-semibold text-gray-900 truncate">{session.user.name}</span>
                           </Link>

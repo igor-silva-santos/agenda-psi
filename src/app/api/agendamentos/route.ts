@@ -36,12 +36,16 @@ export async function POST(request: Request) {
     const slotDateTime = new Date(parseInt(slotId));
     console.log('[AGENDAMENTOS][POST] Data/Hora do slot:', slotDateTime.toISOString());
 
+    const slotEndDateTime = new Date(slotDateTime.getTime() + 1000); // 1 second window for safety
+
     // Verifica se já existe um agendamento para este horário
     const { data: existingAgendamento, error: agendamentoCheckError } = await supabase
       .from('Agendamento')
-      .select('*')
-      .eq('dataHora', slotDateTime.toISOString())
-      .single();
+      .select('id')
+      .gte('dataHora', slotDateTime.toISOString())
+      .lt('dataHora', slotEndDateTime.toISOString())
+      .neq('status', 'CANCELADO')
+      .maybeSingle();
 
     if (existingAgendamento) {
       console.error('[AGENDAMENTOS][POST] Slot já possui agendamento:', existingAgendamento);

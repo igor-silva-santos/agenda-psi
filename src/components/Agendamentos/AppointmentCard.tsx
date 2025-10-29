@@ -1,5 +1,5 @@
 import React from 'react';
-import { format } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, Clock as ClockIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,16 +17,17 @@ interface AppointmentCardProps {
   onConfirm?: (id: string) => void;
   onCancel?: (id: string) => void;
   loading?: boolean;
-  isPast?: boolean;
 }
 
 export default function AppointmentCard({ 
   appointment, 
   onConfirm, 
   onCancel, 
-  loading = false,
-  isPast = false 
+  loading = false
 }: AppointmentCardProps) {
+  const isAppointmentPast = isPast(new Date(appointment.dataHora));
+  const shouldHideStatusAndActions = isAppointmentPast && (appointment.status === 'PENDENTE' || appointment.status === 'CONFIRMADO');
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'CONFIRMADO':
@@ -53,18 +54,18 @@ export default function AppointmentCard({
     }
   };
 
-  const canConfirm = appointment.status === 'PENDENTE';
-  const canCancel = appointment.status !== 'CANCELADO';
+  const canConfirm = appointment.status === 'PENDENTE' && !isAppointmentPast;
+  const canCancel = appointment.status !== 'CANCELADO' && !isAppointmentPast;
 
   return (
           <div className={cn(
             'bg-white rounded-xl border border-gray-200 p-4 sm:p-6 transition-all duration-200',
-            isPast && 'opacity-75',
-            !isPast && 'hover:shadow-lg hover:border-gray-300'
+            isAppointmentPast && 'opacity-75',
+            !isAppointmentPast && 'hover:shadow-lg hover:border-gray-300'
           )}>
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                {getStatusIcon(appointment.status)}
+                {shouldHideStatusAndActions ? <Calendar className="h-5 w-5 text-gray-600" /> : getStatusIcon(appointment.status)}
                 <div>
                   <h3 className="font-semibold text-gray-900">
                     Consulta
@@ -74,9 +75,11 @@ export default function AppointmentCard({
                   </p>
                 </div>
               </div>
-              <Badge variant={getStatusVariant(appointment.status)}>
-                {appointment.status}
-              </Badge>
+              {!shouldHideStatusAndActions &&
+                <Badge variant={getStatusVariant(appointment.status)}>
+                  {appointment.status}
+                </Badge>
+              }
             </div>
     
             <div className="space-y-2 mb-4">
@@ -121,13 +124,15 @@ export default function AppointmentCard({
                 )}
               </div>
             )}
-      {isPast && (
+      {isAppointmentPast && (
         <div className="pt-4 border-t border-gray-100">
           <p className="text-xs text-gray-500 text-center">
-            {appointment.status === 'CANCELADO' ? 'Consulta cancelada' : appointment.status === 'REALIZADA' ? 'Consulta realizada' : appointment.status === 'CONFIRMADO' ? 'Consulta confirmada' : 'Consulta pendente de confirmação, favor confirmar'}
+            {shouldHideStatusAndActions
+              ? 'Aguardando atualização de status pelo administrador'
+              : appointment.status === 'CANCELADO' ? 'Consulta cancelada' : appointment.status === 'REALIZADA' ? 'Consulta realizada' : appointment.status === 'CONFIRMADO' ? 'Consulta confirmada' : 'Consulta pendente de confirmação, favor confirmar'}
           </p>
         </div>
       )}
     </div>
   );
-} 
+}

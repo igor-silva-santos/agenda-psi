@@ -1,5 +1,6 @@
 'use client';
 
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,10 +16,10 @@ import Button from '@/components/ui/Button';
 const perfilSchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
   email: z.string().email('Email inválido'),
-  telefone: z.string().optional(),
+  telefone: z.string().min(1, 'Telefone é obrigatório'),
   cpf: z.string().optional(),
-  dataNascimento: z.string().optional(),
-  address: z.string().optional(),
+  dataNascimento: z.string().min(1, 'Data de Nascimento é obrigatória'),
+  address: z.string().min(1, 'Endereço é obrigatório'),
   image: z.string().url('URL da imagem inválida').optional().or(z.literal('')),
   emailNotifications: z.boolean().default(true),
   smsNotifications: z.boolean().default(false),
@@ -34,20 +35,13 @@ const perfilSchema = z.object({
 
 type PerfilFormData = z.infer<typeof perfilSchema>;
 
-interface UserActivity {
-  id: string;
-  action: string;
-  timestamp: string;
-  details: string;
-}
-
 export default function MeuPerfilPage() {
+  const { update } = useSession();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [userData, setUserData] = useState<any>(null);
-  const [recentActivity, setRecentActivity] = useState<UserActivity[]>([]);
 
   const {
     register,
@@ -65,16 +59,16 @@ export default function MeuPerfilPage() {
       timezone: 'America/Sao_Paulo',
     },
   });
-
-  const fetchActivity = async () => {
-    try {
-      const activityResponse = await fetch('/api/portal/activity');
-      if (!activityResponse.ok) throw new Error('Falha ao buscar atividades');
-      const activityData = await activityResponse.json();
-      setRecentActivity(activityData);
-    } catch (err: any) {
-      console.error("Failed to fetch recent activity:", err.message);
+  const formatCpf = (cpf: string) => {
+    if (!cpf) return '';
+    const onlyNumbers = cpf.replace(/\D/g, '');
+    if (onlyNumbers.length <= 11) {
+      return onlyNumbers
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     }
+    return cpf; // Return original if not a valid CPF length
   };
 
   useEffect(() => {
@@ -90,15 +84,13 @@ export default function MeuPerfilPage() {
         setValue('name', perfilData.name || '');
         setValue('email', perfilData.email || '');
         setValue('telefone', perfilData.telefone || '');
-        setValue('cpf', perfilData.cpf || '');
+        setValue('cpf', formatCpf(perfilData.cpf || ''));
         setValue('dataNascimento', perfilData.dataNascimento ? perfilData.dataNascimento.split('T')[0] : '');
         setValue('address', perfilData.address || '');
         setValue('image', perfilData.image || '');
         setValue('emailNotifications', perfilData.emailNotifications ?? true);
         setValue('smsNotifications', perfilData.smsNotifications ?? false);
         setValue('whatsappNotifications', perfilData.whatsappNotifications ?? false);
-
-        await fetchActivity();
 
       } catch (err: any) {
         setError('Erro ao buscar dados: ' + err.message);
@@ -128,10 +120,13 @@ export default function MeuPerfilPage() {
       
       if (!response.ok) throw new Error('Falha ao atualizar perfil');
       
+      const updatedUser = await response.json();
+
       setSuccess('Perfil atualizado com sucesso!');
-      setUserData({ ...userData, ...data });
+      setUserData(updatedUser);
       
-      await fetchActivity();
+      // Update the session
+      await update(true);
       
     } catch (err: any) {
       setError('Erro ao atualizar perfil');
@@ -144,11 +139,20 @@ export default function MeuPerfilPage() {
     const date = new Date(timestamp);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
-    
-    if (diffDays > 0) return `${diffDays} dia${diffDays > 1 ? 's' : ''} atrás`;
-    if (diffHours > 0) return `${diffHours} hora${diffHours > 1 ? 's' : ''} atrás`;
+
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(days / 365);
+
+    if (years > 0) return `${years} ano${years > 1 ? 's' : ''} atrás`;
+    if (months > 0) return `${months} mês${months > 1 ? 'es' : ''} atrás`;
+    if (days > 0) return `${days} dia${days > 1 ? 's' : ''} atrás`;
+    if (hours > 0) return `${hours} hora${hours > 1 ? 's' : ''} atrás`;
+    if (minutes > 0) return `${minutes} minuto${minutes > 1 ? 's' : ''} atrás`;
+    if (seconds > 0) return `${seconds} segundo${seconds > 1 ? 's' : ''} atrás`;
     return 'Agora mesmo';
   };
 
@@ -214,7 +218,7 @@ export default function MeuPerfilPage() {
               <ProfilePhotoUpload
                 userId={userData?.id}
                 currentImage={userData?.image}
-                onImageChange={(imageUrl) => setValue('image', imageUrl)}
+                onImageChange={(imageUrl) => setValue('image', imageUrl, { shouldDirty: true })}
               />
             </Card>
 
@@ -224,6 +228,7 @@ export default function MeuPerfilPage() {
                 register={register}
                 errors={errors}
                 watch={watch}
+                setValue={setValue}
               />
             </Card>
 
@@ -266,60 +271,6 @@ export default function MeuPerfilPage() {
               </div>
             </Card>
 
-            {/* Atividade Recente */}
-            <Card>
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-gray-600" />
-                  <h3 className="font-semibold text-gray-900">Atividade Recente</h3>
-                </div>
-                
-                <div className="space-y-3">
-                  {recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                      <div className="flex-shrink-0">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                        <p className="text-xs text-gray-500">{activity.details}</p>
-                        <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {formatActivityTime(activity.timestamp)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Card>
-
-            {/* Estatísticas */}
-            <Card>
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900">Estatísticas</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Membro desde</span>
-                    <span className="text-sm font-medium text-gray-900">
-                      {userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString('pt-BR') : 'N/A'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Último login</span>
-                    <span className="text-sm font-medium text-gray-900">
-                      {userData?.lastLogin ? new Date(userData.lastLogin).toLocaleDateString('pt-BR') : 'N/A'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Qtd. sessões</span>
-                    <span className="text-sm font-medium text-gray-900">
-                      {userData?.sessionsCount !== undefined ? userData.sessionsCount : 'N/A'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Card>
           </div>
         </div>
       </form>
