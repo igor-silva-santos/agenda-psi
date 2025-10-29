@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState }s from 'react';
+import React, { useEffect, useState } from 'react';
 // This is a new line to force Vercel rebuild
 import { AlertCircle, CheckCircle, Info, X, XCircle } from 'lucide-react';
 import { ToastMessage, ToastType } from '@/context/ToastContext';
