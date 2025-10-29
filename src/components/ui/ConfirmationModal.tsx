@@ -2,6 +2,15 @@ import React from 'react';
 import Modal from '@/components/Modal';
 import Button from '@/components/ui/Button';
 
+interface LocalModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}
+
+const TypedModal = Modal as React.FC<LocalModalProps>;
+
 interface ConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -24,7 +33,7 @@ export default function ConfirmationModal({
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <TypedModal isOpen={isOpen} onClose={onClose} title={title}>
       <div className="p-6">
         <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
         <p className="mt-2 text-sm text-gray-600">{message}</p>
