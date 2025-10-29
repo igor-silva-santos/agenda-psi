@@ -1,6 +1,6 @@
 'use client';
 
-import { X } from 'lucide-react';
+import { X } from 'lucide-react'; // Added comment to force rebuild
 import { Fragment, useEffect } from 'react';
 
 interface ModalProps {
@@ -20,6 +20,38 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
       };
     }
   }, [isOpen]);
+
+  // Handle Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose]);
+
+  // Handle mobile back button
+  useEffect(() => {
+    if (!isOpen) return;
+    const handlePopState = (event: PopStateEvent) => {
+      if (!event.state || !event.state.modalOpen) {
+        onClose();
+      }
+    };
+    window.history.pushState({ modalOpen: true }, '');
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      if (window.history.state && window.history.state.modalOpen) {
+        window.history.back(); // Go back if we pushed a state
+      }
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
