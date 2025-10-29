@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-// This is a new line to force Vercel rebuild
+// Unique comment to force Vercel rebuild and type re-evaluation - v0.1.1
 import { AlertCircle, CheckCircle, Info, X, XCircle, TriangleAlert } from 'lucide-react';
 import { ToastMessage, ToastType } from '@/context/ToastContext';
 
