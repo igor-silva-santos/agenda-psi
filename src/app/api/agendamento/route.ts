@@ -7,6 +7,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
+import { generateProtocolCode } from '@/lib/utils'; // <-- Nova importação
 
 const APPOINTMENT_DURATION_MINUTES = 30;
 
@@ -72,8 +73,9 @@ export async function POST(request: Request) {
     }
 
     const appointmentDateTime = new Date(dataHora);
+    const protocolCode = generateProtocolCode(); // <-- Gerar o código de protocolo
 
-    const { data: agendamento, error: agendamentoError } = await supabase
+    const { data: appointment, error: appointmentError } = await supabase
       .from('Agendamento')
       .insert([
         {
@@ -81,14 +83,15 @@ export async function POST(request: Request) {
           dataHora: appointmentDateTime,
           status: status || 'PENDENTE',
           motivoConsulta: body.motivoConsulta || '',
+          protocolCode: protocolCode, // <-- Adicionar o código de protocolo
         },
       ])
       .select()
       .single();
-    if (agendamentoError || !agendamento) {
+    if (appointmentError || !appointment) {
       return NextResponse.json({
         error: 'Erro ao criar agendamento',
-        details: { userId: user.id, message: agendamentoError?.message }
+        details: { userId: user.id, message: appointmentError?.message }
       }, { status: 500 });
     }
 
@@ -105,7 +108,7 @@ export async function POST(request: Request) {
       }
     }
 
-    if (agendamento.status === 'PENDENTE') {
+    if (appointment.status === 'PENDENTE') {
       const endDateTime = addMinutes(appointmentDateTime, APPOINTMENT_DURATION_MINUTES);
       let googleCalendarEventId = null;
       try {
@@ -127,7 +130,7 @@ export async function POST(request: Request) {
         await supabase
           .from('Agendamento')
           .update({ googleCalendarEventId })
-          .eq('id', agendamento.id);
+          .eq('id', appointment.id);
       } catch (calendarError) {
         console.error('Failed to create Google Calendar event:', calendarError);
       }
@@ -148,7 +151,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json(agendamento);
+    return NextResponse.json(appointment);
   } catch (error) {
     console.error('Error in /api/agendamento POST:', error);
     return NextResponse.json({

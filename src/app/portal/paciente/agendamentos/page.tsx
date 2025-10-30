@@ -5,7 +5,7 @@ import { Agendamento } from '@prisma/client';
 import { format, isToday, isThisWeek, isThisMonth, isFuture, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar, Plus, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
-import AppointmentCard from '@/components/Agendamentos/AppointmentCard';
+import AgendamentoCard from '@/components/Agendamentos/AppointmentCard';
 import AppointmentFilters from '@/components/Agendamentos/AppointmentFilters';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Card from '@/components/ui/Card';
@@ -201,7 +201,7 @@ export default function MeusAgendamentosPage() {
   const proximasConsultas = agendamentos.filter(a => new Date(a.dataHora) >= new Date() && (a.status === 'PENDENTE' || a.status === 'CONFIRMADO' || a.status === 'PRE_AGENDADO'));
   const historicoConsultas = agendamentos.filter(appointment => {
     const appointmentDate = new Date(appointment.dataHora);
-    const appointmentText = `${format(appointmentDate, 'dd/MM/yyyy HH:mm', { locale: ptBR })} ${appointment.status}`.toLowerCase();
+    const appointmentText = `${format(appointmentDate, 'dd/MM/yyyy HH:mm', { locale: ptBR })} ${appointment.status} ${appointment.protocolCode}`.toLowerCase(); // <-- Adicionado appointment.protocolCode
     
     if (searchTerm && !appointmentText.includes(searchTerm.toLowerCase())) {
       return false;
@@ -268,7 +268,18 @@ export default function MeusAgendamentosPage() {
   const patientName = session?.user?.name || 'Paciente';
   const appointmentDate = appointmentForWhatsapp ? format(new Date(appointmentForWhatsapp.dataHora), 'dd/MM/yyyy') : '';
   const appointmentTime = appointmentForWhatsapp ? format(new Date(appointmentForWhatsapp.dataHora), 'HH:mm') : '';
-  const message = `Gostaria de cancelar a consulta do dia ${appointmentDate} às ${appointmentTime} em nome de ${patientName}.`;
+  const protocolCodeForWhatsapp = appointmentForWhatsapp?.protocolCode || ''; // Obter o código de protocolo
+
+  // Lógica para determinar qual mensagem usar
+  let message = '';
+  if (appointmentForWhatsapp && new Date(appointmentForWhatsapp.dataHora).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000) {
+    // Se estiver dentro das 24 horas, usar o protocolo
+    message = `Gostaria de cancelar a consulta com protocolo ${protocolCodeForWhatsapp} em nome de ${patientName}.`;
+  } else {
+    // Caso contrário, usar a data e hora (ou a mensagem padrão se for o caso de cancelamento normal)
+    message = `Gostaria de cancelar a consulta do dia ${appointmentDate} às ${appointmentTime} em nome de ${patientName}.`;
+  }
+
   const whatsappUrl = `https://wa.me/5511949197669?text=${encodeURIComponent(message)}`;
 
   return (
@@ -299,7 +310,7 @@ export default function MeusAgendamentosPage() {
           {proximasConsultas.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {proximasConsultas.map(appointment => (
-                <AppointmentCard
+                <AgendamentoCard
                   key={appointment.id}
                   appointment={appointment}
                   onConfirm={handleConfirmar}
@@ -360,7 +371,7 @@ export default function MeusAgendamentosPage() {
           {historicoConsultas.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {historicoConsultas.map(appointment => (
-                <AppointmentCard
+                <AgendamentoCard
                   key={appointment.id}
                   appointment={appointment}
                 />

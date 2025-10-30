@@ -6,23 +6,24 @@ import { cn } from '@/lib/utils';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 
-interface Appointment {
+interface Agendamento {
   id: string;
   dataHora: string | Date;
   status: string;
+  protocolCode: string; // <-- Adicionado
 }
 
 interface AppointmentCardProps {
-  appointment: Appointment;
+  appointment: Agendamento;
   onConfirm?: (id: string) => void;
   onCancel?: (id: string) => void;
   loading?: boolean;
 }
 
-export default function AppointmentCard({ 
-  appointment, 
-  onConfirm, 
-  onCancel, 
+export default function AgendamentoCard({
+  appointment,
+  onConfirm,
+  onCancel,
   loading = false
 }: AppointmentCardProps) {
   const isAppointmentPast = isPast(new Date(appointment.dataHora));
@@ -73,6 +74,9 @@ export default function AppointmentCard({
                   <p className="text-sm text-gray-600">
                     {format(new Date(appointment.dataHora), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                   </p>
+                  <p className="text-xs text-gray-500">
+                    Protocolo: {appointment.protocolCode} {/* <-- Adicionado */}
+                  </p>
                 </div>
               </div>
               {!shouldHideStatusAndActions &&
@@ -95,8 +99,7 @@ export default function AppointmentCard({
                   {format(new Date(appointment.dataHora), "HH:mm", { locale: ptBR })}
                 </span>
               </div>
-            </div>
-    
+            </div>    
             {/* Actions */}
             {(canConfirm || canCancel) && (
               <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t border-gray-100">

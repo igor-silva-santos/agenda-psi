@@ -21,3 +21,13 @@ export function validateCPF(cpf: string): boolean {
   if (remainder !== parseInt(cpf.substring(10, 11))) return false;
   return true;
 }
+
+export function generateProtocolCode(): string {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  const charactersLength = characters.length;
+  for (let i = 0; i < 8; i++) { // Gerar um código de 8 caracteres
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}

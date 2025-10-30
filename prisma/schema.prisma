@@ -21,35 +21,35 @@ model User {
   image               String?
   address             String?
   emailVerified       DateTime?            @db.Timestamp(6)
-  agendamentos        Agendamento[]
+  appointments        Agendamento[]
   BookableSlot        BookableSlot[]
   passwordResetTokens PasswordResetToken[]
-  lastLogin           DateTime?            @db.Timestamp(6)
+  lastLogin           DateTime?            @db.Timestamptz(6)
   emailNotifications  Boolean              @default(true)
   smsNotifications    Boolean              @default(false)
   whatsappNotifications Boolean            @default(false)
 }
 
 model Agendamento {
-  id                    String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId                Int
-  dataHora              DateTime       @db.Timestamptz(6)
-  status                String
-  motivoConsulta        String
-  googleCalendarEventId String?
-  user                  User           @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  BookableSlot          BookableSlot[]
-  Prontuario            Prontuario[]
-  Recomendacao          Recomendacao[]
+  id             String    @id @default(uuid()) @db.Uuid // Adicionado @db.Uuid
+  dataHora       DateTime // Substituído date e time por dataHora
+  status         String
+  protocolCode   String    @unique @default(cuid())
+  patientId      Int
+  user           User      @relation(fields: [patientId], references: [id])
+  bookableSlotId String?   @unique
+  bookableSlot   BookableSlot? @relation(fields: [bookableSlotId], references: [id])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 model BookableSlot {
-  id            Int          @id @default(autoincrement())
+  id            String       @id @default(uuid())
   dataHora      DateTime     @db.Timestamptz(6)
   disponivel    Boolean
   userId        Int?
-  agendamentoId String?      @db.Uuid
-  Agendamento   Agendamento? @relation(fields: [agendamentoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  agendamentoId String?      @unique
+  Agendamento   Agendamento? // Removido fields e references
   User          User?        @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
@@ -79,16 +79,14 @@ model DisponibilidadeDiaria {
 
 model Prontuario {
   id            Int         @id @default(autoincrement())
-  agendamentoId String      @db.Uuid
+  agendamentoId String      @unique // Removido @db.Uuid
   texto         String
-  Agendamento   Agendamento @relation(fields: [agendamentoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Recomendacao {
   id            Int         @id @default(autoincrement())
-  agendamentoId String      @db.Uuid
+  agendamentoId String      @unique // Removido @db.Uuid
   texto         String
-  Agendamento   Agendamento @relation(fields: [agendamentoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model PasswordResetToken {

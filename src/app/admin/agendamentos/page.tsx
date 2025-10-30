@@ -9,8 +9,9 @@ import { ptBR } from 'date-fns/locale';
 import { Calendar, Clock, User as UserIcon, CheckCircle2, AlertCircle, Hourglass, Trash2, Edit, MoreVertical, Search, Loader2 } from 'lucide-react';
 
 // Tipagem para o agendamento com dados do paciente
-interface AgendamentoComPaciente extends Agendamento {
+interface AppointmentComPaciente extends Agendamento {
   user: User;
+  protocolCode: string; // <-- Adicionado
 }
 
 // Componente para o chip de status
@@ -31,7 +32,7 @@ const StatusChip = ({ status }: { status: string }) => {
 };
 
 export default function AdminAgendamentosPage() {
-  const [agendamentos, setAgendamentos] = useState<AgendamentoComPaciente[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentComPaciente[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('');
@@ -54,7 +55,7 @@ export default function AdminAgendamentosPage() {
       
       const data = await response.json();
       const formattedData = data.map((item: any) => ({ ...item, user: item.paciente || item.user }));
-      setAgendamentos(formattedData);
+      setAppointments(formattedData);
 
     } catch (err: any) {
       setError(err.message);
@@ -94,8 +95,9 @@ export default function AdminAgendamentosPage() {
     }
   };
 
-  const filteredAgendamentos = agendamentos.filter(ag => 
-    ag.user.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredAppointments = appointments.filter(appointment => 
+    appointment.user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    appointment.protocolCode.toLowerCase().includes(searchTerm.toLowerCase()) // <-- Adicionado filtro por protocolCode
   );
 
   return (
@@ -150,6 +152,7 @@ export default function AdminAgendamentosPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Protocolo</th> {/* <-- Nova coluna */}
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data & Hora</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Motivo da Consulta</th>
                   <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -158,36 +161,39 @@ export default function AdminAgendamentosPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {loading ? (
-                  <tr><td colSpan={5} className="text-center py-10"><Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto" /></td></tr>
+                  <tr><td colSpan={6} className="text-center py-10"><Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto" /></td></tr>
                 ) : error ? (
-                  <tr><td colSpan={5} className="text-center py-10 text-red-500">{error}</td></tr>
-                ) : filteredAgendamentos.length > 0 ? (
-                  filteredAgendamentos.map((agendamento) => (
-                    <tr key={agendamento.id} className="hover:bg-gray-50">
+                  <tr><td colSpan={6} className="text-center py-10 text-red-500">{error}</td></tr>
+                ) : filteredAppointments.length > 0 ? (
+                  filteredAppointments.map((appointment) => (
+                    <tr key={appointment.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0 bg-gray-200 rounded-full flex items-center justify-center">
                             <UserIcon className="h-6 w-6 text-gray-500" />
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{agendamento.user.name}</div>
-                            <div className="text-sm text-gray-500">{agendamento.user.email}</div>
+                            <div className="text-sm font-medium text-gray-900">{appointment.user.name}</div>
+                            <div className="text-sm text-gray-500">{appointment.user.email}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {format(new Date(agendamento.dataHora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        {appointment.protocolCode} {/* <-- Exibindo o protocolo */}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 max-w-xs truncate" title={agendamento.motivoConsulta || ''}>
-                        {agendamento.motivoConsulta || <span className="italic text-gray-400">Não informado</span>}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {format(new Date(appointment.dataHora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 max-w-xs truncate" title={appointment.motivoConsulta || ''}>
+                        {appointment.motivoConsulta || <span className="italic text-gray-400">Não informado</span>}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <StatusChip status={agendamento.status} />
+                        <StatusChip status={appointment.status} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <select
-                          value={agendamento.status}
-                          onChange={(e) => handleStatusChange(agendamento.id, e.target.value)}
+                          value={appointment.status}
+                          onChange={(e) => handleStatusChange(appointment.id, e.target.value)}
                           className="mr-2 py-1 px-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         >
                           <option value="PENDENTE">Pendente</option>
@@ -196,7 +202,7 @@ export default function AdminAgendamentosPage() {
                           <option value="REALIZADO">Realizado</option>
                         </select>
                         <button
-                          onClick={() => handleDelete(agendamento.id)}
+                          onClick={() => handleDelete(appointment.id)}
                           className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-100"
                           title="Deletar Agendamento"
                         >
@@ -206,7 +212,7 @@ export default function AdminAgendamentosPage() {
                     </tr>
                   ))
                 ) : (
-                  <tr><td colSpan={5} className="text-center py-10">Nenhum agendamento encontrado.</td></tr>
+                  <tr><td colSpan={6} className="text-center py-10">Nenhum agendamento encontrado.</td></tr>
                 )}
               </tbody>
             </table>
