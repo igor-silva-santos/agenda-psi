@@ -11,7 +11,8 @@ import { Calendar, Clock, User as UserIcon, CheckCircle2, AlertCircle, Hourglass
 // Tipagem para o agendamento com dados do paciente
 interface AppointmentComPaciente extends Agendamento {
   user: User;
-  protocolCode: string; // <-- Adicionado
+  protocolCode: string;
+  motivoConsulta?: string | null;
 }
 
 // Componente para o chip de status
