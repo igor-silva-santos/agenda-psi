@@ -6,7 +6,15 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   return (
     <SessionProvider session={{
       expires: '1',
-      user: { email: 'test@example.com', name: 'Test User', id: '1' }
+      accessToken: 'test-token',
+      user: {
+        email: 'test@example.com',
+        name: 'Test User',
+        id: '1',
+        role: 'USER',
+        cpf: '123.456.789-00',
+        telefone: '11999999999'
+      }
     }}>
       {children}
     </SessionProvider>
