@@ -180,7 +180,7 @@ export default function AdminBookableSlotManager() {
                       {!slot.disponivel && <span className="ml-2 text-red-500 font-medium">(Agendado)</span>}
                     </span>
                     <button
-                      onClick={() => handleDeleteSlot(slot.id)}
+                      onClick={() => handleDeleteSlot(parseInt(slot.id))}
                       className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600 flex items-center justify-center"
                     >
                       <Trash2 size={18} />

@@ -34,6 +34,7 @@ model Agendamento {
   id             String    @id @default(uuid()) @db.Uuid // Adicionado @db.Uuid
   dataHora       DateTime // Substituído date e time por dataHora
   status         String
+  motivoConsulta String?
   protocolCode   String    @unique @default(cuid())
   patientId      Int
   user           User      @relation(fields: [patientId], references: [id])
