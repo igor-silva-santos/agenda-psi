@@ -89,7 +89,7 @@ export default function ProfilePhotoUpload({
         <h3 className="text-lg font-semibold text-gray-900">Foto de Perfil</h3>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
         <div className="relative">
           <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
             {previewUrl ? (
@@ -115,7 +115,7 @@ export default function ProfilePhotoUpload({
           )}
         </div>
 
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 space-y-3 w-full sm:w-auto">
           <input
             ref={fileInputRef}
             type="file"
@@ -128,7 +128,7 @@ export default function ProfilePhotoUpload({
           <label
             htmlFor="photo-upload"
             className={cn(
-              'inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500',
+              'inline-flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500',
               isUploading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
             )}
           >
@@ -141,7 +141,7 @@ export default function ProfilePhotoUpload({
               variant="outline"
               size="sm"
               onClick={handleRemovePhoto}
-              className="text-red-600 hover:text-red-700"
+              className="text-red-600 hover:text-red-700 w-full sm:w-auto"
               disabled={isUploading}
             >
               <X className="h-4 w-4 mr-1" />

@@ -29,7 +29,7 @@ export default function PreferencesSection({
 
       <div className="space-y-6">
         {/* Notificações */}
-        <div className="bg-gray-50 rounded-lg p-6">
+        <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
           <h4 className="text-md font-medium text-gray-900 mb-4">Notificações</h4>
           <div className="space-y-4">
             <label className="flex items-center gap-3 cursor-pointer">
@@ -63,7 +63,7 @@ export default function PreferencesSection({
 
 
         {/* Configurações de Conta */}
-        <div className="bg-gray-50 rounded-lg p-6">
+        <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
             <Eye className="h-4 w-4 text-gray-600" />
             <h4 className="text-md font-medium text-gray-900">Configurações de Conta</h4>
@@ -90,7 +90,7 @@ export default function PreferencesSection({
         </div>
 
         {/* Idioma e Região */}
-        <div className="bg-gray-50 rounded-lg p-6">
+        <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
             <Globe className="h-4 w-4 text-gray-600" />
             <h4 className="text-md font-medium text-gray-900">Idioma e Região</h4>

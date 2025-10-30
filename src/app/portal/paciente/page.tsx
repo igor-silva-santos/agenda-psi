@@ -142,18 +142,18 @@ export default function PacienteDashboard() {
       <div> {/* Adicionado um div para envolver o card */}
         {proximaConsulta ? (
           <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-            <div className="flex items-start justify-between">
+            <div className="flex flex-wrap items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <Calendar className="h-5 w-5 text-blue-600" />
-                  <h2 className="text-lg font-semibold text-gray-900">Próxima Consulta</h2>
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900">Próxima Consulta</h2>
                   <Badge
                     variant={proximaConsulta.status === 'CONFIRMADO' ? 'success' : proximaConsulta.status === 'PENDENTE' ? 'warning' : 'default'}
                   >
                     {proximaConsulta.status}
                   </Badge>
                 </div>
-                <div className="space-y-2 text-gray-700">
+                <div className="space-y-2 text-gray-700 text-sm sm:text-base">
                   <p className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-gray-500" />
                     {format(new Date(proximaConsulta.dataHora), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
@@ -166,7 +166,7 @@ export default function PacienteDashboard() {
               </div>
               <Link 
                 href="/portal/paciente/agendamentos"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mt-4 sm:mt-0"
               >
                 Ver detalhes
                 <ArrowRight className="h-4 w-4" />
@@ -241,16 +241,16 @@ export default function PacienteDashboard() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Atividade Recente</h3>
           <div className="space-y-3">
             {agendamentos.slice(0, 3).map((agendamento) => (
-              <div key={agendamento.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+              <div key={agendamento.id} className="flex flex-wrap items-center justify-between p-3 rounded-lg bg-gray-50">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <Calendar className="h-4 w-4 text-blue-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-gray-900 text-sm sm:text-base">
                       Consulta em {format(new Date(agendamento.dataHora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs sm:text-sm text-gray-600">
                       Status: <Badge 
                         variant={agendamento.status === 'CONFIRMADO' ? 'success' : agendamento.status === 'PENDENTE' ? 'warning' : 'danger'}
                         size="sm"
@@ -262,7 +262,7 @@ export default function PacienteDashboard() {
                 </div>
                 <Link 
                   href={`/portal/paciente/agendamentos`}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium mt-2 sm:mt-0"
                 >
                   Ver detalhes
                 </Link>

@@ -12,7 +12,6 @@ import { Calendar, Clock, User as UserIcon, CheckCircle2, AlertCircle, Hourglass
 interface AppointmentComPaciente extends Agendamento {
   user: User;
   protocolCode: string;
-  motivoConsulta?: string | null;
 }
 
 // Componente para o chip de status

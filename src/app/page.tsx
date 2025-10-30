@@ -59,24 +59,24 @@ export default function Home() {
     <div className="min-h-screen bg-blue-50">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-3 cursor-pointer">
-              <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-19 h-20" />
-              <h1 className="text-2xl font-bold text-gray-800">{config.localName}</h1>
+        <div className="max-w-6xl mx-auto px-4 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between">
+            <Link href="/" className="flex items-center space-x-2 sm:space-x-3 cursor-pointer">
+              <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-12 h-12 sm:w-19 sm:h-20" />
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{config.localName}</h1>
             </Link>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4 mt-4 sm:mt-0">
               <button
                 onClick={() => setShowLoginModal(true)}
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                className="text-gray-700 hover:text-blue-600 transition-colors font-medium text-sm sm:text-base"
               >
                 Entrar
               </button>
               <button
                 onClick={() => setShowAgendamento(true)}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all flex items-center space-x-2 shadow-lg transform hover:scale-105"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 sm:px-8 sm:py-4 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all flex items-center space-x-2 shadow-lg transform hover:scale-105 text-sm sm:text-base"
               >
-                <Calendar className="h-5 w-5" />
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="font-medium">Agendar Consulta</span>
               </button>
             </div>
@@ -89,10 +89,10 @@ export default function Home() {
         {/* Hero Section */}
         <section className="py-16 px-4">
           <div className="max-w-6xl mx-auto text-center">
-            <h2 className="text-4xl font-bold text-gray-800 mb-6">
+            <h2 className="text-2xl sm:text-4xl font-bold text-gray-800 mb-6">
               Cuidando da sua saúde mental com acolhimento e profissionalismo
             </h2>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-base sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Oferecemos um espaço seguro e acolhedor para você trabalhar suas questões emocionais 
               e desenvolver ferramentas para uma vida mais equilibrada e saudável.
             </p>

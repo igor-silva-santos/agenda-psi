@@ -64,23 +64,23 @@ export default function AgendamentoCard({
             isAppointmentPast && 'opacity-75',
             !isAppointmentPast && 'hover:shadow-lg hover:border-gray-300'
           )}>
-            <div className="flex items-start justify-between mb-4">
+            <div className="flex flex-wrap items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 {shouldHideStatusAndActions ? <Calendar className="h-5 w-5 text-gray-600" /> : getStatusIcon(appointment.status)}
                 <div>
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
                     Consulta
                   </h3>
                   <p className="text-sm text-gray-600">
                     {format(new Date(appointment.dataHora), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs sm:text-sm text-gray-500">
                     Protocolo: {appointment.protocolCode} {/* <-- Adicionado */}
                   </p>
                 </div>
               </div>
               {!shouldHideStatusAndActions &&
-                <Badge variant={getStatusVariant(appointment.status)}>
+                <Badge variant={getStatusVariant(appointment.status)} className="mt-2 sm:mt-0">
                   {appointment.status}
                 </Badge>
               }

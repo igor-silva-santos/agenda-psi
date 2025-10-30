@@ -43,7 +43,7 @@ export default function AppointmentFilters({
   const hasActiveFilters = searchTerm || statusFilter || dateFilter;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 mb-6">
       <div className="flex items-center gap-2 mb-4">
         <Filter className="h-5 w-5 text-gray-600" />
         <h3 className="font-semibold text-gray-900">Filtros</h3>
