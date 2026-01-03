@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, X, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -56,6 +56,7 @@ interface SignUpFormType {
 
 interface SignUpFormProps {
   onClose?: () => void; // Optional prop for modal close
+  onOpenLogin?: () => void; // New prop to open login modal
 }
 
 import { useRouter } from 'next/navigation';
@@ -85,7 +86,7 @@ function normalizarDataNascimento(input: string): string {
   return '';
 }
 
-export default function SignUpForm({ onClose }: SignUpFormProps) {
+export default function SignUpForm({ onClose, onOpenLogin }: SignUpFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -138,6 +139,8 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
     }
   }, [passwordValue]);
 
+  const { data: session, status } = useSession();
+
   useErrorScrollToTop(serverError);
 
   const onSubmit: SubmitHandler<SignUpFormType> = async (data) => {
@@ -155,30 +158,30 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
       dataNascimentoISO = `${dataNascimentoISO}T00:00:00.000Z`;
     }
 
-    try {
-      const result = await signIn('credentials', {
-        email: data.email,
-        password: data.password,
-        name: data.name,
-        cpf: data.cpf,
-        dataNascimento: dataNascimentoISO,
-        telefone: data.telefone,
-        isSignUp: 'true',
-        redirect: false
-      });
+    const result = await signIn('credentials', {
+      email: data.email,
+      password: data.password,
+      name: data.name,
+      cpf: data.cpf,
+      dataNascimento: dataNascimentoISO,
+      telefone: data.telefone,
+      isSignUp: 'true',
+      redirect: false
+    });
 
-      if (result?.error) {
-        setServerError("Erro ao criar conta. Verifique os dados e tente novamente.");
-      } else {
-        router.push("/portal/paciente"); // Redirect to patient portal after successful signup
-        if (onClose) onClose();
-      }
-    } catch (_error) {
-      setServerError("Erro interno. Tente novamente.");
-    } finally {
-      setIsLoading(false);
+    if (result?.error) {
+      setServerError(result.error || "Erro ao criar conta. Verifique os dados e tente novamente.");
     }
+    // O redirecionamento será tratado pelo useEffect abaixo
+    setIsLoading(false);
   };
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/portal/paciente");
+      if (onClose) onClose();
+    }
+  }, [status, router, onClose]);
 
   const handleGoogleSignUp = async () => {
     setIsLoading(true);
@@ -224,7 +227,6 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Criar Conta</h1>
         <p className="text-gray-600">Crie sua conta para agendar consultas</p>
       </div>
-
       <button onClick={handleGoogleSignUp} disabled={isLoading} className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors mb-6 disabled:opacity-50 text-gray-900">
         <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
         Continuar com Google
@@ -235,7 +237,28 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
         <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">ou</span></div>
       </div>
 
-      {serverError && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{serverError}</div>}
+      {serverError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          {serverError === "EMAIL_ALREADY_IN_USE" ? (
+            <>
+              Este e-mail já está em uso. Deseja{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  if (onClose) onClose();
+                  if (onOpenLogin) onOpenLogin();
+                }}
+                className="text-blue-600 hover:text-blue-700 font-medium underline"
+              >
+                fazer login
+              </button>
+              ?
+            </>
+          ) : (
+            serverError
+          )}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
@@ -261,6 +284,7 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
           </label>
           <input
             type="text"
+            autoComplete="one-time-code"
             value={displayCpf}
             onChange={(e) => {
               const cleaned = cleanCpf(e.target.value);
@@ -288,22 +312,29 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
             <div className="mt-2">
               {passwordStrength && passwordStrength.score !== undefined && (
                 <>
-                  <div className="h-2 rounded-full" style={{ width: `${(passwordStrength.score + 1) * 20}%`, backgroundColor: getStrengthColor(passwordStrength.score).replace('text-','bg-') }}></div>
+                  <div className="h-2 rounded-full bg-gray-200">
+                    <div 
+                      className="h-2 rounded-full transition-all" 
+                      style={{ 
+                        width: `${(passwordStrength.score + 1) * 20}%`, 
+                        backgroundColor: passwordStrength.score === 0 ? '#ef4444' : passwordStrength.score === 1 ? '#f97316' : passwordStrength.score === 2 ? '#facc15' : '#22c55e'
+                      }}
+                    ></div>
+                  </div>
                   <p className="text-sm mt-1 text-gray-900">
                     Força da senha: <span className={`font-bold ${getStrengthColor(passwordStrength.score)}`}>{getStrengthText(passwordStrength.score)}</span>
                   </p>
                 </>
               )}
               <ul className="text-sm text-gray-600 mt-2 list-disc list-inside">
-                <li>Pelo menos 6 caracteres</li>
-                <li>Incluir letras maiúsculas</li>
-                <li>Incluir letras minúsculas</li>
-                <li>Incluir números</li>
-                <li>Incluir caracteres especiais (!@#$%^&*)</li>
+                <li className={/./.test(passwordValue) && passwordValue.length >= 6 ? 'text-green-600' : ''}>Pelo menos 6 caracteres</li>
+                <li className={/[A-Z]/.test(passwordValue) ? 'text-green-600' : ''}>Incluir letras maiúsculas</li>
+                <li className={/[a-z]/.test(passwordValue) ? 'text-green-600' : ''}>Incluir letras minúsculas</li>
+                <li className={/[0-9]/.test(passwordValue) ? 'text-green-600' : ''}>Incluir números</li>
+                <li className={/[^a-zA-Z0-9]/.test(passwordValue) ? 'text-green-600' : ''}>Incluir caracteres especiais (!@#$%^&*)</li>
               </ul>
             </div>
           )}
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
           {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
         </div>
         <div>
@@ -373,7 +404,7 @@ export default function SignUpForm({ onClose }: SignUpFormProps) {
           />
           {errors.telefone && <p className="text-red-500 text-xs font-semibold mt-1">{errors.telefone.message as string}</p>}
         </div>
-        <button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 font-medium flex items-center justify-center gap-2">
+        <button type="submit" disabled={isLoading || !passwordStrength || passwordStrength.score < 2} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 font-medium flex items-center justify-center gap-2">
           {isLoading && <Loader2 className="h-5 w-5 animate-spin" />}
           {isLoading ? 'Criando conta...' : 'Criar conta'}
         </button>

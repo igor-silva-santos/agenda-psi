@@ -79,30 +79,33 @@ export default function CombinedLoginForm({ onOpenSignUp, error: initialError }:
 
     if (result?.error) {
       setError(result.error);
-    } else if (result?.ok) {
-      // Buscar a sessão atualizada para saber o role
-      const sessionRes = await fetch('/api/auth/session');
-      const session = await sessionRes.json();
-      const targetUrl = session?.user?.role === 'ADMIN' ? '/admin' : '/portal/paciente';
-      console.log('Login bem-sucedido, redirecionando para:', targetUrl);
-      window.location.href = targetUrl;
     }
+    // O redirecionamento será tratado pelo useEffect abaixo
     setLoading(false);
   };
 
-  // Remover o useEffect de redirecionamento automático
-  // useEffect(() => {
-  //   if (status === "authenticated") {
-  //     const targetUrl = session.user.role === "ADMIN" ? "/admin" : "/portal/paciente";
-  //     router.push(targetUrl);
-  //   }
-  // }, [status, session, router]);
+  useEffect(() => {
+    if (status === "authenticated") {
+      const targetUrl = session.user.role === "ADMIN" ? "/admin" : "/portal/paciente";
+      router.push(targetUrl);
+    }
+  }, [status, session, router]);
 
   useEffect(() => {
-    if (initialError === "access_denied") {
-      setError("Você não tem permissão para acessar esta página.");
-    } else if (initialError === "unauthenticated") {
-      setError("Faça login para acessar esta página.");
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorParam = urlParams.get('error');
+    if (errorParam) {
+        if (errorParam === "CredentialsSignin") {
+            setError("Credenciais inválidas. Verifique seu email/CPF e senha.");
+        } else {
+            setError("Ocorreu um erro durante o login. Tente novamente.");
+        }
+    } else if (initialError) {
+        if (initialError === "access_denied") {
+            setError("Você não tem permissão para acessar esta página.");
+        } else if (initialError === "unauthenticated") {
+            setError("Faça login para acessar esta página.");
+        }
     }
   }, [initialError]);
 

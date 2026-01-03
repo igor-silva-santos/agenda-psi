@@ -3,27 +3,28 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id                  Int                  @id @default(autoincrement())
+  id                  String               @id @default(uuid())
   name                String
   email               String               @unique
   cpf                 String               @unique
   telefone            String
   dataNascimento      DateTime             @db.Timestamptz(6)
-  password            String
+  password            String? // Senha agora é opcional, para logins sociais
   role                String
   googleId            String?
   currentSessionId    String?
   image               String?
-  address             String?
-  emailVerified       DateTime?            @db.Timestamp(6)
+  emailVerified       DateTime?
   appointments        Agendamento[]
   BookableSlot        BookableSlot[]
   passwordResetTokens PasswordResetToken[]
+  verificationTokens  VerificationToken[] // Relação com tokens de verificação
   lastLogin           DateTime?            @db.Timestamptz(6)
   emailNotifications  Boolean              @default(true)
   smsNotifications    Boolean              @default(false)
@@ -31,12 +32,12 @@ model User {
 }
 
 model Agendamento {
-  id             String    @id @default(uuid()) @db.Uuid // Adicionado @db.Uuid
-  dataHora       DateTime // Substituído date e time por dataHora
+  id             String    @id @default(uuid()) @db.Uuid
+  dataHora       DateTime
   status         String
   motivoConsulta String?
   protocolCode   String    @unique @default(cuid())
-  patientId      Int
+  patientId      String
   user           User      @relation(fields: [patientId], references: [id])
   bookableSlotId String?   @unique
   bookableSlot   BookableSlot? @relation(fields: [bookableSlotId], references: [id])
@@ -48,9 +49,9 @@ model BookableSlot {
   id            String       @id @default(uuid())
   dataHora      DateTime     @db.Timestamptz(6)
   disponivel    Boolean
-  userId        Int?
+  userId        String?
   agendamentoId String?      @unique
-  Agendamento   Agendamento? // Removido fields e references
+  Agendamento   Agendamento?
   User          User?        @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
@@ -80,13 +81,13 @@ model DisponibilidadeDiaria {
 
 model Prontuario {
   id            Int         @id @default(autoincrement())
-  agendamentoId String      @unique // Removido @db.Uuid
+  agendamentoId String      @unique
   texto         String
 }
 
 model Recomendacao {
   id            Int         @id @default(autoincrement())
-  agendamentoId String      @unique // Removido @db.Uuid
+  agendamentoId String      @unique
   texto         String
 }
 
@@ -95,6 +96,16 @@ model PasswordResetToken {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-  userId    Int
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Novo model para tokens de verificação de email
+model VerificationToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

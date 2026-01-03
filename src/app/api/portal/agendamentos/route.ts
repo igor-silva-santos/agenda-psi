@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { createClient } from '@supabase/supabase-js';
 import { getToken } from 'next-auth/jwt';
 import { z } from 'zod';
 import { sendEmail } from '@/lib/email';
@@ -13,18 +11,31 @@ export async function GET(request: Request) {
   try {
     console.log('[PORTAL-AGENDAMENTOS][GET] Início da requisição');
     const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
-    if (!token || (token.role !== 'PACIENTE' && token.role !== 'ADMIN')) {
-      console.warn('[PORTAL-AGENDAMENTOS][GET] Token ausente ou usuário sem permissão');
-      return NextResponse.json({ 
+
+    if (!token || !token.id || (token.role !== 'PACIENTE' && token.role !== 'ADMIN')) {
+      console.warn('[PORTAL-AGENDAMENTOS][GET] Token ausente, ID ausente ou usuário sem permissão');
+      return NextResponse.json({
         error: 'Unauthorized',
-        details: { reason: 'Token ausente ou usuário sem permissão' }
+        details: { reason: 'Token inválido ou usuário sem permissão' }
       }, { status: 401 });
     }
-    
-    const { data: agendamentos, error: agendamentoError } = await supabase
+
+    // DEBUG: Log das variáveis de ambiente
+    console.log('[DEBUG] SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('[DEBUG] SERVICE_ROLE_KEY is set:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+
+    // Criar um cliente Supabase com a chave de serviço para esta requisição específica
+    // Isso bypassa a RLS, então a filtragem manual pelo userId é CRÍTICA para a segurança.
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data: agendamentos, error: agendamentoError } = await supabaseAdmin
       .from('Agendamento')
       .select('*')
-      .eq('userId', token.id)
+      .eq('patientId', token.id) // APLICAÇÃO MANUAL DA SEGURANÇA
       .order('dataHora', { ascending: true });
 
     if (agendamentoError) {
@@ -34,20 +45,19 @@ export async function GET(request: Request) {
     return NextResponse.json(agendamentos);
   } catch (error) {
     console.error('[PORTAL-AGENDAMENTOS][GET] ERRO:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Erro interno ao buscar agendamentos do paciente',
       details: { message: error instanceof Error ? error.message : 'Erro desconhecido' }
     }, { status: 500 });
   }
-}
-const portalAgendamentoSchema = z.object({
+}const portalAgendamentoSchema = z.object({
   slotId: z.union([z.string(), z.number()]).transform(val => String(val)),
   motivoConsulta: z.string().optional(),
 });
 
 export async function POST(request: Request) {
   const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
-  if (!token || (token.role !== 'PACIENTE' && token.role !== 'ADMIN')) {
+  if (!token || !token.id || (token.role !== 'PACIENTE' && token.role !== 'ADMIN')) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
   }
 
@@ -62,13 +72,19 @@ export async function POST(request: Request) {
     const { slotId, motivoConsulta } = validation.data;
     const slotDateTime = new Date(parseInt(slotId));
 
-    const { data: agendamento, error: agendamentoError } = await supabase
+    // Criar um cliente Supabase com a chave de serviço para esta requisição
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data: agendamento, error: agendamentoError } = await supabaseAdmin
       .from('Agendamento')
       .insert([
         {
           dataHora: slotDateTime.toISOString(),
           status: 'PENDENTE',
-          userId: token.id,
+          patientId: token.id, // Segurança: Garante que o agendamento seja para o usuário do token
           motivoConsulta: motivoConsulta || 'Agendamento via portal do paciente',
         }
       ])

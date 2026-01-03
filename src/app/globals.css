@@ -3,6 +3,10 @@
 @tailwind utilities;
 @import 'react-day-picker/dist/style.css';
 
+html {
+  font-size: 110%;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

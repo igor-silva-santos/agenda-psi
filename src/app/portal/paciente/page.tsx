@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Agendamento } from '@prisma/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -15,6 +17,7 @@ export default function PacienteDashboard() {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchAgendamentos = async () => {
@@ -22,22 +25,28 @@ export default function PacienteDashboard() {
       setError(null);
       try {
         const response = await fetch('/api/portal/agendamentos');
-        if (response.status === 401) {
-          setError('Sessão expirada ou não autenticado. Faça login novamente.');
-          setLoading(false);
-          return;
+        
+        if (!response.ok) {
+          // Se a resposta não for OK, consideramos a sessão inválida.
+          throw new Error('Falha ao buscar dados, sessão pode estar inválida.');
         }
-        if (!response.ok) throw new Error('Falha ao buscar dados');
+
         const data = await response.json();
         setAgendamentos(data);
       } catch (err: any) {
-        setError('Erro ao buscar dados');
+        console.error("Erro no fetchAgendamentos, deslogando:", err);
+        // Desloga o usuário e redireciona para o login com uma mensagem de erro.
+        await signOut({ redirect: false });
+        router.replace('/conta/login?error=session_invalid');
       } finally {
-        setLoading(false);
+        // Apenas para de carregar se não houver um erro que cause redirecionamento
+        if (!error) {
+          setLoading(false);
+        }
       }
     };
     fetchAgendamentos();
-  }, []);
+  }, [router]);
 
   const proximaConsulta = (agendamentos || [])
     .filter(a => new Date(a.dataHora) > new Date() && (a.status === 'CONFIRMADO' || a.status === 'PENDENTE' || a.status === 'PRE_AGENDADO'))

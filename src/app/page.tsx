@@ -18,7 +18,7 @@ const config = {
   crp: "06/224798",
   contact: {
     phone: "(11) 99471-6143 | (11) 2748-8973",
-    email: "janraf.gio@hotmail.com",
+    email: "janflowers.fred@hotmail.com",
     address: "Rua das Flores, 123<br />São Paulo - SP",
   },
   
@@ -33,6 +33,11 @@ export default function Home() {
   const handleOpenSignUp = () => {
     setShowLoginModal(false); // Close login modal
     setShowSignUpModal(true); // Open signup modal
+  };
+
+  const handleOpenLogin = () => {
+    setShowSignUpModal(false); // Close signup modal
+    setShowLoginModal(true);  // Open login modal
   };
 
   const handleCloseSignUp = () => {
@@ -55,20 +60,28 @@ export default function Home() {
     };
   }, [showAgendamento, showLoginModal, showSignUpModal]);
 
+  const handleScrollToTop = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   return (
     <div className="min-h-screen bg-blue-50">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 py-4 sm:py-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2 sm:space-x-3 cursor-pointer">
-              <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-12 h-12 sm:w-19 sm:h-20" />
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{config.localName}</h1>
+        <div className="max-w-6xl mx-auto px-2 py-2 sm:py-3">
+          <div className="flex items-center justify-between">
+            <Link href="/" onClick={handleScrollToTop} className="flex items-center space-x-2 sm:space-x-3 cursor-pointer">
+              <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="h-20 w-auto object-contain" />
+              <h1 className="hidden sm:block text-xl sm:text-2xl font-bold text-gray-800">{config.localName}</h1>
             </Link>
-            <div className="flex items-center space-x-2 sm:space-x-4 mt-4 sm:mt-0">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <button
                 onClick={() => setShowLoginModal(true)}
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium text-sm sm:text-base"
+                className="text-gray-900 hover:text-blue-700 transition-colors font-medium text-sm sm:text-base"
               >
                 Entrar
               </button>
@@ -169,7 +182,7 @@ export default function Home() {
       )}
 
       <LoginModal showModal={showLoginModal} onClose={() => setShowLoginModal(false)} onOpenSignUp={handleOpenSignUp} />
-      <SignUpModal showModal={showSignUpModal} onClose={handleCloseSignUp} />
+      <SignUpModal showModal={showSignUpModal} onClose={handleCloseSignUp} onOpenLogin={handleOpenLogin} />
     </div>
   );
 }

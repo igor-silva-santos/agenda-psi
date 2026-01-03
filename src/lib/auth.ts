@@ -41,157 +41,331 @@ export const authOptions: AuthOptions = {
 
       },
 
-      async authorize(credentials) {
+            async authorize(credentials) {
 
-        if (credentials?.isSignUp === 'true') {
+              if (credentials?.isSignUp === 'true') {
 
-          if (!credentials.email || !credentials.password || !credentials.name || !credentials.cpf) {
+                // Lógica de SignUp
 
-            throw new Error("Dados de registro incompletos.");
+                if (!credentials.email || !credentials.password || !credentials.name || !credentials.cpf) {
 
-          }
+                  throw new Error("Dados de registro incompletos.");
 
+                }
 
+      
 
-          const hashedPassword = await bcrypt.hash(credentials.password, 10);
+                // INÍCIO DA CORREÇÃO: Verificar se o usuário já existe na tabela pública
 
+                const { data: existingUser, error: existingUserError } = await supabase
 
+                  .from('User')
 
-          const { data: newUser, error: createError } = await supabase
+                  .select('id')
 
-            .from('User')
+                  .eq('email', credentials.email)
 
-            .insert([
+                  .maybeSingle();
 
-              {
+      
 
-                email: credentials.email,
+                if (existingUserError) {
 
-                password: hashedPassword,
+                  console.error("Erro ao verificar usuário existente:", existingUserError);
 
-                name: credentials.name,
+                  throw new Error("Erro no servidor. Tente novamente mais tarde.");
 
-                cpf: credentials.cpf,
+                }
 
-                role: "PACIENTE",
+      
 
-                dataNascimento: credentials.dataNascimento,
+                          if (existingUser) {
 
-                telefone: credentials.telefone,
+      
 
-                currentSessionId: randomUUID(),
+                            throw new Error("EMAIL_ALREADY_IN_USE");
 
-              }
+      
 
-            ])
+                          }
 
-            .select()
+      
 
-            .single();
+                          // FIM DA CORREÇÃO
 
+      
 
+                
 
-          if (createError) {
+      
 
-            if (createError.code === '23505' && createError.message.includes('email')) {
+                          const { data, error: signUpError } = await supabase.auth.signUp({
 
-              throw new Error("Este e-mail já está em uso.");
+      
 
-            } else if (createError.code === '23505' && createError.message.includes('cpf')) {
+                            email: credentials.email,
 
-              throw new Error("Este CPF já está em uso.");
+      
 
-            }
+                            password: credentials.password,
 
-            throw new Error("Erro ao criar conta. Tente novamente. [" + createError.message + "]");
+      
 
-          }
+                            options: {
 
-          return { ...newUser, id: String(newUser.id) } as any;
+      
 
-        } else {
+                              data: {
 
-          if (!credentials?.password) {
+      
 
-            throw new Error("Senha não fornecida.");
+                                name: credentials.name,
 
-          }
+      
 
+                                cpf: credentials.cpf,
 
+      
 
-          let userQuery = supabase.from('User').select('*');
+                                role: "PACIENTE",
 
+      
 
+                                dataNascimento: credentials.dataNascimento,
 
-          if (credentials.email) {
+      
 
-            userQuery = userQuery.eq('email', credentials.email);
+                                telefone: credentials.telefone,
 
-          }
+      
 
-          else if (credentials.cpf) {
+                              },
 
-            userQuery = userQuery.eq('cpf', credentials.cpf);
+      
 
-          }
+                            },
 
-          else {
+      
 
-            throw new Error("Email ou CPF é obrigatório.");
+                          });
 
-          }
+      
 
+                
 
+      
 
-          const { data: user, error } = await userQuery.maybeSingle();
+                          if (signUpError) {
 
+      
 
+                            // Tratar erro de usuário já existente no Supabase Auth também
 
-          if (error) {
+      
 
-            throw new Error("Erro ao buscar usuário: " + error.message);
+                            if (signUpError.message.includes('User already registered')) {
 
-          }
+      
 
-          if (!user) {
+                                 throw new Error("EMAIL_ALREADY_IN_USE");
 
-            throw new Error("Nenhuma conta encontrada com os dados fornecidos.");
+      
 
-          }
+                            }
 
-          if (!user.password) {
+                  console.error("Erro ao criar usuário no Supabase Auth:", signUpError);
 
-            throw new Error("Esta conta foi criada usando um provedor social. Por favor, use o login social.");
+                  throw new Error("Erro ao criar conta. Tente novamente. [" + signUpError.message + "]");
 
-          }
+                }
 
+      
 
+                if (!data.user) {
 
-          const isValidPassword = await compare(credentials.password, user.password);
+                  throw new Error("Não foi possível criar o usuário. A resposta não contém um usuário.");
 
-          if (!isValidPassword) {
+                }
 
-            throw new Error("Credenciais inválidas.");
+      
 
-          }
+                // Inserir usuário na tabela pública 'User'
 
+                const { data: newUser, error: publicUserError } = await supabase
 
+                  .from('User')
 
-          const sessionId = randomUUID();
+                  .insert([
 
-          await supabase
+                    {
 
-            .from('User')
+                      id: data.user.id,
 
-            .update({ currentSessionId: sessionId })
+                      email: data.user.email!,
 
-            .eq('id', user.id);
+                      name: credentials.name,
 
-          const token = jwt.sign({ id: user.id, role: user.role, sessionId }, process.env.NEXTAUTH_SECRET!, { expiresIn: '1h' });
+                      cpf: credentials.cpf,
 
-          return { ...user, id: String(user.id), sessionId, accessToken: token };
+                      role: 'PACIENTE',
 
-        }
+                      telefone: credentials.telefone,
+
+                      dataNascimento: new Date(credentials.dataNascimento!).toISOString(),
+
+                    },
+
+                  ])
+
+                  .select()
+
+                  .single();
+
+      
+
+                                    if (publicUserError) {
+
+      
+
+                                      console.error("Erro ao criar usuário na tabela pública 'User':", publicUserError);
+
+      
+
+                                      await supabase.auth.admin.deleteUser(data.user.id);
+
+      
+
+                                      throw new Error("Erro ao salvar dados do usuário. Tente novamente. [" + publicUserError.message + "]");
+
+      
+
+                                    }
+
+      
+
+                          
+
+      
+
+                                    return {
+
+      
+
+                                      id: newUser.id,
+
+      
+
+                                      email: newUser.email,
+
+      
+
+                                      name: newUser.name,
+
+      
+
+                                      role: newUser.role,
+
+      
+
+                                      cpf: newUser.cpf,
+
+      
+
+                                      telefone: newUser.telefone,
+
+      
+
+                                    } as any;
+
+      
+
+                                  } else {
+
+                  // Lógica de SignIn
+
+                  if (!credentials?.password || (!credentials.email && !credentials.cpf)) {
+
+                    throw new Error("Email/CPF e senha são obrigatórios.");
+
+                  }
+
+        
+
+                  // Autenticar com o Supabase
+
+                  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+
+                    email: credentials.email!, // Supabase Auth usa email para login
+
+                    password: credentials.password,
+
+                  });
+
+        
+
+                            if (signInError) {
+
+        
+
+                              if (signInError.message === 'Email not confirmed') {
+
+        
+
+                                throw new Error('EMAIL_NOT_CONFIRMED');
+
+        
+
+                              }
+
+        
+
+                              console.error("Erro no signIn do Supabase:", signInError);
+
+        
+
+                              throw new Error(signInError.message || "Credenciais inválidas.");
+
+        
+
+                            }
+
+        
+
+                  if (!signInData.user) {
+
+                    throw new Error("Usuário não encontrado ou credenciais inválidas.");
+
+                  }
+
+        
+
+                  // Buscar o perfil do usuário na nossa tabela pública 'User'
+
+                  const { data: userProfile, error: profileError } = await supabase
+
+                    .from('User')
+
+                    .select('*')
+
+                    .eq('id', signInData.user.id)
+
+                    .single();
+
+        
+
+                  if (profileError || !userProfile) {
+
+                    console.error("Erro ao buscar perfil do usuário:", profileError);
+
+                    throw new Error("Não foi possível carregar os dados do usuário.");
+
+                  }
+
+        
+
+                  return { ...userProfile, id: String(userProfile.id) };
+
+                }
 
       },
 

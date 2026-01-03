@@ -6,9 +6,10 @@ import SignUpForm from '@/components/SignUpForm';
 interface SignUpModalProps {
   showModal: boolean;
   onClose: () => void;
+  onOpenLogin: () => void;
 }
 
-export default function SignUpModal({ showModal, onClose }: SignUpModalProps) {
+export default function SignUpModal({ showModal, onClose, onOpenLogin }: SignUpModalProps) {
   if (!showModal) {
     return null;
   }
@@ -24,7 +25,7 @@ export default function SignUpModal({ showModal, onClose }: SignUpModalProps) {
           <X className="h-8 w-8" />
         </button>
         <div className="px-2 sm:px-8 py-10 flex flex-col items-center justify-center w-full">
-          <SignUpForm onClose={onClose} />
+          <SignUpForm onClose={onClose} onOpenLogin={onOpenLogin} />
         </div>
       </div>
     </div>

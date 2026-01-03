@@ -8,7 +8,7 @@ import { InactivityProvider } from '../components/InactivityProvider';
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Jandira C. Frederick - Psicóloga | Agendamento Online',
+  title: 'Clinica Flowers | Agendamento Online',
   description: 'Agende sua consulta com a Jandira C. Frederick, psicóloga especialista em Terapia Cognitivo-Comportamental. Atendimento presencial e online em São Paulo.',
   keywords: 'psicóloga, terapia, agendamento, consulta, São Paulo, ansiedade, depressão, TCC',
   authors: [{ name: 'Jandira C. Frederick' }],
@@ -59,7 +59,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/logoFlowes-Photoroom.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#2563eb" />
       </head>
