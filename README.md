@@ -1,61 +1,43 @@
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=1a2540&height=160&section=header&text=Sistema%20de%20Agendamento&fontSize=40&fontColor=a8b8d0&fontAlignY=45" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=10b981&height=160&section=header&text=Agendamento%20Psicologia&fontSize=35&fontColor=ffffff&fontAlignY=45" />
 </div>
 
 <div align="center">
 
-[![Deploy](https://img.shields.io/badge/Deploy-Vercel-000000?style=for-the-badge&logo=vercel)](https://psicologa-agendamento.vercel.app)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)
+![React Hook Form](https://img.shields.io/badge/React%20Hook%20Form-EC5990?style=for-the-badge&logo=react-hook-form&logoColor=white)
 
-**Plataforma de agendamento online para clínicas e profissionais de saúde.**
-
-[▶ Ver Demo ao Vivo](https://psicologa-agendamento.vercel.app)
+**Sistema de agendamento online com foco em integridade de dados e UX.**
 
 </div>
 
 ---
 
-## ✨ Funcionalidades
+## ✨ Destaques
 
-- 📅 **Agendamento online** com seleção de data e horário
-- 👤 **Painel do paciente** para gerenciar consultas
-- 🔔 **Confirmação de agendamentos** em tempo real
-- 📋 **Histórico de consultas** do paciente
-- 📱 **Design responsivo** — otimizado para mobile
-- 🔐 **Autenticação** de usuários
+- ✅ **Validação Rigorosa** — Uso de Zod para garantir dados 100% corretos.
+- 📅 **Lógica de Datas** — Manipulação avançada de horários com `date-fns`.
+- 📝 **Formulários Inteligentes** — Feedback em tempo real com React Hook Form.
+- 🧘 **Interface Clean** — Design focado em acessibilidade e calma para o paciente.
+- 🛡️ **Type-Safe** — Prevenção de erros através do uso estrito de TypeScript.
 
-## 🛠️ Stack Técnica
+## 💡 Por que este projeto?
 
-| Camada | Tecnologia |
-|--------|-----------|
-| Frontend | Next.js 14 + TypeScript |
-| Estilização | Tailwind CSS |
-| Autenticação | NextAuth.js |
-| Deploy | Vercel |
+O objetivo foi resolver uma dor real de profissionais de saúde: a gestão de agenda. Tecnicamente, o desafio foi lidar com formulários complexos e garantir que a lógica de seleção de horários fosse intuitiva no Front-end e segura contra inconsistências.
 
-## 🚀 Rodando Localmente
+## 🛠️ Tecnologias
 
-```bash
-# Clone o repositório
-git clone https://github.com/MysterySalsicha/psicologa-agendamento.git
+- **Next.js / React** — Framework e componentes.
+- **Zod / React Hook Form** — Ecossistema de validação e formulários.
+- **Tailwind CSS** — Estilização moderna e rápida.
+- **Date-fns** — Biblioteca para tratamento complexo de datas.
 
-# Instale as dependências
-cd psicologa-agendamento
-npm install
+## 🚀 Roadmap (Onde este projeto pode chegar)
 
-# Configure as variáveis de ambiente
-cp .env.example .env.local
-
-# Rode em desenvolvimento
-npm run dev
-```
-
-Acesse `http://localhost:3000`
-
-## 💡 Contexto do Projeto
-
-Sistema desenvolvido para automatizar o processo de agendamento de consultas, eliminando a necessidade de contato por WhatsApp ou ligação. O profissional de saúde configura sua agenda de disponibilidade e os pacientes fazem o agendamento de forma autônoma 24h por dia.
+- [ ] **Google Calendar Sync:** Sincronização direta com a agenda do profissional.
+- [ ] **WhatsApp Reminders:** Envio automático de lembretes para evitar faltas.
+- [ ] **Telemedicina:** Integração com vídeo-chamada nativa.
 
 ---
 
