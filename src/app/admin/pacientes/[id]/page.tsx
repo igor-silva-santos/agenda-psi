@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useParams } from 'next/navigation';
 import ApiFormWrapper from '@/components/ApiFormWrapper';
+import DocumentoAssinaturaManager from '@/components/Admin/DocumentoAssinaturaManager';
 
 interface PacienteDetalhes extends User {
   agendamentos: Agendamento[];
@@ -47,6 +48,11 @@ export default function AdminPacienteDetalhesPage() {
       </div>
 
       {/* Remover blocos antigos de prontuário e recomendações por paciente */}
+
+      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Documentos para assinatura</h2>
+        <DocumentoAssinaturaManager pacienteId={String(id)} />
+      </div>
 
       <div className="bg-white shadow-md rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">Histórico de Agendamentos</h2>

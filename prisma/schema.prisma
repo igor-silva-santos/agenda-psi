@@ -29,6 +29,13 @@ model User {
   emailNotifications  Boolean              @default(true)
   smsNotifications    Boolean              @default(false)
   whatsappNotifications Boolean            @default(false)
+
+  // Usado para calcular o valor de cada consulta na hora de gerar uma fatura
+  valorConsulta       Float?               @default(150)
+
+  notificacoes        Notificacao[]
+  faturas             Fatura[]
+  documentos          Documento[]
 }
 
 model Agendamento {
@@ -43,6 +50,104 @@ model Agendamento {
   bookableSlot   BookableSlot? @relation(fields: [bookableSlotId], references: [id])
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+
+  // Faturamento
+  faturaId       String?
+  fatura         Fatura?   @relation(fields: [faturaId], references: [id])
+
+  @@index([faturaId])
+}
+
+enum StatusFatura {
+  RASCUNHO
+  PENDENTE
+  PAGO
+  CANCELADO
+}
+
+model Fatura {
+  id             String        @id @default(uuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  status         StatusFatura  @default(PENDENTE)
+  dataVencimento DateTime
+  dataPagamento  DateTime?
+  valorTotal     Float
+  quantidadeConsultas Int?
+  itens          Json          // [{ agendamentoId, data, valor, descricao }]
+  observacao     String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  agendamentos   Agendamento[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum TipoNotificacao {
+  FINANCEIRO
+  RECOMENDACAO
+  DOCUMENTO
+  SISTEMA
+}
+
+model Notificacao {
+  id                   String          @id @default(uuid())
+  tipo                 TipoNotificacao
+  mensagem             String
+  lida                 Boolean         @default(false)
+  linkRedirecionamento String?
+  dataCriacao          DateTime        @default(now())
+
+  userId               String
+  user                 User            @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([lida])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  acao        String   // 'CRIAR' | 'ATUALIZAR' | 'DELETAR' | 'CANCELAR' | 'PAGAR' | 'ENVIAR' | 'ASSINAR' | 'SISTEMA'
+  entidade    String   // 'Usuario' | 'Agendamento' | 'Fatura' | 'Documento'
+  entidadeId  String?
+  descricao   String
+  dadosAntes  Json?
+  dadosDepois Json?
+  autorId     String?
+  autorNome   String?
+  autorTipo   String?  // 'ADMIN' | 'PACIENTE' | 'SISTEMA'
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  @@index([entidade])
+  @@index([createdAt])
+  @@index([autorId])
+}
+
+model Documento {
+  id               String    @id @default(uuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id])
+
+  token            String    @unique @default(cuid())
+  expiresAt        DateTime
+
+  tipoDocumento    String    // "TERMO_CONSENTIMENTO" | "OUTRO"
+  conteudoHtml     String
+
+  assinado         Boolean   @default(false)
+  assinadoEm       DateTime?
+  ipAssinatura     String?
+  cpfConfirmado    String?
+  imagemAssinatura String?   // base64 PNG da assinatura
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([assinado])
 }
 
 model BookableSlot {

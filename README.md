@@ -5,10 +5,12 @@
 <div align="center">
 
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)
-![React Hook Form](https://img.shields.io/badge/React%20Hook%20Form-EC5990?style=for-the-badge&logo=react-hook-form&logoColor=white)
 
-**Sistema de agendamento online com foco em integridade de dados e UX.**
+**Sistema de agendamento online para profissionais de saúde, com portal do paciente, faturamento, relatórios e assinatura digital de documentos.**
 
 </div>
 
@@ -16,28 +18,35 @@
 
 ## ✨ Destaques
 
-- ✅ **Validação Rigorosa** — Uso de Zod para garantir dados 100% corretos.
-- 📅 **Lógica de Datas** — Manipulação avançada de horários com `date-fns`.
-- 📝 **Formulários Inteligentes** — Feedback em tempo real com React Hook Form.
-- 🧘 **Interface Clean** — Design focado em acessibilidade e calma para o paciente.
-- 🛡️ **Type-Safe** — Prevenção de erros através do uso estrito de TypeScript.
+- 📅 **Agendamento completo** — disponibilidade configurável, bloqueio de horários, sincronização com Google Calendar.
+- 💳 **Faturamento** — geração de faturas a partir de consultas realizadas, acompanhamento de status e PDF para download.
+- 📊 **Relatórios** — visão mensal e anual de produtividade e faturamento, com gráficos.
+- ✍️ **Assinatura digital** — envio de documentos (termos, autorizações) com link único e assinatura por canvas, sem depender de serviços de terceiros.
+- 🔔 **Notificações + Auditoria** — sino de notificações para paciente/admin e histórico auditável de ações administrativas.
+- ✅ **Validação Rigorosa** — Zod em todas as camadas de entrada de dados.
+- 🛡️ **Type-Safe** — TypeScript estrito de ponta a ponta.
 
 ## 💡 Por que este projeto?
 
-O objetivo foi resolver uma dor real de profissionais de saúde: a gestão de agenda. Tecnicamente, o desafio foi lidar com formulários complexos e garantir que a lógica de seleção de horários fosse intuitiva no Front-end e segura contra inconsistências.
+O objetivo foi resolver uma dor real de profissionais de saúde: a gestão de agenda, cobrança e documentação de pacientes em um único lugar, sem depender de várias ferramentas soltas. É a versão pública e simplificada de um sistema em produção para uma clínica real — com os dados e integrações específicas do negócio removidos, mas a arquitetura e as funcionalidades centrais mantidas.
 
 ## 🛠️ Tecnologias
 
-- **Next.js / React** — Framework e componentes.
-- **Zod / React Hook Form** — Ecossistema de validação e formulários.
-- **Tailwind CSS** — Estilização moderna e rápida.
-- **Date-fns** — Biblioteca para tratamento complexo de datas.
+- **Next.js 14 (App Router) / React** — framework e componentes.
+- **NextAuth** — autenticação (credenciais + Google).
+- **Prisma + Supabase (PostgreSQL)** — schema versionado via Prisma Migrate, consultas via cliente Supabase.
+- **Zod / React Hook Form** — validação e formulários.
+- **@react-pdf/renderer** — geração de faturas em PDF.
+- **Recharts** — gráficos dos relatórios.
+- **Tailwind CSS** — estilização.
+- **date-fns** — manipulação de datas.
 
-## 🚀 Roadmap (Onde este projeto pode chegar)
+## 🚀 Roadmap
 
-- [ ] **Google Calendar Sync:** Sincronização direta com a agenda do profissional.
-- [ ] **WhatsApp Reminders:** Envio automático de lembretes para evitar faltas.
-- [ ] **Telemedicina:** Integração com vídeo-chamada nativa.
+- [ ] **WhatsApp Reminders:** envio automático de lembretes para evitar faltas.
+- [ ] **Telemedicina:** integração com vídeo-chamada nativa.
+- [ ] **Multi-profissional:** suporte a mais de um profissional na mesma conta, com agendas independentes.
+- [ ] **2FA no painel admin.**
 
 ---
 

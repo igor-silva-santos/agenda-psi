@@ -5,7 +5,8 @@ import { Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Home, Calendar, Star, User, DollarSign, LogOut, Bell } from 'lucide-react';
+import { Menu, X, Home, Calendar, Star, User, DollarSign, LogOut, FileText } from 'lucide-react';
+import NotificationBell from '@/components/NotificationBell';
 
 interface PortalClientLayoutProps {
   children: React.ReactNode;
@@ -39,6 +40,7 @@ export default function PortalClientLayout({ children }: PortalClientLayoutProps
     { name: 'Recomendações', href: '/portal/paciente/recomendacoes', icon: Star },
     { name: 'Meu Perfil', href: '/portal/paciente/perfil', icon: User },
     { name: 'Financeiro', href: '/portal/paciente/financeiro', icon: DollarSign },
+    { name: 'Meus Documentos', href: '/portal/paciente/meus-documentos', icon: FileText },
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -137,13 +139,9 @@ export default function PortalClientLayout({ children }: PortalClientLayoutProps
                             <span className="font-semibold text-gray-900 truncate">{session.user.name}</span>
                           </Link>
 
-                          <button className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          <NotificationBell />
 
-                            <Bell className="h-5 w-5" />
-
-                          </button>
-
-                          <button 
+                          <button
 
                             onClick={() => signOut({ callbackUrl: '/' })}
 

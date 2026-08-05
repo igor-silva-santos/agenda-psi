@@ -5,6 +5,7 @@ import { addMinutes } from 'date-fns';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { getToken } from 'next-auth/jwt';
+import { logAuditoria, getIpFromRequest } from '@/lib/audit';
 
 const APPOINTMENT_DURATION_MINUTES = 30;
 const ALLOWED_STATUSES = ['PENDENTE', 'CONFIRMADO', 'CANCELADO', 'REALIZADO'];
@@ -110,6 +111,17 @@ Status: ${status}`,
       }
     }
 
+    logAuditoria({
+      acao: status === 'CANCELADO' ? 'CANCELAR' : 'ATUALIZAR',
+      entidade: 'Agendamento',
+      entidadeId: String(id),
+      descricao: `Status do agendamento alterado para ${status}`,
+      autorId: session.user.id,
+      autorNome: session.user.name ?? null,
+      autorTipo: 'ADMIN',
+      ip: getIpFromRequest(request),
+    });
+
     return NextResponse.json(updatedAgendamento);
   } catch (error) {
     console.error('Error in /api/admin/agendamentos/[id] PUT:', error);
@@ -183,6 +195,17 @@ export async function DELETE(request: Request, { params }: { params: { id: numbe
         console.error('Failed to delete Google Calendar event:', calendarError);
       }
     }
+
+    logAuditoria({
+      acao: 'DELETAR',
+      entidade: 'Agendamento',
+      entidadeId: String(id),
+      descricao: `Agendamento excluído`,
+      autorId: session.user.id,
+      autorNome: session.user.name ?? null,
+      autorTipo: 'ADMIN',
+      ip: getIpFromRequest(request),
+    });
 
     return NextResponse.json({ message: 'Agendamento deletado com sucesso' }, { status: 204 });
   } catch (error) {

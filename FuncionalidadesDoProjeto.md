@@ -71,6 +71,21 @@ Este documento descreve as funcionalidades e o comportamento esperado do sistema
         *   Permite adicionar novos usuários (com nome, e-mail, senha e `role` - PACIENTE ou ADMIN).
         *   Permite modificar o e-mail, nome, senha e `role` de usuários existentes.
         *   Permite excluir usuários.
+    *   **Faturamento (NOVO):**
+        *   Gera faturas a partir de consultas já realizadas, por paciente.
+        *   Acompanha status (Pendente / Pago / Cancelado / Rascunho) e permite baixar o PDF da fatura.
+        *   Paciente acompanha suas faturas e baixa o PDF pelo Portal (`/portal/paciente/financeiro`).
+    *   **Relatórios (NOVO):**
+        *   Relatório mensal com KPIs de produtividade (consultas realizadas, faltas, canceladas) e financeiro (recebido/pendente), com gráfico dos últimos 6 meses.
+        *   Relatório anual com a mesma visão consolidada por mês.
+    *   **Auditoria (NOVO):**
+        *   Histórico pesquisável de ações administrativas (criação, atualização, cancelamento, pagamento, assinatura de documentos), com autor, data e descrição.
+    *   **Documentos com Assinatura Digital (NOVO):**
+        *   Administrador envia um documento (termo de consentimento, autorização de imagem, etc.) para o paciente assinar.
+        *   Paciente assina digitalmente (desenho da assinatura + confirmação de CPF) em uma página pública com link único e expiração.
+        *   Documento assinado fica disponível no Portal do paciente (`/portal/paciente/meus-documentos`).
+    *   **Notificações (NOVO):**
+        *   Sino de notificações no admin e no portal do paciente, com eventos de faturamento, documentos e recomendações.
 *   **Comportamento Esperado:**
     *   Acesso estritamente restrito a usuários com a `role` "ADMIN".
     *   Navegação clara e eficiente entre as diferentes seções de gerenciamento (Agendamentos, Pacientes, Disponibilidade, Usuários).
@@ -96,13 +111,11 @@ Este documento descreve as funcionalidades e o comportamento esperado do sistema
     *   **Gerenciamento de Pacientes:** Implementar a listagem, edição e exclusão de pacientes de forma completa, incluindo seus dados pessoais e prontuários.
     *   **Horários Bloqueados:** Adicionar uma interface para o administrador bloquear períodos específicos (férias, feriados, emergências) que não devem estar disponíveis para agendamento.
     *   **Horários de Atuação Recorrentes:** Permitir que o administrador defina padrões de horários de atuação semanais (ex: segundas e quartas das 9h às 12h).
-    *   **Relatórios:** Geração de relatórios sobre agendamentos (número, status), pacientes (novos, ativos), etc.
-    *   **Notificações Administrativas:** Sistema de notificação para a psicóloga sobre novos agendamentos, cancelamentos, etc.
+    *   **Relatórios de produtividade por profissional:** caso o sistema evolua para múltiplos profissionais na mesma conta.
 
 *   **Segurança:**
     *   **Autenticação de Dois Fatores (2FA):** Implementar 2FA para a área administrativa para maior segurança.
     *   **Limitação de Tentativas de Login:** Bloquear IPs ou contas após múltiplas tentativas de login falhas.
-    *   **Auditoria de Ações:** Registrar ações importantes realizadas por administradores para fins de auditoria.
 
 *   **Experiência do Usuário (UX/UI):**
     *   **Melhoria Visual:** Refinar o design geral da aplicação para torná-la mais moderna e intuitiva.

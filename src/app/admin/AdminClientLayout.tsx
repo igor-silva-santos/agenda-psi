@@ -7,8 +7,9 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
-import { Menu, X, LayoutDashboard, Calendar, Users, Shield, LogOut, Clock, Heart } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Calendar, Users, Shield, LogOut, Clock, Heart, Receipt, BarChart3, ScrollText } from 'lucide-react';
 import clsx from 'clsx';
+import NotificationBell from '@/components/NotificationBell';
 
 interface AdminClientLayoutProps {
   session: Session;
@@ -20,6 +21,9 @@ const navItems = [
   { name: 'Agendamentos', href: '/admin/agendamentos', icon: Calendar },
   { name: 'Disponibilidade', href: '/admin/disponibilidade', icon: Clock },
   { name: 'Pacientes', href: '/admin/pacientes', icon: Users },
+  { name: 'Faturas', href: '/admin/faturas', icon: Receipt },
+  { name: 'Relatórios', href: '/admin/relatorios', icon: BarChart3 },
+  { name: 'Auditoria', href: '/admin/auditoria', icon: ScrollText },
   { name: 'Administradores', href: '/admin/administradores', icon: Shield },
 ];
 
@@ -69,6 +73,7 @@ export default function AdminClientLayout({ session, children }: AdminClientLayo
               {session?.user?.name || 'Admin'}
             </span>
           </div>
+          <NotificationBell />
           <button
             onClick={() => signOut({ callbackUrl: '/conta/login' })}
             className="text-sm text-gray-500 hover:text-gray-700"
