@@ -69,3 +69,13 @@ frontend/BACKEND_INTEGRATION.md
 frontend/IMPLEMENTACAO_ICONES.md
 frontend/INTEGRACAO_BACKEND.md
 api/TMDB_API_ANALYSIS.md
+
+# local / secrets / scratch
+.env
+.env.*
+!.env.example
+test-*.js
+test-*.mjs
+check-db-perms.js
+output.log
+_convert_branding.py

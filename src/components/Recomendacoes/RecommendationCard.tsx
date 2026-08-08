@@ -1,8 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar, Clock, MessageSquare, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { siteConfig } from '@/config/site';
 
 interface RecommendationCardProps {
   id: string;
@@ -71,7 +72,7 @@ export default function RecommendationCard({
         <div>
           <div className="flex items-center space-x-2 mb-3">
             <MessageSquare className="h-5 w-5 text-blue-600" />
-            <h4 className="text-lg font-semibold text-gray-900">Recomendações de Jandira C. Frederick</h4>
+            <h4 className="text-lg font-semibold text-gray-900">Recomendações de {siteConfig.professionalName}</h4>
           </div>
           <div className="bg-blue-50 border-l-4 border-blue-400 px-4 py-3 rounded-r-lg">
             <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">

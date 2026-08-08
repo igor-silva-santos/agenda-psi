@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { siteConfig } from '@/config/site';
 
 const faqData = [
   {
@@ -66,7 +67,7 @@ const faqData = [
   },
   {
     question: "Onde fica a clínica?",
-    answer: "Rua das Flores, 123 – São Paulo/SP."
+    answer: `${siteConfig.contact.addressPlain}.`
   },
   {
     question: "O atendimento online é por qual plataforma?",

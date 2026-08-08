@@ -2,100 +2,91 @@
 
 import { GraduationCap, Award, Users, Clock } from 'lucide-react';
 import Image from 'next/image';
+import { siteConfig } from '@/config/site';
 
 export default function PsicologaInfo() {
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-[#F0FDFA]">
       <div className="max-w-6xl mx-auto px-4">
+        <div className="text-center mb-10">
+          <p className="text-sm font-medium text-teal-700 mb-2">Consultório de demonstração</p>
+          <h3 className="text-2xl sm:text-3xl font-bold text-teal-950">
+            Conheça a profissional da demo
+          </h3>
+        </div>
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Foto e informações básicas */}
           <div className="text-center lg:text-left">
-            <div className="relative w-64 h-64 rounded-full mx-auto lg:mx-0 mb-6 overflow-hidden shadow-lg">
+            <div className="relative w-64 h-64 rounded-full mx-auto lg:mx-0 mb-6 overflow-hidden shadow-lg border-4 border-white">
               <Image
-                src="/psicologa.jpg"
-                alt="Foto da Jandira C. Frederick"
+                src={siteConfig.assets.avatar}
+                alt={`Foto de ${siteConfig.professionalName}`}
                 fill
-                sizes="(max-width: 1024px) 100vw, 256px"
-                className="object-cover transition-transform duration-500 hover:scale-110"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = '[https://placehold.co/256x256/E0E7FF/4F46E5?text=Dra.+Jandira](https://placehold.co/256x256/E0E7FF/4F46E5?text=Dra.+Jandira)';
-                  target.onerror = null;
-                }}
+                sizes="256px"
+                className="object-cover"
               />
             </div>
-            <h3 className="text-3xl font-bold text-gray-800 mb-4">
-              Jandira C. Frederick            </h3>
-            <p className="text-xl text-blue-600 mb-4">
-              Psicóloga | Psicopedagoga Clínica
-            </p>
-            <p className="text-md text-gray-500 mb-4">CRP - 06/224798</p>
-            <p className="text-gray-600 text-lg">
-              Especialista em Terapia Cognitivo-Comportamental 
-              no atendimento de adultos, adolescentes e casais.
+            <h3 className="text-3xl font-bold text-teal-950 mb-2">
+              {siteConfig.professionalName}
+            </h3>
+            <p className="text-xl text-teal-700 mb-2">{siteConfig.professionalTitle}</p>
+            <p className="text-md text-teal-900/55 mb-4">CRP — {siteConfig.crp}</p>
+            <p className="text-teal-900/70 text-lg">
+              Persona fictícia usada para demonstrar o {siteConfig.productName} com
+              dados de consultório realistas, sem expor cliente real.
             </p>
           </div>
 
-          {/* Formação e especialidades */}
           <div className="space-y-8">
             <div>
-              <h4 className="text-2xl font-bold text-gray-800 mb-6">
-                Formação e Especialidades
+              <h4 className="text-2xl font-bold text-teal-950 mb-6">
+                Formação e especialidades
               </h4>
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
-                  <GraduationCap className="h-6 w-6 text-blue-600 mt-1" />
+                  <GraduationCap className="h-6 w-6 text-teal-700 mt-1 shrink-0" />
                   <div>
-                    <h5 className="font-semibold text-gray-800">Formação Acadêmica</h5>
-                    <p className="text-gray-600">
-                      Graduação em Psicologia pela USP<br />
-                      Mestrado em Psicologia Clínica pela PUC-SP
+                    <h5 className="font-semibold text-teal-950">Formação</h5>
+                    <p className="text-teal-900/70">
+                      {siteConfig.formation.map((line) => (
+                        <span key={line}>
+                          {line}
+                          <br />
+                        </span>
+                      ))}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <Award className="h-6 w-6 text-blue-600 mt-1" />
+                  <Award className="h-6 w-6 text-teal-700 mt-1 shrink-0" />
                   <div>
-                    <h5 className="font-semibold text-gray-800">Especializações</h5>
-                    <p className="text-gray-600">
-                      Terapia Cognitivo-Comportamental<br />
-                      Terapia de Casal e Família<br />
-                      Transtornos de Ansiedade e Depressão
+                    <h5 className="font-semibold text-teal-950">Especializações</h5>
+                    <p className="text-teal-900/70">
+                      {siteConfig.specialties.join(', ')}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <Users className="h-6 w-6 text-blue-600 mt-1" />
+                  <Users className="h-6 w-6 text-teal-700 mt-1 shrink-0" />
                   <div>
-                    <h5 className="font-semibold text-gray-800">Experiência</h5>
-                    <p className="text-gray-600">
-                      Mais de 20 anos de experiência, atuando como professora e supervisora
+                    <h5 className="font-semibold text-teal-950">Para quem é o sistema</h5>
+                    <p className="text-teal-900/70">
+                      Psicólogas e psicopedagogas que precisam de agenda, portal,
+                      financeiro e documentos sem depender de planilhas.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <Clock className="h-6 w-6 text-blue-600 mt-1" />
+                  <Clock className="h-6 w-6 text-teal-700 mt-1 shrink-0" />
                   <div>
-                    <h5 className="font-semibold text-gray-800">Abordagem Terapêutica</h5>
-                    <p className="text-gray-600">
-                      Utilizo a Terapia Cognitivo-Comportamental, uma abordagem científica 
-                      que ajuda a identificar e modificar padrões de pensamento e comportamento 
-                      que causam sofrimento emocional.
-                    </p>
+                    <h5 className="font-semibold text-teal-950">Serviços na demo</h5>
+                    <ul className="text-teal-900/70 text-sm space-y-1 mt-1">
+                      {siteConfig.services.map((s) => (
+                        <li key={s}>• {s}</li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="bg-blue-50 p-6 rounded-lg">
-              <h5 className="font-semibold text-gray-800 mb-3">Serviços Oferecidos</h5>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>• Abordagem Cognitivo-Comportamental</li>
-                <li>• Atendimento Adulto e Infantil</li>
-                <li>• Avaliação Neuropsicológica</li>
-                <li>• Alfabetização e Letramento</li>
-                <li>• Educação Especial com Ênfase em Deficiência Intelectual</li>
-              </ul>
             </div>
           </div>
         </div>

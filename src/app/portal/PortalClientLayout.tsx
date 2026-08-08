@@ -1,18 +1,16 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
-import { Session } from 'next-auth';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, Home, Calendar, Star, User, DollarSign, LogOut, FileText } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
+import { siteConfig } from '@/config/site';
 
 interface PortalClientLayoutProps {
   children: React.ReactNode;
 }
-
-import { useSession } from 'next-auth/react';
 
 export default function PortalClientLayout({ children }: PortalClientLayoutProps) {
   const { data: session, status } = useSession();
@@ -64,8 +62,8 @@ export default function PortalClientLayout({ children }: PortalClientLayoutProps
         {/* Sidebar Header */}
         <div className="flex items-center justify-between px-6 py-6 border-b border-gray-100">
           <Link href="/portal/paciente" className="flex items-center gap-2">
-            <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-19 h-20" />
-            <span className="font-bold text-xl text-gray-900 truncate">Clinica Flowers</span>
+            <img src={siteConfig.assets.logo} alt={`${siteConfig.clinicName} Logo`} className="w-12 h-12 object-contain" />
+            <span className="font-bold text-xl text-gray-900 truncate">{siteConfig.clinicName}</span>
           </Link>
           {sidebarOpen && (
             <button 
@@ -117,10 +115,10 @@ export default function PortalClientLayout({ children }: PortalClientLayoutProps
               </button>
               <div className="hidden sm:block">
                 <div className="flex items-center gap-2">
-                  <img src="/logoFlowes-Photoroom.png" alt="Clinica Flowers Logo" className="w-19 h-20" />
+                  <img src={siteConfig.assets.logo} alt={`${siteConfig.clinicName} Logo`} className="w-12 h-12 object-contain" />
                   <Link href="/portal/paciente">
                     <h1 className="text-lg font-semibold text-gray-900">
-                      Clinica Flowers
+                      {siteConfig.clinicName}
                     </h1>
                   </Link>
                 </div>

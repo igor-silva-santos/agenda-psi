@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { Agendamento } from '@prisma/client';
@@ -17,6 +17,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import Modal from '@/components/Modal'; // Using the state-based modal component
+import { siteConfig } from '@/config/site';
 
 export default function MeusAgendamentosPage() {
   const { addToast } = useToast();
@@ -280,7 +281,7 @@ export default function MeusAgendamentosPage() {
     message = `Gostaria de cancelar a consulta do dia ${appointmentDate} às ${appointmentTime} em nome de ${patientName}.`;
   }
 
-  const whatsappUrl = `https://wa.me/5511949197669?text=${encodeURIComponent(message)}`;
+  const whatsappUrl = `https://wa.me/${siteConfig.contact.whatsappE164}?text=${encodeURIComponent(message)}`;
 
   return (
     <div className="space-y-6">
@@ -430,7 +431,7 @@ export default function MeusAgendamentosPage() {
             <p className="text-gray-600 mb-6">
               Não é possível cancelar a consulta com menos de 24 horas de antecedência.
               <br />
-              Por favor, entre em contato com a Jandira para solicitar o cancelamento.
+              Por favor, entre em contato com a {siteConfig.professionalName} para solicitar o cancelamento.
             </p>
             <a
               href={whatsappUrl}

@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 import CombinedLoginForm from '@/components/CombinedLoginForm';
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { siteConfig } from '@/config/site';
 
 function LoginContent() {
   const [sessaoExpirada, setSessaoExpirada] = useState(false);
@@ -59,7 +60,7 @@ export default function ContaLoginPage() {
       </main>
       <footer className="bg-white mt-8 py-4">
         <div className="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} Jandira C. Frederick. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} {siteConfig.professionalName}. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>

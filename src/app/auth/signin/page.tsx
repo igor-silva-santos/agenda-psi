@@ -1,9 +1,10 @@
-import { getServerSession } from "next-auth";
+﻿import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import SignInClientWrapper from "@/components/SignInClientWrapper";
+import { siteConfig } from '@/config/site';
 
 export default function SignInPage({ searchParams }: { searchParams: { error?: string } }) {
   // Remover redirecionamento automático do servidor
@@ -21,7 +22,7 @@ export default function SignInPage({ searchParams }: { searchParams: { error?: s
         <div className="max-w-6xl mx-auto px-4 py-6">
           <Link href="/" className="flex items-center space-x-3 cursor-pointer w-fit">
             <Heart className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-800">Jandira C. Frederick</h1>
+            <h1 className="text-2xl font-bold text-gray-800">{siteConfig.professionalName}</h1>
           </Link>
         </div>
       </header>
@@ -41,7 +42,7 @@ export default function SignInPage({ searchParams }: { searchParams: { error?: s
 
       <footer className="bg-white mt-8 py-4">
         <div className="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} Jandira C. Frederick. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} {siteConfig.professionalName}. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>

@@ -6,6 +6,7 @@ import { sendEmail } from "@/lib/email";
 import { format, addMinutes } from "date-fns";
 import { createCalendarEvent, isGoogleCalendarConfigured } from "@/lib/googleCalendar";
 import { getToken } from 'next-auth/jwt';
+import { siteConfig } from '@/config/site';
 
 const APPOINTMENT_DURATION_MINUTES = 30;
 
@@ -123,13 +124,13 @@ export async function PUT(request: Request, { params }: { params: { id: number }
       const formattedDate = format(appointmentDateTime, 'dd/MM/yyyy HH:mm');
       await sendEmail({
         to: agendamento.user.email!,
-        subject: 'Confirmação de Agendamento - Jandira C. Frederick',
+        subject: 'Confirmação de Agendamento - {siteConfig.professionalName}',
         html: `
           <p>Olá ${agendamento.user.name},</p>
-          <p>Seu agendamento com a Jandira C. Frederick foi confirmado para o dia <strong>${formattedDate}</strong>.</p>
+          <p>Seu agendamento com a ${siteConfig.professionalName} foi confirmado para o dia <strong>${formattedDate}</strong>.</p>
           <p>Aguardamos você!</p>
           <p>Atenciosamente,</p>
-          <p>Jandira C. Frederick</p>
+          <p>${siteConfig.professionalName}</p>
         `,
       });
       console.log('✅ Email de confirmação enviado');

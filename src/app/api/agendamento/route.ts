@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { sendEmail } from '@/lib/email';
 import { format, addMinutes } from 'date-fns';
@@ -8,6 +8,7 @@ import { authOptions } from '@/lib/auth';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { generateProtocolCode } from '@/lib/utils'; // <-- Nova importação
+import { siteConfig } from '@/config/site';
 
 const APPOINTMENT_DURATION_MINUTES = 30;
 
@@ -139,13 +140,13 @@ export async function POST(request: Request) {
       if (user.email) {
         await sendEmail({
           to: user.email,
-          subject: 'Confirmação de Agendamento - Jandira C. Frederick',
+          subject: 'Confirmação de Agendamento - {siteConfig.professionalName}',
           html: `
             <p>Olá ${user.name},</p>
-            <p>Seu agendamento com a Jandira C. Frederick foi confirmado para o dia <strong>${formattedDate}</strong>.</p>
+            <p>Seu agendamento com a ${siteConfig.professionalName} foi confirmado para o dia <strong>${formattedDate}</strong>.</p>
             <p>Aguardamos você!</p>
             <p>Atenciosamente,</p>
-            <p>Jandira C. Frederick</p>
+            <p>${siteConfig.professionalName}</p>
           `,
         });
       }

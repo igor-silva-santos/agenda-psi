@@ -6,6 +6,7 @@ import { getToken } from 'next-auth/jwt';
 import { sendEmail } from '@/lib/email';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { siteConfig } from '@/config/site';
 
 export async function PUT(
   request: Request,
@@ -57,12 +58,12 @@ export async function PUT(
     // E-mail para o Usuário
     await sendEmail({
       to: agendamento.user.email!,
-      subject: 'Sua Consulta foi Confirmada - Jandira C. Frederick',
+      subject: 'Sua Consulta foi Confirmada - {siteConfig.professionalName}',
       html: `
         <p>Olá ${agendamento.user.name},</p>
         <p>Sua consulta para o dia <strong>${formattedDate}</strong> foi confirmada com sucesso.</p>
         <p>Atenciosamente,</p>
-        <p>Jandira C. Frederick</p>
+        <p>${siteConfig.professionalName}</p>
       `,
     });
 

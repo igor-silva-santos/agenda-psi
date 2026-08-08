@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useMemo } from 'react';
 import { format, subDays, isAfter, isBefore } from 'date-fns';
@@ -7,6 +7,7 @@ import { Loader2, MessageSquare, AlertCircle } from 'lucide-react';
 import RecommendationCard from '@/components/Recomendacoes/RecommendationCard';
 import RecommendationFilters from '@/components/Recomendacoes/RecommendationFilters';
 import RecommendationStats from '@/components/Recomendacoes/RecommendationStats';
+import { siteConfig } from '@/config/site';
 
 interface Recommendation {
   id: string;
@@ -175,7 +176,7 @@ export default function MinhasRecomendacoesPage() {
           </h1>
         </div>
         <p className="text-gray-600 text-lg">
-          Acompanhe as recomendações de Jandira C. Frederick
+          Acompanhe as recomendações de {siteConfig.professionalName}
         </p>
       </div>
 
@@ -228,7 +229,7 @@ export default function MinhasRecomendacoesPage() {
             Nenhuma recomendação disponível
           </h3>
           <p className="text-gray-500">
-            Você ainda não possui recomendações de Jandira C. Frederick.
+            Você ainda não possui recomendações de {siteConfig.professionalName}.
             As recomendações aparecerão aqui após suas consultas.
           </p>
         </div>

@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { randomUUID } from 'crypto';
 import { sendEmail } from '@/lib/email'; // Importar o utilitário de e-mail
+import { siteConfig } from '@/config/site';
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
     
     await sendEmail({
       to: email,
-      subject: 'Recuperação de Senha - Jandira C. Frederick',
+      subject: 'Recuperação de Senha - {siteConfig.professionalName}',
       html: `<p>Olá,</p><p>Você solicitou a recuperação de senha para sua conta.</p><p>Clique no link abaixo para redefinir sua senha:</p><p><a href="${resetLink}">${resetLink}</a></p><p>Este link é válido por 1 hora.</p><p>Se você não solicitou esta recuperação, por favor, ignore este e-mail.</p>`,
     });
 

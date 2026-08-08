@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getToken } from 'next-auth/jwt';
 import { z } from 'zod';
@@ -6,6 +6,7 @@ import { sendEmail } from '@/lib/email';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { createEvent } from 'ics';
+import { siteConfig } from '@/config/site';
 
 export async function GET(request: Request) {
   try {
@@ -106,10 +107,10 @@ export async function POST(request: Request) {
       const event = {
         start: [startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate(), startDate.getHours(), startDate.getMinutes()] as [number, number, number, number, number],
         end: [endDate.getFullYear(), endDate.getMonth() + 1, endDate.getDate(), endDate.getHours(), endDate.getMinutes()] as [number, number, number, number, number],
-        title: 'Consulta com Jandira C. Frederick',
+        title: 'Consulta com {siteConfig.professionalName}',
         description: `Motivo da consulta: ${motivoConsulta || ''}`,
         location: 'Consulta Online ou Presencial',
-        organizer: { name: 'Jandira C. Frederick', email: process.env.EMAIL_FROM || '' },
+        organizer: { name: siteConfig.professionalName, email: process.env.EMAIL_FROM || '' },
         attendees: [{ name: user.name || '', email: user.email || '' }],
       };
       const { error, value } = createEvent(event);
@@ -122,21 +123,21 @@ export async function POST(request: Request) {
 
     const patientEmailHtml = `
       <p>Olá ${user.name},</p>
-      <p>Seu pré-agendamento com a Jandira C. Frederick foi recebido com sucesso!</p>
+      <p>Seu pré-agendamento com a ${siteConfig.professionalName} foi recebido com sucesso!</p>
       <p><strong>Detalhes do Agendamento:</strong></p>
       <ul>
         <li><strong>Data e Hora:</strong> ${formattedDate}</li>
         <li><strong>Status:</strong> ${agendamento.status}</li>
       </ul>
-      <p>Aguarde a confirmação final da Jandira C. Frederick.</p>
+      <p>Aguarde a confirmação final da ${siteConfig.professionalName}.</p>
       <p>Atenciosamente,</p>
-      <p>Jandira C. Frederick</p>
+      <p>${siteConfig.professionalName}</p>
     `;
 
     try {
       await sendEmail({
         to: user.email!,
-        subject: 'Confirmação de Pré-Agendamento - Jandira C. Frederick',
+        subject: 'Confirmação de Pré-Agendamento - {siteConfig.professionalName}',
         html: patientEmailHtml,
         attachments: icsAttachment,
       });

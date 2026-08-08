@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
 import { sendEmail } from '@/lib/email';
@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import crypto from 'crypto';
 import { createEvent } from 'ics';
+import { siteConfig } from '@/config/site';
 
 const agendamentoSchema = z.object({
   nomeCompleto: z.string().min(3, "Nome é obrigatório"),
@@ -163,10 +164,10 @@ export async function POST(request: Request) {
       const event = {
         start: startTuple,
         end: endTuple,
-        title: 'Consulta com Jandira C. Frederick',
+        title: 'Consulta com {siteConfig.professionalName}',
         description: `Motivo da consulta: ${motivoConsulta || ''}`,
         location: 'Consulta Online ou Presencial',
-        organizer: { name: 'Jandira C. Frederick', email: process.env.EMAIL_FROM || '' },
+        organizer: { name: siteConfig.professionalName, email: process.env.EMAIL_FROM || '' },
         attendees: [{ name: user.name || '', email: user.email || '' }],
       };
       const { error, value } = createEvent(event);
@@ -180,7 +181,7 @@ export async function POST(request: Request) {
     // E-mail para o Paciente
     let patientEmailHtml = `
       <p>Olá ${user.name},</p>
-      <p>Seu pré-agendamento com a Jandira C. Frederick foi recebido com sucesso!</p>
+      <p>Seu pré-agendamento com a ${siteConfig.professionalName} foi recebido com sucesso!</p>
       <p><strong>Detalhes do Agendamento:</strong></p>
       <ul>
         <li><strong>Data e Hora:</strong> ${formattedDate}</li>
@@ -198,16 +199,16 @@ export async function POST(request: Request) {
     }
 
     patientEmailHtml += `
-      <p>Aguarde a confirmação final da Jandira C. Frederick.</p>
+      <p>Aguarde a confirmação final da ${siteConfig.professionalName}.</p>
       <p>Atenciosamente,</p>
-      <p>Jandira C. Frederick</p>
+      <p>${siteConfig.professionalName}</p>
     `;
 
     // Tentar enviar email para o paciente, mas não falhar se der erro
     try {
       await sendEmail({
         to: user.email!,
-        subject: isNewUser ? 'Bem-vindo(a) e Confirmação de Pré-Agendamento' : 'Confirmação de Pré-Agendamento - Jandira C. Frederick',
+        subject: isNewUser ? 'Bem-vindo(a) e Confirmação de Pré-Agendamento' : 'Confirmação de Pré-Agendamento - {siteConfig.professionalName}',
         html: patientEmailHtml,
         attachments: icsAttachment,
       });

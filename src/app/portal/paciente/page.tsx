@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { signOut } from 'next-auth/react';
@@ -12,6 +12,7 @@ import DashboardCard from '@/components/Dashboard/DashboardCard';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { siteConfig } from '@/config/site';
 
 export default function PacienteDashboard() {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
@@ -91,7 +92,7 @@ export default function PacienteDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Início</h1>
-          <p className="text-gray-600 mt-1">Bem-vindo a Clinica Flowers</p>
+          <p className="text-gray-600 mt-1">Bem-vindo a {siteConfig.clinicName}</p>
         </div>
         <div className="mt-4 sm:mt-0">
           <Link 

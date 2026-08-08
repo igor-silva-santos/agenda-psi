@@ -6,6 +6,7 @@ import { sendEmail } from '@/lib/email';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { getToken } from 'next-auth/jwt';
+import { siteConfig } from '@/config/site';
 
 export async function PUT(
   request: Request,
@@ -76,13 +77,13 @@ export async function PUT(
     // E-mail para o Usuário
     await sendEmail({
       to: agendamento.user.email!,
-      subject: 'Agendamento Cancelado - Jandira C. Frederick',
+      subject: 'Agendamento Cancelado - {siteConfig.professionalName}',
       html: `
         <p>Olá ${agendamento.user.name},</p>
         <p>Seu agendamento para <strong>${formattedDate}</strong> foi cancelado com sucesso.</p>
         <p>Se desejar, você pode agendar uma nova consulta através do nosso site.</p>
         <p>Atenciosamente,</p>
-        <p>Jandira C. Frederick</p>
+        <p>${siteConfig.professionalName}</p>
       `,
     });
 

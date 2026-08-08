@@ -1,4 +1,5 @@
 import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-pdf/renderer';
+import { siteConfig } from '@/config/site';
 
 // Fontes Helvetica/Helvetica-Bold são nativas do @react-pdf/renderer, não
 // precisam ser registradas.
@@ -80,10 +81,10 @@ interface InvoiceProps {
 }
 
 const InvoicePDF = ({ patientName, patientCpf, patientEmail, itens, invoiceNumber, issueDate, dueDate, valorTotal, professional, observacao }: InvoiceProps) => {
-  const nome = professional?.nome || 'Jandira C. Frederick';
-  const telefone = professional?.telefone || '(00) 00000-0000';
-  const email = professional?.email || 'contato@exemplo.com.br';
-  const endereco = professional?.endereco || '';
+  const nome = professional?.nome || siteConfig.professionalName;
+  const telefone = professional?.telefone || siteConfig.contact.phone;
+  const email = professional?.email || siteConfig.contact.email;
+  const endereco = professional?.endereco || siteConfig.contact.addressPlain;
 
   return (
     <Document>

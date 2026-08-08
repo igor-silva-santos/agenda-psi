@@ -1,78 +1,64 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import { Providers } from './providers'
-import { useInactivityLogout } from '../components/useInactivityLogout';
+import type { Metadata } from 'next';
+import { DM_Sans } from 'next/font/google';
+import './globals.css';
+import { Providers } from './providers';
 import { InactivityProvider } from '../components/InactivityProvider';
+import { ToastProvider } from '../context/ToastContext';
+import { siteConfig } from '@/config/site';
 
-const inter = Inter({ subsets: ['latin'] })
+const dmSans = DM_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700'] });
 
 export const metadata: Metadata = {
-  title: 'Clinica Flowers | Agendamento Online',
-  description: 'Agende sua consulta com a Jandira C. Frederick, psicóloga especialista em Terapia Cognitivo-Comportamental. Atendimento presencial e online em São Paulo.',
-  keywords: 'psicóloga, terapia, agendamento, consulta, São Paulo, ansiedade, depressão, TCC',
-  authors: [{ name: 'Jandira C. Frederick' }],
-  creator: 'Jandira C. Frederick',
-  publisher: 'Jandira C. Frederick',
+  title: siteConfig.seo.title,
+  description: siteConfig.seo.description,
+  keywords: siteConfig.seo.keywords,
+  authors: [{ name: siteConfig.productName }],
+  creator: siteConfig.productName,
+  publisher: siteConfig.productName,
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://drajandira.com.br'),
+  metadataBase: new URL(siteConfig.urls.site),
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'Jandira C. Frederick - Psicóloga | Agendamento Online',
-    description: 'Agende sua consulta com a Jandira C. Frederick, psicóloga especialista em Terapia Cognitivo-Comportamental.',
-    url: 'https://drajandira.com.br',
-    siteName: 'Jandira C. Frederick - Psicóloga',
+    title: siteConfig.seo.title,
+    description: siteConfig.seo.description,
+    url: siteConfig.urls.site,
+    siteName: siteConfig.productName,
     locale: 'pt_BR',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Jandira C. Frederick - Psicóloga | Agendamento Online',
-    description: 'Agende sua consulta com a Jandira C. Frederick, psicóloga especialista em Terapia Cognitivo-Comportamental.',
+    title: siteConfig.seo.title,
+    description: siteConfig.seo.description,
   },
   robots: {
     index: true,
     follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
   },
-}
+};
 
-import { ToastProvider } from '../context/ToastContext';
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/logoFlowes-Photoroom.png" />
+        <link rel="icon" href={siteConfig.assets.logo} type="image/svg+xml" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#2563eb" />
+        <meta name="theme-color" content={siteConfig.themeColor} />
       </head>
-      <body className={inter.className}>
+      <body className={dmSans.className}>
         <Providers>
           <InactivityProvider>
-            <ToastProvider>
-              {children}
-            </ToastProvider>
+            <ToastProvider>{children}</ToastProvider>
           </InactivityProvider>
         </Providers>
         <div id="modal-root" style={{ backgroundColor: 'transparent' }}></div>
       </body>
     </html>
-  )
+  );
 }
