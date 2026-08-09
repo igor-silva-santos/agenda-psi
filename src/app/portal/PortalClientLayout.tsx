@@ -75,6 +75,17 @@ export default function PortalClientLayout({
     );
   }
 
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface text-slate-600">
+        Carregando portal…
+      </div>
+    );
+  }
+
+  const displayName = user.name || 'Paciente';
+  const displayImage = user.image || null;
+
   const navItems = [
     { name: 'Início', href: '/portal/paciente', icon: Home },
     { name: 'Meus Agendamentos', href: '/portal/paciente/agendamentos', icon: Calendar },
@@ -183,7 +194,7 @@ export default function PortalClientLayout({
                 <Menu className="h-6 w-6" />
               </button>
               <h1 className="text-lg font-heading font-semibold text-slate-900 hidden sm:block">
-                Olá, {user.name?.split(' ')[0]}
+                Olá, {displayName.split(' ')[0]}
               </h1>
             </div>
 
@@ -193,9 +204,9 @@ export default function PortalClientLayout({
                 className="flex items-center gap-2 cursor-pointer"
               >
                 <div className="w-8 h-8 bg-brand rounded-full flex items-center justify-center">
-                  {user.image ? (
+                  {displayImage ? (
                     <img
-                      src={user.image}
+                      src={displayImage}
                       alt=""
                       className="w-8 h-8 rounded-full"
                     />
@@ -204,7 +215,7 @@ export default function PortalClientLayout({
                   )}
                 </div>
                 <span className="font-medium text-slate-800 truncate max-w-[120px] hidden sm:inline">
-                  {user.name}
+                  {displayName}
                 </span>
               </Link>
 
