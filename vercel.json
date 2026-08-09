@@ -1,0 +1,12 @@
+{
+  "build": {
+    "env": {
+      "AGENDAPSI_DEMO_MODE": "true",
+      "NEXT_PUBLIC_AGENDAPSI_DEMO": "true"
+    }
+  },
+  "env": {
+    "AGENDAPSI_DEMO_MODE": "true",
+    "NEXT_PUBLIC_AGENDAPSI_DEMO": "true"
+  }
+}

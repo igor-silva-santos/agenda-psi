@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { DEMO_ROLE_COOKIE, isDemoRole } from '@/lib/demo-auth';
+import { demoApiResponse } from '@/lib/demo-api-responses';
+import { isDemoMode } from '@/lib/demo-mode';
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Modo demo: APIs mockadas sem Supabase
+  if (isDemoMode() && pathname.startsWith('/api/')) {
+    const demoRes = await demoApiResponse(req);
+    if (demoRes) return demoRes;
+  }
   const demoRole = req.cookies.get(DEMO_ROLE_COOKIE)?.value;
 
   // Showcase: cookie demo libera acesso sem sessão real
@@ -44,5 +52,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/portal/:path*', '/admin/:path*'],
+  matcher: ['/portal/:path*', '/admin/:path*', '/api/:path*'],
 };
