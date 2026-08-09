@@ -1,12 +1,24 @@
 import type { Metadata } from 'next';
-import { DM_Sans } from 'next/font/google';
+import { Archivo, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { InactivityProvider } from '../components/InactivityProvider';
 import { ToastProvider } from '../context/ToastContext';
 import { siteConfig } from '@/config/site';
 
-const dmSans = DM_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700'] });
+const archivo = Archivo({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-archivo',
+  display: 'swap',
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: siteConfig.seo.title,
@@ -43,7 +55,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
@@ -51,13 +67,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content={siteConfig.themeColor} />
       </head>
-      <body className={dmSans.className}>
+      <body
+        className={`${archivo.variable} ${spaceGrotesk.variable} font-body antialiased`}
+      >
         <Providers>
           <InactivityProvider>
             <ToastProvider>{children}</ToastProvider>
           </InactivityProvider>
         </Providers>
-        <div id="modal-root" style={{ backgroundColor: 'transparent' }}></div>
+        <div id="modal-root" style={{ backgroundColor: 'transparent' }} />
       </body>
     </html>
   );

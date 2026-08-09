@@ -1,21 +1,30 @@
 # AgendaPsi
 
-Agenda + portal do paciente + faturamento PDF + assinatura digital para consultórios de psicologia.
+SaaS de agenda, portal do paciente e gestão para consultórios de psicologia — showcase de portfólio.
 
-**Demo canônica:** https://jandira-frederick.vercel.app  
-**Alias histórico:** `https://psicologa-agendamento.vercel.app` (redireciona para a demo acima)  
+**Demo:** https://psicologa-agendamento.vercel.app  
 **Código:** https://github.com/igor-silva-santos/agenda-psi
 
 ## Stack
 
 | Camada | Tecnologia |
 |--------|------------|
-| Framework | Next.js + TypeScript |
-| Dados | Prisma + Supabase (PostgreSQL) |
+| Framework | Next.js 14 + TypeScript |
+| Dados | Prisma + Supabase (PostgreSQL) — opcional na demo |
+| Auth | NextAuth mock + cookie `agendapsi-demo-role` |
 | Forms | Zod + React Hook Form |
 | PDF | `@react-pdf/renderer` |
+| UI | Tailwind + Lucide + anime.js |
 | Testes | Cypress |
-| UI | Tailwind CSS + Recharts |
+
+## Demo sem backend
+
+Na página `/conta/login`:
+
+- **Entrar como Paciente** → `/portal/paciente`
+- **Entrar como Admin** → `/admin`
+
+Qualquer e-mail/senha no formulário também entra (sem validação real). Os portais usam fixtures mock se as APIs estiverem indisponíveis.
 
 ## Destaques
 
@@ -23,20 +32,26 @@ Agenda + portal do paciente + faturamento PDF + assinatura digital para consult�
 - Portal do paciente
 - Faturamento com PDF
 - Assinatura digital de documentos
-- Relatórios e notificações administrativas
+- Relatórios e auditoria administrativa
 
 ## Como rodar
 
 ```bash
 npm install
 cp .env.example .env.local
-# preencha NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY
+# opcional: NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY
 npm run dev
 ```
 
+Abra http://localhost:3000 e use os botões de login demo.
+
 ## Deploy (Vercel)
 
-O projeto na Vercel precisa das variáveis `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` (e demais secrets de runtime). Sem elas o build/runtime pode falhar.
+Variáveis úteis (não obrigatórias para a vitrine mock):
+
+- `NEXTAUTH_SECRET`
+- `NEXTAUTH_URL`
+- `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` (se quiser APIs reais)
 
 ---
 

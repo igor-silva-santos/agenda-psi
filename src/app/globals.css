@@ -3,36 +3,54 @@
 @tailwind utilities;
 @import 'react-day-picker/dist/style.css';
 
-html {
-  font-size: 110%;
-}
-
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-primary: #0f766e;
+  --color-accent: #0ea5e9;
+  --color-bg: #f8fafc;
+  --color-fg: #0f172a;
+  --color-muted: #e2e8f0;
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html {
+  font-size: 100%;
+  scroll-behavior: smooth;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
 }
 
-/* Travar scroll do body quando modal está aberto */
+h1,
+h2,
+h3,
+h4,
+.font-heading {
+  font-family: var(--font-archivo), system-ui, sans-serif;
+}
+
+/* Focus ring accessibility */
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 body.modal-open {
   overflow: hidden !important;
   position: fixed;
@@ -41,7 +59,6 @@ body.modal-open {
   overscroll-behavior: contain;
 }
 
-/* Melhorias de responsividade e UI para o modal e formulário de agendamento */
 .agendamento-modal {
   width: 100vw;
   height: 100vh;
@@ -50,7 +67,7 @@ body.modal-open {
   background: #fff;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 32px rgba(30,41,59,0.18);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.18);
   border-radius: 0;
   padding: 0;
 }
@@ -59,13 +76,11 @@ body.modal-open {
     max-width: 900px;
     max-height: 98vh;
     border-radius: 1.25rem;
-    padding: 0;
   }
 }
 @media (min-width: 1024px) {
   .agendamento-modal {
     max-width: 600px;
-    padding: 0;
   }
 }
 
@@ -84,7 +99,7 @@ body.modal-open {
 
 .agendamento-form label {
   font-weight: 600;
-  color: #1e293b;
+  color: #0f172a;
   margin-bottom: 0.25rem;
 }
 .agendamento-form input,
@@ -94,13 +109,13 @@ body.modal-open {
   padding: 0.75rem 1rem;
   font-size: 1rem;
   background: #f8fafc;
-  color: #1e293b;
+  color: #0f172a;
   margin-bottom: 0.5rem;
 }
 .agendamento-form input:focus,
 .agendamento-form select:focus {
-  outline: 2px solid #2563eb;
-  border-color: #2563eb;
+  outline: 2px solid #0f766e;
+  border-color: #0f766e;
   background: #fff;
 }
 .agendamento-form button {
@@ -111,21 +126,20 @@ body.modal-open {
   transition: background 0.2s, color 0.2s;
 }
 .agendamento-form .btn-primary {
-  background: #1e293b;
+  background: #0f766e;
   color: #fff;
 }
 .agendamento-form .btn-primary:hover {
-  background: #2563eb;
+  background: #115e59;
 }
 .agendamento-form .btn-secondary {
   background: #f1f5f9;
-  color: #1e293b;
+  color: #0f172a;
 }
 .agendamento-form .btn-secondary:hover {
-  background: #e0e7ef;
+  background: #e2e8f0;
 }
 
-/* Melhorar responsividade do BookableSlotPicker */
 .bookable-slot-picker {
   display: flex;
   flex-direction: column;
@@ -138,30 +152,34 @@ body.modal-open {
   }
 }
 
-/* Estilos específicos para o calendário no modal de agendamento */
 .agendamento-modal .rdp {
   --rdp-cell-size: clamp(1.5rem, 3vw, 2rem);
-  --rdp-accent-color: #3b82f6;
-  --rdp-background-color: #eff6ff;
-  --rdp-accent-color-dark: #1d4ed8;
-  --rdp-background-color-dark: #1e3a8a;
+  --rdp-accent-color: #0f766e;
+  --rdp-background-color: #f0fdfa;
+  --rdp-accent-color-dark: #115e59;
+  --rdp-background-color-dark: #134e4a;
   --rdp-outline: 2px solid var(--rdp-accent-color);
   --rdp-outline-selected: 2px solid rgba(0, 0, 0, 0.75);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* Responsividade do calendário quando uma data está selecionada */
 .agendamento-modal .rdp-day_selected {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+  background: linear-gradient(135deg, #0f766e, #0d9488) !important;
   color: #ffffff !important;
   font-weight: 600 !important;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
-  transform: scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3) !important;
 }
 
 .agendamento-modal .rdp-day_today {
-  border: 2px solid #3b82f6 !important;
-  color: #3b82f6 !important;
-  background: #eff6ff !important;
+  border: 2px solid #0f766e !important;
+  color: #0f766e !important;
+  background: #f0fdfa !important;
   font-weight: 600 !important;
 }
 
@@ -172,55 +190,10 @@ body.modal-open {
 }
 
 .agendamento-modal .rdp-day:hover:not(.rdp-day_disabled):not(.rdp-day_selected) {
-  background: #eff6ff !important;
-  color: #1d4ed8 !important;
-  transform: scale(1.05) !important;
+  background: #f0fdfa !important;
+  color: #115e59 !important;
 }
 
-/* Ajustes para telas menores */
-@media (max-width: 768px) {
-  .agendamento-modal .rdp {
-    --rdp-cell-size: clamp(1.25rem, 2.5vw, 1.75rem);
-  }
-  
-  .agendamento-modal .rdp-caption {
-    font-size: clamp(0.75rem, 1.5vw, 0.875rem) !important;
-  }
-  
-  .agendamento-modal .rdp-head_cell {
-    font-size: clamp(0.5rem, 1.2vw, 0.625rem) !important;
-  }
-}
-
-/* Ajuste para a box do calendário e conteúdo ficarem sempre proporcionais */
-.calendar-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  transition: max-width 0.2s;
-}
-@media (max-width: 600px) {
-  .calendar-box {
-    max-width: 98vw;
-    min-width: 0;
-    padding-left: 0.25rem;
-    padding-right: 0.25rem;
-  }
-}
-
-.agendamento-modal .rdp {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 .agendamento-modal .rdp-table {
   width: 100%;
   min-width: 0;
@@ -244,6 +217,16 @@ body.modal-open {
   }
 }
 
+.calendar-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
 .bookable-slot-picker .horario-btn {
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
@@ -256,16 +239,14 @@ body.modal-open {
   font-size: 0.875rem;
 }
 .bookable-slot-picker .horario-btn:hover {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-  transform: translateY(-1px);
+  background: #f0fdfa;
+  border-color: #99f6e4;
 }
 .bookable-slot-picker .horario-btn.selected {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, #0f766e, #0d9488);
   color: #ffffff;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-  transform: scale(1.05);
+  border-color: #0f766e;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
 }
 .bookable-slot-picker .horario-btn:disabled {
   background: #f9fafb;
@@ -273,35 +254,15 @@ body.modal-open {
   border-color: #e5e7eb;
   cursor: not-allowed;
   text-decoration: line-through;
-  transform: none;
 }
 
-@keyframes fade-in-scale {
-  0% {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-fade-in-scale {
-  animation: fade-in-scale 0.3s ease-out;
-}
-
-@keyframes fade-in-up {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.3s ease-out;
+/* Subtle grid pattern for hero atmosphere */
+.hero-atmosphere {
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 70% 10%, rgba(14, 165, 233, 0.12), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 15% 80%, rgba(15, 118, 110, 0.14), transparent 50%),
+    linear-gradient(rgba(15, 118, 110, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 118, 110, 0.03) 1px, transparent 1px);
+  background-size: auto, auto, 48px 48px, 48px 48px;
 }

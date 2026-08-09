@@ -5,13 +5,14 @@
   "description": "AgendaPsi — agenda, portal do paciente e gestão para consultórios de psicologia",
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "cypress:open": "cypress open",
     "test:coverage": "vitest run --coverage",
     "type-check": "tsc --noEmit",
     "type-check-staged": "tsc --noEmit",
+    "postinstall": "prisma generate",
     "prepare": "npx husky install"
   },
   "dependencies": {
@@ -19,6 +20,7 @@
     "@prisma/client": "^6.18.0",
     "@react-pdf/renderer": "^4.3.2",
     "@supabase/supabase-js": "^2.39.7",
+    "animejs": "^3.2.2",
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
     "cpf-cnpj-validator": "^1.0.3",

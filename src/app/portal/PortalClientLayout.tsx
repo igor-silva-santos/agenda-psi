@@ -3,33 +3,76 @@
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, X, Home, Calendar, Star, User, DollarSign, LogOut, FileText } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  Menu,
+  X,
+  Home,
+  Calendar,
+  Star,
+  User,
+  DollarSign,
+  LogOut,
+  FileText,
+} from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { siteConfig } from '@/config/site';
+import {
+  clearDemoRoleCookie,
+  demoUsers,
+  readDemoRoleFromDocument,
+} from '@/lib/demo-auth';
 
 interface PortalClientLayoutProps {
   children: React.ReactNode;
 }
 
-export default function PortalClientLayout({ children }: PortalClientLayoutProps) {
+export default function PortalClientLayout({
+  children,
+}: PortalClientLayoutProps) {
   const { data: session, status } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [demoUser, setDemoUser] = useState<(typeof demoUsers)['PACIENTE'] | null>(
+    null,
+  );
+  const [demoReady, setDemoReady] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
-  // Fechar sidebar ao navegar (mobile)
   useEffect(() => {
-    if (sidebarOpen) {
-      setSidebarOpen(false);
-    }
+    setSidebarOpen(false);
   }, [pathname]);
 
-  if (status === "loading") {
-    return <div>Carregando...</div>; // Ou um componente de loading mais elaborado
+  useEffect(() => {
+    const role = readDemoRoleFromDocument();
+    if (role === 'PACIENTE' || role === 'ADMIN') {
+      setDemoUser(demoUsers.PACIENTE);
+    }
+    setDemoReady(true);
+  }, []);
+
+  const user = session?.user || demoUser;
+
+  if ((!demoReady && status === 'loading') || (status === 'loading' && !demoUser && !demoReady)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface text-slate-600">
+        Carregando portal…
+      </div>
+    );
   }
 
-  if (!session) {
-    return <div>Não autenticado</div>; // Ou redirecionar para o login
+  if (demoReady && !user && status !== 'authenticated') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface gap-4">
+        <p className="text-slate-600">Sessão de demonstração necessária.</p>
+        <Link
+          href="/conta/login"
+          className="px-4 py-2 bg-brand text-white rounded-xl cursor-pointer"
+        >
+          Ir para login
+        </Link>
+      </div>
+    );
   }
 
   const navItems = [
@@ -43,121 +86,141 @@ export default function PortalClientLayout({ children }: PortalClientLayoutProps
 
   const isActive = (href: string) => pathname === href;
 
+  const handleSignOut = async () => {
+    clearDemoRoleCookie();
+    await fetch('/api/demo-login', { method: 'DELETE' }).catch(() => null);
+    await signOut({ redirect: false }).catch(() => null);
+    router.push('/');
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar Mobile Overlay */}
+    <div className="min-h-screen bg-surface flex">
       {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity duration-300" 
-          onClick={() => setSidebarOpen(false)} 
-          aria-label="Fechar menu" 
+        <div
+          className="fixed inset-0 z-40 bg-slate-900/40"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Fechar menu"
         />
       )}
 
-      {/* Sidebar */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out flex flex-col
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-      `}>
-        {/* Sidebar Header */}
-        <div className="flex items-center justify-between px-6 py-6 border-b border-gray-100">
-          <Link href="/portal/paciente" className="flex items-center gap-2">
-            <img src={siteConfig.assets.logo} alt={`${siteConfig.clinicName} Logo`} className="w-12 h-12 object-contain" />
-            <span className="font-bold text-xl text-gray-900 truncate">{siteConfig.clinicName}</span>
+      <aside
+        className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out flex flex-col
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:translate-x-0 lg:static
+      `}
+      >
+        <div className="flex items-center justify-between px-5 py-6 border-b border-slate-100">
+          <Link
+            href="/portal/paciente"
+            className="flex items-center gap-3 min-w-0 cursor-pointer"
+          >
+            <img
+              src={siteConfig.assets.logo}
+              alt={siteConfig.productName}
+              className="w-10 h-10 object-contain"
+            />
+            <div className="min-w-0">
+              <span className="font-heading font-bold text-brand block truncate">
+                {siteConfig.productName}
+              </span>
+              <span className="text-xs text-slate-500">Portal do paciente</span>
+            </div>
           </Link>
-          {sidebarOpen && (
-            <button 
-              onClick={() => setSidebarOpen(false)} 
-              className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              aria-label="Fechar menu"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          )}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 cursor-pointer"
+            aria-label="Fechar menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+        <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-1">
           {navItems.map((item) => (
             <Link
               key={item.name}
               href={item.href}
               className={`
-                flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
-                ${isActive(item.href) 
-                  ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer
+                ${
+                  isActive(item.href)
+                    ? 'bg-brand text-white shadow-sm'
+                    : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }
-                focus:outline-none focus:ring-2 focus:ring-blue-500
               `}
             >
-              <item.icon className={`h-5 w-5 ${isActive(item.href) ? 'text-blue-600' : 'text-gray-400'}`} />
+              <item.icon
+                className={`h-5 w-5 ${
+                  isActive(item.href) ? 'text-white' : 'text-slate-400'
+                }`}
+              />
               {item.name}
             </Link>
           ))}
         </nav>
 
-
+        <div className="p-4 border-t border-slate-100 lg:hidden">
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-slate-600 hover:text-red-600 cursor-pointer"
+          >
+            <LogOut className="h-4 w-4" />
+            Sair
+          </button>
+        </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:ml-0">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
-          <div className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center gap-4">
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3">
+            <div className="flex items-center gap-3">
               <button
-                className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 cursor-pointer"
                 onClick={() => setSidebarOpen(true)}
                 aria-label="Abrir menu"
               >
                 <Menu className="h-6 w-6" />
               </button>
-              <div className="hidden sm:block">
-                <div className="flex items-center gap-2">
-                  <img src={siteConfig.assets.logo} alt={`${siteConfig.clinicName} Logo`} className="w-12 h-12 object-contain" />
-                  <Link href="/portal/paciente">
-                    <h1 className="text-lg font-semibold text-gray-900">
-                      {siteConfig.clinicName}
-                    </h1>
-                  </Link>
-                </div>
-              </div>
+              <h1 className="text-lg font-heading font-semibold text-slate-900 hidden sm:block">
+                Olá, {user.name?.split(' ')[0]}
+              </h1>
             </div>
 
-                        <div className="flex items-center gap-3">
-                          <Link href="/portal/paciente/perfil" className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                              {session.user.image ? (
-                                <img src={session.user.image} alt="Foto do usuário" className="w-8 h-8 rounded-full" />
-                              ) : (
-                                <User className="w-5 h-5 text-white" />
-                              )}
-                            </div>
-                            <span className="font-semibold text-gray-900 truncate">{session.user.name}</span>
-                          </Link>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/portal/paciente/perfil"
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <div className="w-8 h-8 bg-brand rounded-full flex items-center justify-center">
+                  {user.image ? (
+                    <img
+                      src={user.image}
+                      alt=""
+                      className="w-8 h-8 rounded-full"
+                    />
+                  ) : (
+                    <User className="w-4 h-4 text-white" />
+                  )}
+                </div>
+                <span className="font-medium text-slate-800 truncate max-w-[120px] hidden sm:inline">
+                  {user.name}
+                </span>
+              </Link>
 
-                          <NotificationBell />
+              <NotificationBell />
 
-                          <button
-
-                            onClick={() => signOut({ callbackUrl: '/' })}
-
-                            className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
-
-                            title="Sair"
-
-                          >
-
-                            <LogOut className="h-5 w-5" />
-
-                          </button>
-
-                        </div>
+              <button
+                onClick={handleSignOut}
+                className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                title="Sair"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="flex-1 overflow-auto">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {children}

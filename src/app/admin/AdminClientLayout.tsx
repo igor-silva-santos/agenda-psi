@@ -1,15 +1,27 @@
 'use client';
 
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Session } from 'next-auth';
-import { useSession, signOut } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import Image from 'next/image';
-import { Menu, X, LayoutDashboard, Calendar, Users, Shield, LogOut, Clock, Heart, Receipt, BarChart3, ScrollText } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  Calendar,
+  Users,
+  Shield,
+  LogOut,
+  Clock,
+  Receipt,
+  BarChart3,
+  ScrollText,
+} from 'lucide-react';
 import clsx from 'clsx';
 import NotificationBell from '@/components/NotificationBell';
+import { clearDemoRoleCookie } from '@/lib/demo-auth';
+import { siteConfig } from '@/config/site';
 
 interface AdminClientLayoutProps {
   session: Session;
@@ -27,107 +39,164 @@ const navItems = [
   { name: 'Administradores', href: '/admin/administradores', icon: Shield },
 ];
 
-const NavLink = ({ item }: { item: typeof navItems[0] }) => {
+const NavLink = ({
+  item,
+  onNavigate,
+}: {
+  item: (typeof navItems)[0];
+  onNavigate?: () => void;
+}) => {
   const pathname = usePathname();
-  const isActive = pathname === item.href;
+  const isActive =
+    pathname === item.href ||
+    (item.href !== '/admin' && pathname?.startsWith(item.href));
 
   return (
     <Link
       href={item.href}
+      onClick={onNavigate}
       className={clsx(
-        'group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors',
+        'group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-colors duration-200 cursor-pointer',
         isActive
-          ? 'bg-blue-600 text-white shadow-sm'
-          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+          ? 'bg-brand text-white shadow-sm'
+          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
       )}
     >
-      <item.icon 
+      <item.icon
         className={clsx(
-            'mr-3 flex-shrink-0 h-5 w-5 transition-colors',
-            isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-500'
-        )} 
+          'mr-3 flex-shrink-0 h-5 w-5 transition-colors',
+          isActive ? 'text-white' : 'text-slate-400 group-hover:text-brand',
+        )}
       />
       {item.name}
     </Link>
   );
 };
 
-export default function AdminClientLayout({ session, children }: AdminClientLayoutProps) {
+export default function AdminClientLayout({
+  session,
+  children,
+}: AdminClientLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  const handleSignOut = async () => {
+    clearDemoRoleCookie();
+    await fetch('/api/demo-login', { method: 'DELETE' }).catch(() => null);
+    await signOut({ redirect: false }).catch(() => null);
+    router.push('/');
+  };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <Image
-                src={session?.user?.image || '/default-avatar.png'}
-                alt="Avatar"
-                width={32}
-                height={32}
-                className="rounded-full"
-              />
-            </div>
-            <span className="text-sm font-medium text-gray-700">
+    <div className="flex flex-col h-full bg-white">
+      <div className="px-5 py-6 border-b border-slate-100">
+        <Link href="/admin" className="flex items-center gap-3 cursor-pointer">
+          <img
+            src={siteConfig.assets.logo}
+            alt={siteConfig.productName}
+            className="h-10 w-10 object-contain"
+          />
+          <div className="min-w-0">
+            <p className="font-heading font-bold text-brand truncate">
+              {siteConfig.productName}
+            </p>
+            <p className="text-xs text-slate-500 truncate">Painel admin</p>
+          </div>
+        </Link>
+      </div>
+
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.name}
+            item={item}
+            onNavigate={() => setSidebarOpen(false)}
+          />
+        ))}
+      </nav>
+
+      <div className="border-t border-slate-100 p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-9 h-9 rounded-full bg-brand text-white flex items-center justify-center text-sm font-semibold">
+            {(session?.user?.name || 'A').charAt(0)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-slate-800 truncate">
               {session?.user?.name || 'Admin'}
-            </span>
+            </p>
+            <p className="text-xs text-slate-500 truncate">
+              {session?.user?.email}
+            </p>
           </div>
           <NotificationBell />
-          <button
-            onClick={() => signOut({ callbackUrl: '/conta/login' })}
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
-            Sair
-          </button>
         </div>
-        <nav className="mt-8 flex-1 px-3 space-y-2">
-          {navItems.map((item) => (
-            <NavLink key={item.name} item={item} />
-          ))}
-        </nav>
+        <button
+          onClick={handleSignOut}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+        >
+          <LogOut className="h-4 w-4" />
+          Sair
+        </button>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Mobile Sidebar Overlay */}
+    <div className="min-h-screen bg-surface flex">
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 md:hidden z-30" onClick={() => setSidebarOpen(false)}></div>
+        <div
+          className="fixed inset-0 bg-slate-900/40 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden
+        />
       )}
-      {/* Mobile Sidebar */}
-      <div className={`fixed inset-y-0 left-0 flex z-40 md:hidden transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
-          <div className="absolute top-0 right-0 -mr-12 pt-2">
-            <button onClick={() => setSidebarOpen(false)} className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
-              <X className="h-6 w-6 text-white" />
-            </button>
-          </div>
-          <SidebarContent />
-        </div>
-      </div>
 
-      {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:flex-shrink-0">
-        <div className="flex flex-col w-64 bg-white border-r border-gray-200">
-          <SidebarContent />
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        <div className="relative z-10 flex-shrink-0 flex h-16 bg-white shadow-sm md:hidden">
+      <div
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out md:hidden ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="relative flex flex-col h-full border-r border-slate-200 shadow-xl">
           <button
-            className="px-4 border-r border-gray-200 text-gray-500 focus:outline-none md:hidden"
+            onClick={() => setSidebarOpen(false)}
+            className="absolute top-4 right-4 p-2 rounded-lg text-slate-500 hover:bg-slate-100 cursor-pointer"
+            aria-label="Fechar menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <SidebarContent />
+        </div>
+      </div>
+
+      <div className="hidden md:flex md:flex-shrink-0">
+        <div className="flex flex-col w-64 border-r border-slate-200 bg-white">
+          <SidebarContent />
+        </div>
+      </div>
+
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <div className="relative z-10 flex h-16 items-center gap-3 bg-white border-b border-slate-200 px-4 md:hidden">
+          <button
+            className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 cursor-pointer"
             onClick={() => setSidebarOpen(true)}
+            aria-label="Abrir menu"
           >
             <Menu className="h-6 w-6" />
           </button>
+          <span className="font-heading font-semibold text-brand">
+            {siteConfig.productName}
+          </span>
         </div>
 
         <main className="flex-1 relative overflow-y-auto focus:outline-none">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {children}
+          </div>
         </main>
       </div>
     </div>

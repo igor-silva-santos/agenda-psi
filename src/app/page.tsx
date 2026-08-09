@@ -1,24 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Calendar,
   Phone,
   Mail,
   MapPin,
   CheckCircle,
-  Shield,
   FileText,
   BarChart3,
   PenLine,
   Bell,
   Users,
+  ArrowRight,
 } from 'lucide-react';
 import Link from 'next/link';
+import anime from 'animejs';
 import AgendamentoFormMelhorado from '@/components/AgendamentoFormMelhorado';
 import PsicologaInfo from '@/components/PsicologaInfo';
-import LoginModal from '@/components/LoginModal';
-import SignUpModal from '@/components/SignUpModal';
 import Faq from '@/components/Faq';
 import { useToast } from '@/context/ToastContext';
 import { siteConfig } from '@/config/site';
@@ -28,38 +27,79 @@ const featureIcons = [Calendar, Users, FileText, PenLine, BarChart3, Bell];
 export default function Home() {
   const { addToast } = useToast();
   const [showAgendamento, setShowAgendamento] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const heroRef = useRef<HTMLElement>(null);
+  const brandRef = useRef<HTMLHeadingElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const orbRef = useRef<HTMLDivElement>(null);
 
-  const handleOpenSignUp = () => {
-    setShowLoginModal(false);
-    setShowSignUpModal(true);
-  };
+  useEffect(() => {
+    if (showAgendamento) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => document.body.classList.remove('modal-open');
+  }, [showAgendamento]);
 
-  const handleOpenLogin = () => {
-    setShowSignUpModal(false);
-    setShowLoginModal(true);
-  };
+  useEffect(() => {
+    const reduce =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
 
-  const handleCloseSignUp = () => {
-    setShowSignUpModal(false);
-  };
+    const tl = anime.timeline({ easing: 'easeOutCubic' });
+    tl.add({
+      targets: brandRef.current,
+      opacity: [0, 1],
+      translateY: [28, 0],
+      duration: 700,
+    })
+      .add(
+        {
+          targets: '.hero-line',
+          opacity: [0, 1],
+          translateY: [18, 0],
+          duration: 550,
+          delay: anime.stagger(90),
+        },
+        '-=350',
+      )
+      .add(
+        {
+          targets: ctaRef.current?.children,
+          opacity: [0, 1],
+          translateY: [12, 0],
+          duration: 450,
+          delay: anime.stagger(80),
+        },
+        '-=280',
+      );
+
+    if (orbRef.current) {
+      anime({
+        targets: orbRef.current,
+        translateY: [-12, 12],
+        duration: 4200,
+        direction: 'alternate',
+        loop: true,
+        easing: 'easeInOutSine',
+      });
+    }
+
+    anime({
+      targets: '.feature-item',
+      opacity: [0, 1],
+      translateY: [16, 0],
+      delay: anime.stagger(70, { start: 400 }),
+      duration: 500,
+      easing: 'easeOutQuad',
+    });
+  }, []);
 
   const handleAgendamentoSuccess = (message: string) => {
     addToast(message, 'info');
     setShowAgendamento(false);
   };
-
-  useEffect(() => {
-    if (showAgendamento || showLoginModal || showSignUpModal) {
-      document.body.classList.add('modal-open');
-    } else {
-      document.body.classList.remove('modal-open');
-    }
-    return () => {
-      document.body.classList.remove('modal-open');
-    };
-  }, [showAgendamento, showLoginModal, showSignUpModal]);
 
   const handleScrollToTop = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -67,115 +107,105 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0FDFA]">
-      <header className="bg-white/90 backdrop-blur sticky top-0 z-40 border-b border-teal-100">
-        <div className="max-w-6xl mx-auto px-3 py-3">
-          <div className="flex items-center justify-between gap-3">
+    <div className="min-h-screen bg-surface text-ink">
+      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-muted">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+          <Link
+            href="/"
+            onClick={handleScrollToTop}
+            className="flex items-center gap-3 cursor-pointer min-w-0"
+          >
+            <img
+              src={siteConfig.assets.logo}
+              alt={`${siteConfig.productName} logo`}
+              className="h-10 w-10 object-contain"
+            />
+            <span className="font-heading font-bold text-brand text-lg truncate">
+              {siteConfig.productName}
+            </span>
+          </Link>
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Link
-              href="/"
-              onClick={handleScrollToTop}
-              className="flex items-center space-x-3 cursor-pointer min-w-0"
+              href="/conta/login"
+              className="text-slate-700 hover:text-brand transition-colors font-medium text-sm sm:text-base px-2 py-2 cursor-pointer"
             >
-              <img
-                src={siteConfig.assets.logo}
-                alt={`${siteConfig.productName} logo`}
-                className="h-12 w-12 object-contain"
-              />
-              <div className="min-w-0">
-                <h1 className="text-lg sm:text-xl font-bold text-teal-900 truncate">
-                  {siteConfig.productName}
-                </h1>
-                <p className="hidden sm:block text-xs text-teal-700/80 truncate">
-                  {siteConfig.clinicName}
-                </p>
-              </div>
+              Entrar
             </Link>
-            <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
-              <button
-                onClick={() => setShowLoginModal(true)}
-                className="text-teal-900 hover:text-teal-700 transition-colors font-medium text-sm sm:text-base"
-              >
-                Entrar
-              </button>
-              <button
-                onClick={() => setShowAgendamento(true)}
-                className="bg-gradient-to-r from-teal-700 to-teal-600 text-white px-3 py-2 sm:px-6 sm:py-3 rounded-xl hover:from-teal-800 hover:to-teal-700 transition-all flex items-center space-x-2 shadow-md text-sm sm:text-base"
-              >
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="font-medium">Agendar</span>
-              </button>
-            </div>
+            <button
+              onClick={() => setShowAgendamento(true)}
+              className="bg-brand text-white px-3 py-2.5 sm:px-5 rounded-xl hover:bg-brand-800 transition-colors flex items-center gap-2 text-sm sm:text-base cursor-pointer min-h-[44px]"
+            >
+              <Calendar className="h-4 w-4" />
+              <span className="font-medium">Agendar</span>
+            </button>
           </div>
         </div>
       </header>
 
       <main>
-        {/* Hero produto */}
-        <section className="relative overflow-hidden py-16 sm:py-20 px-4">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#99F6E4_0%,_transparent_55%)] opacity-70 pointer-events-none" />
-          <div className="relative max-w-6xl mx-auto">
-            <div className="inline-flex items-center gap-2 rounded-full bg-teal-900/5 border border-teal-200 px-3 py-1 text-xs font-medium text-teal-800 mb-5">
-              <Shield className="h-3.5 w-3.5" />
-              Demonstração de portfólio · dados fictícios
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-bold text-teal-950 mb-5 max-w-3xl leading-tight">
-              {siteConfig.tagline}
-            </h2>
-            <p className="text-base sm:text-xl text-teal-900/70 mb-8 max-w-2xl">
-              Do pré-agendamento ao faturamento com PDF e assinatura digital: um
-              consultório digital pensado para o dia a dia de psicólogas — com
-              portal do paciente, relatórios e auditoria.
+        {/* Hero — brand-first, full-bleed atmosphere, no cards */}
+        <section
+          ref={heroRef}
+          className="hero-atmosphere relative min-h-[88vh] flex items-center overflow-hidden"
+        >
+          <div
+            ref={orbRef}
+            className="pointer-events-none absolute -right-16 top-1/4 h-72 w-72 rounded-full bg-accent/20 blur-3xl"
+            aria-hidden
+          />
+          <div className="relative max-w-6xl mx-auto px-4 py-20 w-full">
+            <h1
+              ref={brandRef}
+              className="font-heading text-5xl sm:text-7xl font-bold text-brand tracking-tight mb-6 opacity-0"
+            >
+              {siteConfig.productName}
+            </h1>
+            <p className="hero-line font-heading text-2xl sm:text-3xl text-ink font-semibold max-w-2xl mb-4 opacity-0 leading-snug">
+              Agenda e gestão ética para consultórios de psicologia
             </p>
-            <div className="flex flex-wrap gap-3 mb-10">
+            <p className="hero-line text-base sm:text-lg text-slate-600 max-w-xl mb-10 opacity-0 leading-relaxed">
+              Do pré-agendamento ao faturamento com PDF e assinatura digital —
+              portal do paciente, relatórios e auditoria em um só produto.
+            </p>
+            <div ref={ctaRef} className="flex flex-wrap gap-3">
+              <Link
+                href="/conta/login"
+                className="inline-flex items-center gap-2 bg-brand text-white px-6 py-3.5 rounded-xl font-medium hover:bg-brand-800 transition-colors shadow-lg shadow-brand/20 min-h-[44px] cursor-pointer opacity-0"
+              >
+                Explorar a demo
+                <ArrowRight className="h-4 w-4" />
+              </Link>
               <button
                 onClick={() => setShowAgendamento(true)}
-                className="bg-teal-700 text-white px-6 py-3 rounded-xl font-medium hover:bg-teal-800 transition shadow-lg shadow-teal-900/10"
+                className="inline-flex items-center gap-2 bg-white text-brand px-6 py-3.5 rounded-xl font-medium border border-muted hover:border-brand/40 hover:bg-brand-50 transition-colors min-h-[44px] cursor-pointer opacity-0"
               >
-                Provar o fluxo de agendamento
+                Provar agendamento
               </button>
-              <a
-                href="#recursos"
-                className="bg-white text-teal-800 px-6 py-3 rounded-xl font-medium border border-teal-200 hover:bg-teal-50 transition"
-              >
-                Ver recursos
-              </a>
-            </div>
-            <div className="flex flex-wrap gap-4 text-sm text-teal-900/80">
-              {['Agenda + disponibilidade', 'Portal do paciente', 'PDF + assinatura', 'Cypress E2E'].map(
-                (item) => (
-                  <div key={item} className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-teal-600" />
-                    <span>{item}</span>
-                  </div>
-                )
-              )}
             </div>
           </div>
         </section>
 
-        {/* Features */}
-        <section id="recursos" className="py-16 px-4 bg-white">
+        <section id="recursos" className="py-20 px-4 bg-white">
           <div className="max-w-6xl mx-auto">
-            <h3 className="text-2xl sm:text-3xl font-bold text-teal-950 mb-3 text-center">
-              O que um sistema desse porte entrega
-            </h3>
-            <p className="text-center text-teal-900/65 mb-12 max-w-2xl mx-auto">
-              Recursos reais usados em consultório — generalizados aqui como
-              produto {siteConfig.productName}.
+            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-ink mb-3 text-center">
+              Tudo que o consultório precisa
+            </h2>
+            <p className="text-center text-slate-600 mb-14 max-w-2xl mx-auto">
+              Recursos de produto pensados para o dia a dia clínico — sem ruído
+              visual, com foco em acessibilidade.
             </p>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-12">
               {siteConfig.productFeatures.map((feature, index) => {
                 const Icon = featureIcons[index] ?? CheckCircle;
                 return (
-                  <div
-                    key={feature.title}
-                    className="rounded-2xl border border-teal-100 bg-[#F0FDFA]/60 p-6 hover:border-teal-300 transition"
-                  >
-                    <div className="h-10 w-10 rounded-xl bg-teal-700 text-white flex items-center justify-center mb-4">
-                      <Icon className="h-5 w-5" />
+                  <div key={feature.title} className="feature-item opacity-0">
+                    <div className="h-11 w-11 rounded-xl bg-brand text-white flex items-center justify-center mb-4">
+                      <Icon className="h-5 w-5" aria-hidden />
                     </div>
-                    <h4 className="font-semibold text-teal-950 mb-2">{feature.title}</h4>
-                    <p className="text-sm text-teal-900/70 leading-relaxed">
+                    <h3 className="font-heading font-semibold text-ink text-lg mb-2">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm text-slate-600 leading-relaxed">
                       {feature.description}
                     </p>
                   </div>
@@ -185,35 +215,41 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Consultório demo */}
         <PsicologaInfo />
 
-        {/* Contato demo */}
         <section className="py-16 bg-white">
           <div className="max-w-6xl mx-auto px-4">
-            <h3 className="text-3xl font-bold text-center text-teal-950 mb-4">
+            <h2 className="font-heading text-3xl font-bold text-center text-ink mb-3">
               Contato da demonstração
-            </h3>
-            <p className="text-center text-teal-900/60 mb-12 text-sm">
+            </h2>
+            <p className="text-center text-slate-500 mb-12 text-sm">
               Dados fictícios — apenas para ilustrar o produto.
             </p>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-10">
               <div className="text-center">
-                <Phone className="h-10 w-10 text-teal-700 mx-auto mb-4" />
-                <h4 className="text-lg font-semibold text-teal-950 mb-2">Telefone</h4>
-                <p className="text-teal-900/70">{siteConfig.contact.phone}</p>
+                <Phone className="h-9 w-9 text-brand mx-auto mb-3" aria-hidden />
+                <h3 className="font-heading font-semibold text-ink mb-1">
+                  Telefone
+                </h3>
+                <p className="text-slate-600">{siteConfig.contact.phone}</p>
               </div>
               <div className="text-center">
-                <Mail className="h-10 w-10 text-teal-700 mx-auto mb-4" />
-                <h4 className="text-lg font-semibold text-teal-950 mb-2">E-mail</h4>
-                <p className="text-teal-900/70">{siteConfig.contact.email}</p>
+                <Mail className="h-9 w-9 text-brand mx-auto mb-3" aria-hidden />
+                <h3 className="font-heading font-semibold text-ink mb-1">
+                  E-mail
+                </h3>
+                <p className="text-slate-600">{siteConfig.contact.email}</p>
               </div>
               <div className="text-center">
-                <MapPin className="h-10 w-10 text-teal-700 mx-auto mb-4" />
-                <h4 className="text-lg font-semibold text-teal-950 mb-2">Endereço</h4>
+                <MapPin className="h-9 w-9 text-brand mx-auto mb-3" aria-hidden />
+                <h3 className="font-heading font-semibold text-ink mb-1">
+                  Endereço
+                </h3>
                 <p
-                  className="text-teal-900/70"
-                  dangerouslySetInnerHTML={{ __html: siteConfig.contact.addressHtml }}
+                  className="text-slate-600"
+                  dangerouslySetInnerHTML={{
+                    __html: siteConfig.contact.addressHtml,
+                  }}
                 />
               </div>
             </div>
@@ -223,21 +259,23 @@ export default function Home() {
         <Faq />
       </main>
 
-      <footer className="bg-teal-950 text-white py-8">
+      <footer className="bg-brand-900 text-white py-10">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="text-teal-100/90">
-            © {new Date().getFullYear()} {siteConfig.productName} · Demo com{' '}
-            {siteConfig.professionalName} (CRP {siteConfig.crp})
+          <p className="font-heading font-semibold text-lg mb-2">
+            {siteConfig.productName}
+          </p>
+          <p className="text-teal-100/90 text-sm">
+            © {new Date().getFullYear()} · Demo com {siteConfig.professionalName}{' '}
+            (CRP {siteConfig.crp})
           </p>
           <p className="text-teal-200/60 text-sm mt-2">
-            Showcase de portfólio. Em conformidade com boas práticas de LGPD —
-            não use dados reais de pacientes nesta demo.
+            Showcase de portfólio. Não use dados reais de pacientes nesta demo.
           </p>
         </div>
       </footer>
 
       {showAgendamento && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-[6px]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-slate-900/40 backdrop-blur-[6px]">
           <div
             data-cy="agendamento-modal"
             className="agendamento-modal relative w-full h-full sm:h-auto sm:max-h-[98vh] sm:max-w-[900px] bg-white rounded-none sm:rounded-2xl shadow-2xl overflow-y-auto p-0"
@@ -251,17 +289,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
-      <LoginModal
-        showModal={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onOpenSignUp={handleOpenSignUp}
-      />
-      <SignUpModal
-        showModal={showSignUpModal}
-        onClose={handleCloseSignUp}
-        onOpenLogin={handleOpenLogin}
-      />
     </div>
   );
 }

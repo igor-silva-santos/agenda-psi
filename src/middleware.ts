@@ -1,44 +1,48 @@
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+import { DEMO_ROLE_COOKIE, isDemoRole } from '@/lib/demo-auth';
 
-export default withAuth(
-  function middleware(req) {
-    // Apenas autenticação e role
-    const token = req.nextauth.token;
-    if (!token) {
-      return NextResponse.redirect(new URL("/conta/login", req.url));
-    }
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const demoRole = req.cookies.get(DEMO_ROLE_COOKIE)?.value;
 
-    // Verificar se o usuário tem role válido
-    if (!token.role) {
-      return NextResponse.redirect(new URL("/conta/login", req.url));
+  // Showcase: cookie demo libera acesso sem sessão real
+  if (isDemoRole(demoRole)) {
+    if (pathname.startsWith('/admin') && demoRole !== 'ADMIN') {
+      return NextResponse.redirect(
+        new URL('/conta/login?msg=faça-login-primeiro', req.url),
+      );
     }
-
-    if (
-      req.nextUrl.pathname.startsWith("/portal") &&
-      token?.role !== "PACIENTE" &&
-      token?.role !== "ADMIN"
-    ) {
-      return NextResponse.redirect(new URL("/conta/login", req.url));
-    }
-
-    if (
-      req.nextUrl.pathname.startsWith("/admin") &&
-      token?.role !== "ADMIN"
-    ) {
-      return NextResponse.redirect(new URL("/conta/login", req.url));
-    }
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token,
-    },
-    pages: {
-      signIn: "/conta/login",
-    },
+    return NextResponse.next();
   }
-);
+
+  // Fallback: NextAuth JWT se existir
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  if (!token?.role) {
+    return NextResponse.redirect(
+      new URL('/conta/login?msg=faça-login-primeiro', req.url),
+    );
+  }
+
+  if (
+    pathname.startsWith('/portal') &&
+    token.role !== 'PACIENTE' &&
+    token.role !== 'ADMIN'
+  ) {
+    return NextResponse.redirect(new URL('/conta/login', req.url));
+  }
+
+  if (pathname.startsWith('/admin') && token.role !== 'ADMIN') {
+    return NextResponse.redirect(new URL('/conta/login', req.url));
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: ["/portal/:path*", "/admin/:path*"],
+  matcher: ['/portal/:path*', '/admin/:path*'],
 };

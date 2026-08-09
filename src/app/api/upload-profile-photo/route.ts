@@ -1,20 +1,21 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client with service_role key
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+let supabaseAdmin: SupabaseClient | null = null;
+
+function getSupabaseAdmin(): SupabaseClient {
+  if (supabaseAdmin) return supabaseAdmin;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+  }
+  supabaseAdmin = createClient(url, key);
+  return supabaseAdmin;
+}
 
 export async function POST(request: Request) {
   try {
-    // --- DEBUG LOGS ---
-    console.log('--- DEBUG: UPLOAD API CALLED ---');
-    console.log('NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log('SUPABASE_SERVICE_ROLE_KEY (first 5 chars):', process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 5));
-    // --- END DEBUG LOGS ---
-
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const userId = formData.get('userId') as string; // Assuming userId is also sent
@@ -30,13 +31,12 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const { error: uploadError } = await supabaseAdmin.storage
+    const { error: uploadError } = await getSupabaseAdmin().storage
       .from('avatars')
       .upload(filePath, buffer, {
         contentType: file.type,
         upsert: true, // Allow updating existing files
       });
-
     if (uploadError) {
       // --- DEBUG LOGS ---
       console.error('--- DEBUG: SUPABASE UPLOAD ERROR ---');
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       throw uploadError; // Re-throw to be caught by the outer catch block
     }
 
-    const { data } = supabaseAdmin.storage
+    const { data } = getSupabaseAdmin().storage
       .from('avatars')
       .getPublicUrl(filePath);
 
