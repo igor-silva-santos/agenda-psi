@@ -2,7 +2,7 @@
 
 SaaS de agenda, portal do paciente e gestão para consultórios de psicologia — showcase de portfólio.
 
-**Demo:** https://psicologa-agendamento.vercel.app  
+**Demo:** https://psicologa-agendamento-cyan.vercel.app  
 **Código:** https://github.com/igor-silva-santos/agenda-psi
 
 ## Stack

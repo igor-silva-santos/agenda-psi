@@ -37,7 +37,7 @@ export const siteConfig = {
   },
 
   urls: {
-    site: env('NEXT_PUBLIC_SITE_URL', 'https://psicologa-agendamento.vercel.app'),
+    site: env('NEXT_PUBLIC_SITE_URL', 'https://psicologa-agendamento-cyan.vercel.app'),
     portfolio: 'https://portifolio-igor-silva-santos.vercel.app',
   },
 
