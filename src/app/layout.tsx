@@ -53,6 +53,13 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  icons: {
+    icon: [
+      { url: siteConfig.assets.favicon, sizes: 'any' },
+      { url: siteConfig.assets.faviconSvg, type: 'image/svg+xml' },
+    ],
+    apple: siteConfig.assets.appleTouchIcon,
+  },
 };
 
 export default function RootLayout({
@@ -63,7 +70,6 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
-        <link rel="icon" href={siteConfig.assets.logo} type="image/svg+xml" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content={siteConfig.themeColor} />
       </head>

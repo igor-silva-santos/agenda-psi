@@ -44,6 +44,9 @@ export const siteConfig = {
   assets: {
     logo: '/logo-agendapsi.svg',
     avatar: '/profissional-demo.svg',
+    favicon: '/favicon.ico',
+    faviconSvg: '/favicon.svg',
+    appleTouchIcon: '/apple-touch-icon.png',
   },
 
   themeColor: '#0F766E',
