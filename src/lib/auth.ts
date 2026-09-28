@@ -2,6 +2,10 @@ import type { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { demoUsers, isDemoRole, type DemoRole } from '@/lib/demo-auth';
 
+/** Mesmo valor em middleware e getToken — evita JWT ilegível quando .env está vazio na demo. */
+export const nextAuthSecret =
+  process.env.NEXTAUTH_SECRET || 'agendapsi-demo-secret';
+
 /**
  * NextAuth em modo demonstração de portfólio.
  * Aceita qualquer credencial e retorna role conforme `demoRole` (ADMIN|PACIENTE).
@@ -62,5 +66,5 @@ export const authOptions: AuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET || 'agendapsi-demo-secret',
+  secret: nextAuthSecret,
 };
