@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { nextAuthSecret } from '@/lib/auth';
 import { DEMO_ROLE_COOKIE, isDemoRole } from '@/lib/demo-auth';
 import { demoApiResponse } from '@/lib/demo-api-responses';
 import { isDemoMode } from '@/lib/demo-mode';
 
+function isPublicApiRoute(pathname: string): boolean {
+  return (
+    pathname.startsWith('/api/auth/') || pathname === '/api/demo-login'
+  );
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // NextAuth (session, signIn, callbacks) precisa responder JSON — não redirecionar para HTML
+  if (isPublicApiRoute(pathname)) {
+    return NextResponse.next();
+  }
 
   // Modo demo: APIs mockadas sem Supabase
   if (isDemoMode() && pathname.startsWith('/api/')) {
@@ -27,7 +39,7 @@ export async function middleware(req: NextRequest) {
   // Fallback: NextAuth JWT se existir
   const token = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: nextAuthSecret,
   });
 
   if (!token?.role) {
